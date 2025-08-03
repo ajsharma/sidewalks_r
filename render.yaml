@@ -3,7 +3,7 @@ services:
     name: sidewalks
     runtime: ruby
     plan: free
-    buildCommand: './bin/render-build.sh'
+    buildCommand: './bin/render/build'
     startCommand: './bin/rails server'
     envVars:
       - key: DATABASE_URL
@@ -14,7 +14,7 @@ services:
         sync: false
       - key: WEB_CONCURRENCY
         value: 2
-        
+
 databases:
   - name: sidewalks_production
     plan: free
