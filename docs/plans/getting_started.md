@@ -10,11 +10,7 @@ Modern tech stack recommendation that emphasizes best practices, performance, an
 - Excellent developer experience with hot reloading
 
 ## Backend & Database
-**PostgreSQL** with **Drizzle ORM**
-- Type-safe database queries with excellent TypeScript integration
-- Better performance than Prisma for complex queries
-- Schema migrations and introspection
-- Perfect for your activity scheduling data model
+**PostgreSQL** with Ruby on Rails
 
 ## Styling & UI
 **Tailwind CSS** + **shadcn/ui**
@@ -24,7 +20,7 @@ Modern tech stack recommendation that emphasizes best practices, performance, an
 - Easy to customize and maintain
 
 ## Authentication & API Integration
-**NextAuth.js v5** (Auth.js)
+**Devise** and **OmniAuth**
 - Seamless Google OAuth integration for calendar access
 - Built-in session management
 - TypeScript support
