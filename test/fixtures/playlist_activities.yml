@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  playlist: one
+  activity: one
+  position: 1
+  archived_at: 2025-09-16 15:14:24
+
+two:
+  playlist: two
+  activity: two
+  position: 1
+  archived_at: 2025-09-16 15:14:24
