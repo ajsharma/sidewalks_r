@@ -23,8 +23,7 @@ class Playlist < ApplicationRecord
   end
 
   def ordered_activities
-    activities.joins(:playlist_activities)
-              .where(playlist_activities: { archived_at: nil })
+    activities.where(playlist_activities: { archived_at: nil })
               .order('playlist_activities.position ASC')
   end
 

@@ -9,6 +9,7 @@ class User < ApplicationRecord
   validates :slug, presence: true, uniqueness: true
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  after_create :populate_starter_content
 
   has_many :google_accounts, dependent: :destroy
   has_many :activities, dependent: :destroy
@@ -30,11 +31,16 @@ class User < ApplicationRecord
 
   # Find or create user from OAuth data
   def self.from_omniauth(auth)
-    where(email: auth.info.email).first_or_create do |user|
-      user.email = auth.info.email
-      user.name = auth.info.name
-      user.password = Devise.friendly_token[0, 20]
+    user = where(email: auth.info.email).first_or_create do |new_user|
+      new_user.email = auth.info.email
+      new_user.name = auth.info.name
+      new_user.password = Devise.friendly_token[0, 20]
     end
+
+    # Ensure existing users also get starter content if they don't have any
+    UserOnboardingService.populate_starter_content(user) if user.persisted?
+
+    user
   end
 
   # Create or update Google account from OAuth data (idempotent)
@@ -58,6 +64,10 @@ class User < ApplicationRecord
   end
 
   private
+
+  def populate_starter_content
+    UserOnboardingService.populate_starter_content(self)
+  end
 
   def generate_slug
     base_slug = name.parameterize

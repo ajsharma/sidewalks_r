@@ -1,0 +1,89 @@
+activities:
+  - name: "Morning Walk"
+    description: "Start your day with a refreshing 20-30 minute walk around your neighborhood. Great for clearing your mind and getting some light exercise."
+    schedule_type: "flexible"
+    max_frequency_days: 1
+    activity_links:
+      - "https://www.mayoclinic.org/healthy-lifestyle/fitness/in-depth/walking/art-20046261"
+
+  - name: "Weekly Team Meeting"
+    description: "Regular team sync to discuss progress, blockers, and upcoming priorities. Essential for staying aligned with team goals."
+    schedule_type: "strict"
+    start_time: "+1.day 10:00"
+    end_time: "+1.day 11:00"
+    max_frequency_days: 30
+
+  - name: "Read for 30 Minutes"
+    description: "Dedicate time to reading books, articles, or educational content. Helps with continuous learning and personal development."
+    schedule_type: "flexible"
+    max_frequency_days: 1
+    activity_links:
+      - "https://www.goodreads.com"
+
+  - name: "Complete Project Proposal"
+    description: "Finish writing and reviewing the Q1 project proposal. Include budget estimates, timeline, and resource requirements."
+    schedule_type: "deadline"
+    deadline: "+5.days 17:00"
+    max_frequency_days:
+    activity_links:
+      - "https://docs.google.com/document/d/example"
+
+  - name: "Yoga Session"
+    description: "30-45 minute yoga practice for flexibility, strength, and mindfulness. Can be done at home or in a studio."
+    schedule_type: "flexible"
+    max_frequency_days: 1
+    activity_links:
+      - "https://www.youtube.com/c/yogawithadriene"
+
+  - name: "Grocery Shopping"
+    description: "Weekly grocery run to stock up on essentials. Plan meals ahead and make a list to stay organized."
+    schedule_type: "flexible"
+    max_frequency_days: 30
+
+  - name: "Client Presentation"
+    description: "Present quarterly results and future strategy to key stakeholders. Prepare slides and practice delivery."
+    schedule_type: "strict"
+    start_time: "+4.days 14:00"
+    end_time: "+4.days 15:30"
+    max_frequency_days:
+
+  - name: "Learn New Skill"
+    description: "Spend time learning something new - could be coding, language, instrument, or any skill you're interested in developing."
+    schedule_type: "flexible"
+    max_frequency_days: 1
+    activity_links:
+      - "https://www.coursera.org"
+      - "https://www.udemy.com"
+
+  - name: "Call Family"
+    description: "Catch up with family members. Stay connected and maintain relationships with regular check-ins."
+    schedule_type: "flexible"
+    max_frequency_days: 30
+
+  - name: "Submit Tax Documents"
+    description: "Gather and submit all required tax documentation. Don't forget receipts, W-2s, and investment statements."
+    schedule_type: "deadline"
+    deadline: "+90.days 23:59"
+    max_frequency_days:
+
+playlists:
+  - name: "Daily Wellness"
+    description: "Activities to maintain physical and mental health throughout the week."
+    activities:
+      - "Morning Walk"
+      - "Yoga Session"
+      - "Read for 30 Minutes"
+
+  - name: "Work Priorities"
+    description: "Professional tasks and meetings that need attention this month."
+    activities:
+      - "Weekly Team Meeting"
+      - "Complete Project Proposal"
+      - "Client Presentation"
+
+  - name: "Personal Growth"
+    description: "Activities focused on learning, development, and maintaining relationships."
+    activities:
+      - "Learn New Skill"
+      - "Call Family"
+      - "Read for 30 Minutes"
