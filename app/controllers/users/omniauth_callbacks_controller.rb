@@ -5,6 +5,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     # Step 1: Find or create user (idempotent)
     @user = User.from_omniauth(auth_data)
 
+    # TODO: make this a saga pattern to handle multi-step process with rollbacks on failure
     if @user.persisted?
       begin
         # Step 2: Update or create Google account (idempotent)
@@ -14,6 +15,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         message = google_account.created_at == google_account.updated_at ?
                   "Google Calendar access granted successfully!" :
                   "Google Calendar access refreshed successfully!"
+
+        # Step 3: Populate starter content if user is new and has no content
+        UserOnboardingService.populate_starter_content(user)
 
         flash[:notice] = message
         sign_in_and_redirect @user, event: :authentication

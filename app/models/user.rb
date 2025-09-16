@@ -9,7 +9,6 @@ class User < ApplicationRecord
   validates :slug, presence: true, uniqueness: true
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
-  after_create :populate_starter_content
 
   has_many :google_accounts, dependent: :destroy
   has_many :activities, dependent: :destroy
@@ -37,9 +36,6 @@ class User < ApplicationRecord
       new_user.password = Devise.friendly_token[0, 20]
     end
 
-    # Ensure existing users also get starter content if they don't have any
-    UserOnboardingService.populate_starter_content(user) if user.persisted?
-
     user
   end
 
@@ -64,10 +60,6 @@ class User < ApplicationRecord
   end
 
   private
-
-  def populate_starter_content
-    UserOnboardingService.populate_starter_content(self)
-  end
 
   def generate_slug
     base_slug = name.parameterize
