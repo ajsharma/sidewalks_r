@@ -28,6 +28,35 @@ class User < ApplicationRecord
     slug
   end
 
+  # Find or create user from OAuth data
+  def self.from_omniauth(auth)
+    where(email: auth.info.email).first_or_create do |user|
+      user.email = auth.info.email
+      user.name = auth.info.name
+      user.password = Devise.friendly_token[0, 20]
+    end
+  end
+
+  # Create or update Google account from OAuth data (idempotent)
+  def update_google_account(auth)
+    google_account = google_accounts.find_or_initialize_by(google_id: auth.uid)
+
+    # Always update with latest token data to ensure fresh credentials
+    attributes = {
+      email: auth.info.email,
+      access_token: auth.credentials.token,
+      expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
+    }
+
+    # Only update refresh_token if we have a new one (Google doesn't always provide it)
+    if auth.credentials.refresh_token.present?
+      attributes[:refresh_token] = auth.credentials.refresh_token
+    end
+
+    google_account.update!(attributes)
+    google_account
+  end
+
   private
 
   def generate_slug
@@ -41,28 +70,5 @@ class User < ApplicationRecord
     end
 
     self.slug = potential_slug
-  end
-
-  # Find or create user from OAuth data
-  def self.from_omniauth(auth)
-    where(email: auth.info.email).first_or_create do |user|
-      user.email = auth.info.email
-      user.name = auth.info.name
-      user.password = Devise.friendly_token[0, 20]
-    end
-  end
-
-  # Create or update Google account from OAuth data
-  def update_google_account(auth)
-    google_account = google_accounts.find_or_initialize_by(google_id: auth.uid)
-
-    google_account.update!(
-      email: auth.info.email,
-      access_token: auth.credentials.token,
-      refresh_token: auth.credentials.refresh_token,
-      expires_at: auth.credentials.expires_at ? Time.at(auth.credentials.expires_at) : nil
-    )
-
-    google_account
   end
 end
