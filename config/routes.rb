@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   # RESTful resources
   resources :activities
+  resources :playlists
 
   get "home/index"
 

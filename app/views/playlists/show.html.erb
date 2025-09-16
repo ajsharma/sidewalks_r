@@ -1,0 +1,117 @@
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @playlist.name %></h1>
+          <div class="flex items-center mt-2 space-x-4">
+            <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              <%= pluralize(@activities.count, 'activity') %>
+            </span>
+            <span class="text-sm text-gray-500">
+              Created <%= @playlist.created_at.strftime("%B %d, %Y") %>
+            </span>
+          </div>
+        </div>
+        <% if @playlist.user == current_user %>
+          <div class="flex space-x-2">
+            <%= link_to "Edit", edit_playlist_path(@playlist),
+                class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+            <%= link_to "Archive", @playlist, method: :delete,
+                confirm: "Are you sure you want to archive this playlist?",
+                class: "bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="px-6 py-6">
+      <% if @playlist.description.present? %>
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+          <p class="text-gray-700 leading-relaxed"><%= simple_format(@playlist.description) %></p>
+        </div>
+      <% end %>
+
+      <!-- Activities List -->
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900">Activities</h3>
+          <% if @playlist.user == current_user %>
+            <%= link_to "Add Activities", "#",
+                class: "text-blue-600 hover:text-blue-800 text-sm font-medium" %>
+          <% end %>
+        </div>
+
+        <% if @activities.any? %>
+          <div class="space-y-4">
+            <% @activities.each_with_index do |activity, index| %>
+              <div class="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium mr-4">
+                  <%= index + 1 %>
+                </div>
+
+                <div class="flex-grow">
+                  <h4 class="font-medium text-gray-900">
+                    <%= link_to activity.name, activity, class: "hover:text-blue-600" %>
+                  </h4>
+                  <div class="flex items-center mt-1 space-x-3">
+                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                      <%= case activity.schedule_type
+                          when 'strict' then 'bg-red-100 text-red-800'
+                          when 'flexible' then 'bg-green-100 text-green-800'
+                          when 'deadline' then 'bg-yellow-100 text-yellow-800'
+                          end %>">
+                      <%= activity.schedule_type.capitalize %>
+                    </span>
+                    <% if activity.start_time.present? %>
+                      <span class="text-xs text-gray-500">
+                        <%= activity.start_time.strftime("%b %d, %Y") %>
+                      </span>
+                    <% elsif activity.deadline.present? %>
+                      <span class="text-xs text-gray-500">
+                        Due <%= activity.deadline.strftime("%b %d, %Y") %>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+
+                <% if @playlist.user == current_user %>
+                  <div class="flex-shrink-0 ml-4">
+                    <%= link_to "Remove", "#",
+                        class: "text-red-600 hover:text-red-800 text-sm font-medium" %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8 bg-gray-50 rounded-lg">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            <h4 class="text-gray-900 font-medium mb-1">No activities yet</h4>
+            <p class="text-gray-600 text-sm mb-4">Start building your playlist by adding activities.</p>
+            <% if @playlist.user == current_user %>
+              <%= link_to "Add Your First Activity", "#",
+                  class: "text-blue-600 hover:text-blue-800 font-medium" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div class="flex justify-between items-center">
+        <%= link_to "← Back to Playlists", playlists_path,
+            class: "text-gray-600 hover:text-gray-800 font-medium" %>
+        <div class="text-sm text-gray-500">
+          Last updated <%= @playlist.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
