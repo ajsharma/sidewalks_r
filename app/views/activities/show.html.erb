@@ -1,0 +1,136 @@
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+    <!-- Header -->
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900"><%= @activity.name %></h1>
+          <div class="flex items-center mt-2 space-x-4">
+            <span class="px-3 py-1 text-sm font-medium rounded-full
+              <%= case @activity.schedule_type
+                  when 'strict' then 'bg-red-100 text-red-800'
+                  when 'flexible' then 'bg-green-100 text-green-800'
+                  when 'deadline' then 'bg-yellow-100 text-yellow-800'
+                  end %>">
+              <%= @activity.schedule_type.capitalize %> Schedule
+            </span>
+            <span class="text-sm text-gray-500">
+              Created <%= @activity.created_at.strftime("%B %d, %Y") %>
+            </span>
+          </div>
+        </div>
+        <% if @activity.user == current_user %>
+          <div class="flex space-x-2">
+            <%= link_to "Edit", edit_activity_path(@activity),
+                class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+            <%= link_to "Archive", @activity, method: :delete,
+                confirm: "Are you sure you want to archive this activity?",
+                class: "bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="px-6 py-6">
+      <% if @activity.description.present? %>
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+          <p class="text-gray-700 leading-relaxed"><%= simple_format(@activity.description) %></p>
+        </div>
+      <% end %>
+
+      <!-- Schedule Information -->
+      <div class="mb-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">Schedule</h3>
+        <div class="bg-gray-50 rounded-lg p-4">
+          <% if @activity.strict_schedule? %>
+            <% if @activity.start_time.present? %>
+              <div class="flex items-center mb-2">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-gray-700">
+                  <strong>Start:</strong> <%= @activity.start_time.strftime("%A, %B %d, %Y at %I:%M %p") %>
+                </span>
+              </div>
+            <% end %>
+            <% if @activity.end_time.present? %>
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-gray-700">
+                  <strong>End:</strong> <%= @activity.end_time.strftime("%A, %B %d, %Y at %I:%M %p") %>
+                </span>
+              </div>
+            <% end %>
+          <% elsif @activity.deadline_based? %>
+            <% if @activity.deadline.present? %>
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-gray-700">
+                  <strong>Must complete by:</strong> <%= @activity.deadline.strftime("%A, %B %d, %Y") %>
+                  <% if @activity.expired? %>
+                    <span class="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded">Expired</span>
+                  <% end %>
+                </span>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-gray-700">Can be scheduled flexibly</span>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Frequency -->
+      <% if @activity.max_frequency_days.present? %>
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Repeat Frequency</h3>
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span class="text-gray-700"><%= @activity.max_frequency_description %></span>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Links -->
+      <% if @activity.activity_links.any? %>
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-3">Related Links</h3>
+          <div class="space-y-2">
+            <% @activity.activity_links.each do |link| %>
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                <%= link_to link, link, target: "_blank", rel: "noopener",
+                    class: "text-blue-600 hover:text-blue-800 hover:underline" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div class="flex justify-between items-center">
+        <%= link_to "← Back to Activities", activities_path,
+            class: "text-gray-600 hover:text-gray-800 font-medium" %>
+        <div class="text-sm text-gray-500">
+          Last updated <%= @activity.updated_at.strftime("%B %d, %Y at %I:%M %p") %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
