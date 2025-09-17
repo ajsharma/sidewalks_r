@@ -58,15 +58,18 @@ class User < ApplicationRecord
     credentials = auth.credentials
 
     # Always update with latest token data to ensure fresh credentials
+    expires_at = credentials.expires_at
+    refresh_token = credentials.refresh_token
+
     attributes = {
       email: auth.info.email,
       access_token: credentials.token,
-      expires_at: credentials.expires_at ? Time.at(credentials.expires_at) : nil
+      expires_at: expires_at ? Time.at(expires_at) : nil
     }
 
     # Only update refresh_token if we have a new one (Google doesn't always provide it)
-    if credentials.refresh_token.present?
-      attributes[:refresh_token] = credentials.refresh_token
+    if refresh_token.present?
+      attributes[:refresh_token] = refresh_token
     end
 
     google_account.update!(attributes)
