@@ -1,3 +1,5 @@
+# Model representing user activities for scheduling and management.
+# Handles different schedule types, validation, and archiving functionality.
 class Activity < ApplicationRecord
   belongs_to :user
 
@@ -28,6 +30,10 @@ class Activity < ApplicationRecord
   # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def archive
+    update(archived_at: Time.current)
   end
 
   # Returns the slug for URL parameter usage

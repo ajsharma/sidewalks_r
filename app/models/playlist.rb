@@ -1,3 +1,5 @@
+# Model representing a collection of activities organized by users.
+# Handles activity ordering, management, and archiving functionality.
 class Playlist < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
@@ -16,6 +18,10 @@ class Playlist < ApplicationRecord
 
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def archive
+    update(archived_at: Time.current)
   end
 
   def to_param

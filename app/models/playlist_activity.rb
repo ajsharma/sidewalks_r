@@ -1,3 +1,5 @@
+# Join model connecting playlists and activities.
+# Handles position ordering and archiving of playlist items.
 class PlaylistActivity < ApplicationRecord
   belongs_to :playlist
   belongs_to :activity
@@ -9,5 +11,9 @@ class PlaylistActivity < ApplicationRecord
 
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def archive
+    update(archived_at: Time.current)
   end
 end

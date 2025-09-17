@@ -31,8 +31,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def failure
-    Rails.logger.error "OAuth failure: #{params[:message]} - #{params[:error_description]}"
-    flash[:alert] = "Authentication failed: #{params[:message]}"
+    error_message = params[:message]
+    Rails.logger.error "OAuth failure: #{error_message} - #{params[:error_description]}"
+    flash[:alert] = "Authentication failed: #{error_message}"
     redirect_to root_path
   end
 end

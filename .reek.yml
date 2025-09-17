@@ -34,3 +34,21 @@ detectors:
 
   UtilityFunction:
     public_methods_only: true # Only warn on public utility functions
+
+  InstanceVariableAssumption:
+    exclude:
+      - "*Controller" # Rails controllers commonly use instance variables
+
+  UncommunicativeMethodName:
+    accept:
+      - google_oauth2 # OAuth provider callback method name
+
+  TooManyMethods:
+    max_methods: 20 # Allow more methods for complex Rails classes
+
+  TooManyStatements:
+    max_statements: 15
+
+  RepeatedConditional:
+    exclude:
+      - AgendaProposedEvent # Domain objects may have repeated conditionals

@@ -30,6 +30,10 @@ class User < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
+  def archive
+    update(archived_at: Time.current)
+  end
+
   def to_param
     slug
   end

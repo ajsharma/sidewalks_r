@@ -129,6 +129,18 @@ class GoogleCalendarService
     @service.authorization = build_authorization
   end
 
+  def authorize
+    if @google_account.needs_refresh?
+      refresh_access_token
+    end
+
+    @service.authorization = build_authorization
+    true
+  rescue => e
+    Rails.logger.error "Google Calendar authorization failed: #{e.message}"
+    false
+  end
+
   # Build the authorization object
   def build_authorization
     google_credentials = Rails.application.credentials.google
