@@ -60,7 +60,7 @@ class PlaylistsController < ApplicationController
   private
 
   def set_playlist
-    @playlist = Playlist.active.find_by!(slug: params[:id])
+    @playlist = current_user.playlists.active.find_by!(slug: params[:id])
   end
 
   def ensure_owner

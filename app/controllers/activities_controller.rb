@@ -61,7 +61,7 @@ class ActivitiesController < ApplicationController
   private
 
   def set_activity
-    @activity = Activity.active.find_by!(slug: params[:id])
+    @activity = current_user.activities.active.find_by!(slug: params[:id])
   end
 
   def ensure_owner
