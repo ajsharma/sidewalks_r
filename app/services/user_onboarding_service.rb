@@ -1,4 +1,7 @@
 class UserOnboardingService
+  # Populates starter content for new users if they have no existing activities or playlists
+  # @param user [User] the user to populate content for
+  # @return [void] creates activities and playlists, logs results
   def self.populate_starter_content(user)
     return if user.activities.exists? || user.playlists.exists?
 

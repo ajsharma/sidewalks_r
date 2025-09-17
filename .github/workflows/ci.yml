@@ -53,6 +53,9 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+      - name: Check YARD documentation
+        run: bundle exec yardoc --no-output --no-cache --fail-on-warning
+
   test:
     runs-on: ubuntu-latest
 

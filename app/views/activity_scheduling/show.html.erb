@@ -33,33 +33,33 @@
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
       <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
         <h3 class="text-sm font-medium text-gray-500">Total Activities</h3>
-        <p class="text-2xl font-bold text-gray-900"><%= @agenda.summary[:total_suggestions] %></p>
+        <p class="text-2xl font-bold text-gray-900"><%= @agenda.summary.total_suggestions %></p>
       </div>
 
       <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
         <h3 class="text-sm font-medium text-gray-500">Strict Schedule</h3>
-        <p class="text-2xl font-bold text-red-600"><%= @agenda.summary[:suggestions_by_type]['strict'] || 0 %></p>
+        <p class="text-2xl font-bold text-red-600"><%= @agenda.summary.suggestions_by_type['strict'] || 0 %></p>
       </div>
 
       <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
         <h3 class="text-sm font-medium text-gray-500">Flexible</h3>
-        <p class="text-2xl font-bold text-green-600"><%= @agenda.summary[:suggestions_by_type]['flexible'] || 0 %></p>
+        <p class="text-2xl font-bold text-green-600"><%= @agenda.summary.suggestions_by_type['flexible'] || 0 %></p>
       </div>
 
       <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
         <h3 class="text-sm font-medium text-gray-500">Deadlines</h3>
-        <p class="text-2xl font-bold text-yellow-600"><%= @agenda.summary[:suggestions_by_type]['deadline'] || 0 %></p>
+        <p class="text-2xl font-bold text-yellow-600"><%= @agenda.summary.suggestions_by_type['deadline'] || 0 %></p>
       </div>
 
       <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
         <h3 class="text-sm font-medium text-gray-500">Calendar Events</h3>
-        <p class="text-2xl font-bold text-gray-600"><%= @agenda.summary[:total_existing] %></p>
+        <p class="text-2xl font-bold text-gray-600"><%= @agenda.summary.total_existing %></p>
       </div>
     </div>
   <% end %>
 
   <!-- Urgent Deadlines Alert -->
-  <% if @agenda.summary[:urgent_deadlines].any? %>
+  <% if @agenda.summary.urgent_deadlines.any? %>
     <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
       <div class="flex items-center">
         <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@
         <h3 class="text-red-800 font-medium">Urgent Activities Detected</h3>
       </div>
       <p class="text-red-700 text-sm mt-1">
-        You have <%= @agenda.summary[:urgent_deadlines].count %> activities with upcoming or overdue deadlines that need immediate attention.
+        You have <%= @agenda.summary.urgent_deadlines.count %> activities with upcoming or overdue deadlines that need immediate attention.
       </p>
     </div>
   <% end %>
