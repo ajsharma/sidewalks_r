@@ -17,7 +17,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
                   "Google Calendar access refreshed successfully!"
 
         # Step 3: Populate starter content if user is new and has no content
-        UserOnboardingService.populate_starter_content(user)
+        UserOnboardingService.populate_starter_content(@user)
 
         flash[:notice] = message
         sign_in_and_redirect @user, event: :authentication
