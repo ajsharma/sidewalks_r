@@ -215,10 +215,10 @@ class HealthController < ApplicationController
       usage_percent = stats[4].to_i
 
       status = case usage_percent
-               when 0..80 then "healthy"
-               when 81..90 then "warning"
-               else "unhealthy"
-               end
+      when 0..80 then "healthy"
+      when 81..90 then "warning"
+      else "unhealthy"
+      end
 
       {
         status: status,
@@ -250,10 +250,10 @@ class HealthController < ApplicationController
       end
 
       status = case usage_percent
-               when 0..80 then "healthy"
-               when 81..90 then "warning"
-               else "unhealthy"
-               end
+      when 0..80 then "healthy"
+      when 81..90 then "warning"
+      else "unhealthy"
+      end
 
       {
         status: status,
@@ -283,7 +283,7 @@ class HealthController < ApplicationController
       auth = Google::Auth::UserRefreshCredentials.new(
         client_id: Rails.application.credentials.google[:client_id],
         client_secret: Rails.application.credentials.google[:client_secret],
-        scope: ["https://www.googleapis.com/auth/calendar"],
+        scope: [ "https://www.googleapis.com/auth/calendar" ],
         refresh_token: recent_account.refresh_token
       )
 
@@ -320,15 +320,15 @@ class HealthController < ApplicationController
       # Check if Solid Queue is configured and working
       if defined?(SolidQueue)
         # First check if the tables exist
-        if ActiveRecord::Base.connection.table_exists?('solid_queue_jobs')
+        if ActiveRecord::Base.connection.table_exists?("solid_queue_jobs")
           failed_jobs = SolidQueue::FailedExecution.count
           pending_jobs = SolidQueue::Job.pending.count
 
           status = case
-                   when failed_jobs > 100 then "unhealthy"
-                   when failed_jobs > 10 then "warning"
-                   else "healthy"
-                   end
+          when failed_jobs > 100 then "unhealthy"
+          when failed_jobs > 10 then "warning"
+          else "healthy"
+          end
 
           {
             status: status,
