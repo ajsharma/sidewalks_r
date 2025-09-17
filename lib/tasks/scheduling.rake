@@ -62,9 +62,6 @@ namespace :scheduling do
     end
 
     puts "✓ Activity scheduling system test completed successfully"
-  rescue StandardError => e
-    puts "✗ Error: #{e.message}"
-    puts e.backtrace.join("\n")
   end
 
   desc "Generate sample scheduling report for all users"

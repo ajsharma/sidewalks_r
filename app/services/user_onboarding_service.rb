@@ -7,16 +7,11 @@ class UserOnboardingService
 
     Rails.logger.info "Populating starter content for user #{user.id} (#{user.email})"
 
-    begin
-      onboarding_data = load_onboarding_data
-      created_activities = create_activities(user, onboarding_data["activities"])
-      create_playlists(user, onboarding_data["playlists"], created_activities)
+    onboarding_data = load_onboarding_data
+    created_activities = create_activities(user, onboarding_data["activities"])
+    create_playlists(user, onboarding_data["playlists"], created_activities)
 
-      Rails.logger.info "Successfully created #{created_activities.size} activities and #{onboarding_data['playlists'].size} playlists for user #{user.id}"
-    rescue StandardError => e
-      Rails.logger.error "Failed to populate starter content for user #{user.id}: #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
-    end
+    Rails.logger.info "Successfully created #{created_activities.size} activities and #{onboarding_data['playlists'].size} playlists for user #{user.id}"
   end
 
   private
@@ -93,8 +88,5 @@ class UserOnboardingService
     minute = match[4].to_i
 
     Time.zone.now.beginning_of_day + days.days + hour.hours + minute.minutes
-  rescue StandardError => e
-    Rails.logger.warn "Failed to parse relative datetime '#{relative_string}': #{e.message}"
-    nil
   end
 end

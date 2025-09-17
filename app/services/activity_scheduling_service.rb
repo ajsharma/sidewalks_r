@@ -130,7 +130,7 @@ class ActivitySchedulingService
           end_time: suggestion.end_time,
           status: "created"
         }
-      rescue StandardError => e
+      rescue Google::Auth::AuthorizationError, Google::Apis::ClientError => e
         Rails.logger.error "Failed to create calendar event for activity #{suggestion.activity.id}: #{e.message}"
         created_events << {
           activity: suggestion.activity,
@@ -419,7 +419,7 @@ class ActivitySchedulingService
       end
 
       Rails.logger.info "Loaded #{existing_events.count} existing calendar events for conflict detection"
-    rescue StandardError => e
+    rescue Google::Auth::AuthorizationError => e
       Rails.logger.warn "Failed to load existing calendar events: #{e.message}"
       # Continue without conflict detection if calendar access fails
     end

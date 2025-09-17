@@ -29,10 +29,6 @@ class ActivitySchedulingController < ApplicationController
         redirect_to schedule_path, alert: "Created #{success_count} events, but #{failure_count} failed. Check your Google Calendar connection."
       end
     end
-  rescue StandardError => e
-    Rails.logger.error "Activity scheduling error: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
-    redirect_to schedule_path, alert: "Failed to process scheduling request: #{e.message}"
   end
 
   private
