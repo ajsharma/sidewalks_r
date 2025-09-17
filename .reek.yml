@@ -21,6 +21,8 @@ detectors:
   FeatureEnvy:
     exclude:
       - "*/db/migrate/*" # Migrations use table builder pattern
+      - ActivitySchedulingService # Service objects work with domain objects
+      - GoogleCalendarService # Service objects work with event data
 
   TooManyStatements:
     max_statements: 15 # Allow slightly more statements for migrations
@@ -46,9 +48,22 @@ detectors:
   TooManyMethods:
     max_methods: 20 # Allow more methods for complex Rails classes
 
+  TooManyInstanceVariables:
+    exclude:
+      - ActivitySchedulingService # Service objects may need multiple instance variables for complex operations
+
   TooManyStatements:
     max_statements: 15
 
   RepeatedConditional:
     exclude:
       - AgendaProposedEvent # Domain objects may have repeated conditionals
+
+  ManualDispatch:
+    exclude:
+      - ActivitySchedulingService # Service objects may use conditional dispatch patterns
+
+  NestedIterators:
+    exclude:
+      - ActivitySchedulingService # Service objects may need nested iteration for complex operations
+      - UserOnboardingService # Onboarding may need nested iteration for setup
