@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+require "fileutils"
+
+APP_ROOT = File.expand_path("..", __dir__)
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+FileUtils.chdir APP_ROOT do
+  puts "== Running setup =="
+  system! "bin/setup --skip-server"
+
+  puts "\n== Running tests =="
+  system! "bundle exec rake test"
+
+  puts "\n== Running security tests =="
+  system! "bin/brakeman"
+
+  # puts "\n== Regenerating swagger =="
+  # system! "bundle exec rake rswag:specs:swaggerize"
+
+  puts "\n== Running lints =="
+  system! "bundle exec rubocop -A"
+
+  puts "\n== All checks passed! =="
+end

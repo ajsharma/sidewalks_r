@@ -1,4 +1,22 @@
 Rails.application.routes.draw do
+  # Health check endpoints
+  get "health" => "health#index"
+  get "health/detailed" => "health#detailed"
+  get "health/ready" => "health#ready"
+  get "health/live" => "health#live"
+
+  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
+
+  # RESTful resources
+  resources :activities
+  resources :playlists
+
+  # Activity scheduling
+  get "schedule", to: "activity_scheduling#show"
+  post "schedule", to: "activity_scheduling#create"
+
+  get "home/index"
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -10,5 +28,10 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Defines the root path route ("/")
-  # root "posts#index"
+  root "home#index"
+
+  # Redirect authenticated users to activities
+  authenticated :user do
+    root to: "activities#index", as: :authenticated_root
+  end
 end

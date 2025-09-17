@@ -23,5 +23,8 @@ module Sidewalks
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+
+    # Track application start time for health checks and monitoring
+    config.start_time = Time.current
   end
 end

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  name: Morning Routine
+  slug: morning-routine
+  description: Activities for morning routine
+  archived_at:
+
+two:
+  user: two
+  name: Evening Routine
+  slug: evening-routine
+  description: Activities for evening routine
+  archived_at:

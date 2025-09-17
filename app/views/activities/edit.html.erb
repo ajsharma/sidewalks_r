@@ -1,0 +1,17 @@
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Edit Activity</h1>
+    <p class="text-gray-600 mt-2">Update the details for "<%= @activity.name %>"</p>
+  </div>
+
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6">
+    <%= render 'form', activity: @activity %>
+  </div>
+
+  <div class="mt-6 flex justify-between">
+    <%= link_to "View Activity", @activity, class: "text-blue-600 hover:text-blue-800 font-medium" %>
+    <%= link_to "Archive Activity", @activity, method: :delete,
+        confirm: "Are you sure you want to archive this activity? This action can be undone later.",
+        class: "text-red-600 hover:text-red-800 font-medium" %>
+  </div>
+</div>

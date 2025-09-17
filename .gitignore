@@ -38,3 +38,8 @@
 
 # MacOS files
 .DS_Store
+
+# SimpleCov coverage reports
+/coverage
+
+/config/credentials/test.key

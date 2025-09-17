@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  email: john@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password') %>
+  name: John Doe
+  slug: john-doe
+  timezone: America/Los_Angeles
+  archived_at:
+
+two:
+  email: jane@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password') %>
+  name: Jane Smith
+  slug: jane-smith
+  timezone: America/New_York
+  archived_at:
