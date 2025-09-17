@@ -84,19 +84,24 @@ class GoogleCalendarService
     event = @service.get_event(calendar_id, event_id)
     timezone = event_data[:timezone] || "America/Los_Angeles"
 
-    event.summary = event_data[:title] if event_data[:title]
-    event.description = event_data[:description] if event_data[:description]
+    title = event_data[:title]
+    description = event_data[:description]
+    start_time = event_data[:start_time]
+    end_time = event_data[:end_time]
 
-    if event_data[:start_time]
+    event.summary = title if title
+    event.description = description if description
+
+    if start_time
       event.start = Google::Apis::CalendarV3::EventDateTime.new(
-        date_time: event_data[:start_time].iso8601,
+        date_time: start_time.iso8601,
         time_zone: timezone
       )
     end
 
-    if event_data[:end_time]
+    if end_time
       event.end = Google::Apis::CalendarV3::EventDateTime.new(
-        date_time: event_data[:end_time].iso8601,
+        date_time: end_time.iso8601,
         time_zone: timezone
       )
     end
