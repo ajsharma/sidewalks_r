@@ -28,7 +28,7 @@
 
     <!-- Content -->
     <div class="px-6 py-6">
-      <% if @playlist.description.present? %>
+      <% if @playlist.description? %>
         <div class="mb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
           <p class="text-gray-700 leading-relaxed"><%= simple_format(@playlist.description) %></p>
@@ -66,11 +66,11 @@
                           end %>">
                       <%= activity.schedule_type.capitalize %>
                     </span>
-                    <% if activity.start_time.present? %>
+                    <% if activity.start_time? %>
                       <span class="text-xs text-gray-500">
                         <%= activity.start_time.strftime("%b %d, %Y") %>
                       </span>
-                    <% elsif activity.deadline.present? %>
+                    <% elsif activity.deadline? %>
                       <span class="text-xs text-gray-500">
                         Due <%= activity.deadline.strftime("%b %d, %Y") %>
                       </span>
