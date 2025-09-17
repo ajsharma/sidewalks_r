@@ -24,7 +24,7 @@ class Playlist < ApplicationRecord
 
   def ordered_activities
     activities.where(playlist_activities: { archived_at: nil })
-              .order('playlist_activities.position ASC')
+              .order("playlist_activities.position ASC")
   end
 
   def add_activity(activity, position: nil)

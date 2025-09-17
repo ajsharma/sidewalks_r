@@ -162,7 +162,7 @@
         <%= form.hidden_field :start_date, value: params[:start_date] %>
         <%= form.hidden_field :end_date, value: params[:end_date] %>
         <%= form.hidden_field :dry_run, value: false %>
-        <%= form.submit "Create All <%= @results[:total_suggestions] %> Events",
+        <%= form.submit "Create All #{@results[:total_suggestions]} Events",
             confirm: "This will create #{@results[:total_suggestions]} events in your Google Calendar. This action cannot be undone. Continue?",
             class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
       <% end %>

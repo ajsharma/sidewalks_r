@@ -11,14 +11,14 @@ class AgendaProposal
   # Get normalized existing events
   def existing_events
     @existing_events ||= raw_existing_events.map do |event|
-      AgendaProposedEvent.new(event, user_timezone: user_timezone, source: 'calendar')
+      AgendaProposedEvent.new(event, user_timezone: user_timezone, source: "calendar")
     end
   end
 
   # Get normalized suggestions
   def suggestions
     @suggestions ||= raw_suggestions.map do |suggestion|
-      AgendaProposedEvent.new(suggestion, user_timezone: user_timezone, source: 'suggestion')
+      AgendaProposedEvent.new(suggestion, user_timezone: user_timezone, source: "suggestion")
     end
   end
 
@@ -40,7 +40,7 @@ class AgendaProposal
       total_events: all_events.count,
       suggestions_by_type: suggestions.group_by(&:type).transform_values(&:count),
       conflicts_avoided: suggestions.count(&:conflict_avoided?),
-      urgent_deadlines: suggestions.select { |s| s.urgency == 'overdue' || s.urgency == 'upcoming' }
+      urgent_deadlines: suggestions.select { |s| s.urgency == "overdue" || s.urgency == "upcoming" }
     }
   end
 

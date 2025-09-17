@@ -2,20 +2,18 @@
 
 one:
   user: one
-  email: MyString
-  google_id: MyString
-  access_token: MyText
-  refresh_token: MyText
-  expires_at: 2025-09-16 15:11:25
-  calendar_list: MyText
-  archived_at: 2025-09-16 15:11:25
+  email: john@gmail.com
+  google_id: google123
+  # Tokens will be set in test helper to avoid encryption issues
+  expires_at: <%= 1.hour.from_now %>
+  calendar_list: '[{"id": "primary", "summary": "Primary Calendar"}]'
+  archived_at:
 
 two:
   user: two
-  email: MyString
-  google_id: MyString
-  access_token: MyText
-  refresh_token: MyText
-  expires_at: 2025-09-16 15:11:25
-  calendar_list: MyText
-  archived_at: 2025-09-16 15:11:25
+  email: jane@gmail.com
+  google_id: google456
+  # Tokens will be set in test helper to avoid encryption issues
+  expires_at: <%= 1.hour.from_now %>
+  calendar_list: '[{"id": "primary", "summary": "Work Calendar"}]'
+  archived_at:

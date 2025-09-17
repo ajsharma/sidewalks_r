@@ -10,9 +10,9 @@ class AgendaProposedEvent
   # Unified interface for both calendar events and activity suggestions
   def title
     case source
-    when 'calendar'
-      raw_data[:summary] || 'Busy'
-    when 'suggestion'
+    when "calendar"
+      raw_data[:summary] || "Busy"
+    when "suggestion"
       raw_data[:title]
     end
   end
@@ -31,29 +31,29 @@ class AgendaProposedEvent
 
   def type
     case source
-    when 'calendar'
-      'existing'
-    when 'suggestion'
+    when "calendar"
+      "existing"
+    when "suggestion"
       raw_data[:type]
     end
   end
 
   # Calendar-specific attributes
   def calendar_name
-    raw_data[:calendar_name] if source == 'calendar'
+    raw_data[:calendar_name] if source == "calendar"
   end
 
   # Activity suggestion-specific attributes
   def confidence
-    raw_data[:confidence] if source == 'suggestion'
+    raw_data[:confidence] if source == "suggestion"
   end
 
   def urgency
-    raw_data[:urgency] if source == 'suggestion'
+    raw_data[:urgency] if source == "suggestion"
   end
 
   def frequency_note
-    raw_data[:frequency_note] if source == 'suggestion'
+    raw_data[:frequency_note] if source == "suggestion"
   end
 
   def has_conflict?
@@ -70,21 +70,21 @@ class AgendaProposedEvent
 
   # Check if this is an existing calendar event
   def existing_event?
-    source == 'calendar'
+    source == "calendar"
   end
 
   # Check if this is a suggested activity
   def suggested_activity?
-    source == 'suggestion'
+    source == "suggestion"
   end
 
   # Get the original activity or calendar event data
   def activity
-    raw_data[:activity] if source == 'suggestion'
+    raw_data[:activity] if source == "suggestion"
   end
 
   def calendar_id
-    raw_data[:calendar_id] if source == 'calendar'
+    raw_data[:calendar_id] if source == "calendar"
   end
 
 

@@ -11,6 +11,6 @@ class CreatePlaylists < ActiveRecord::Migration[8.0]
     end
 
     add_index :playlists, :slug, unique: true                               # Unique slug across all playlists
-    add_index :playlists, [:user_id, :archived_at]                          # User's active playlists
+    add_index :playlists, [ :user_id, :archived_at ]                          # User's active playlists
   end
 end

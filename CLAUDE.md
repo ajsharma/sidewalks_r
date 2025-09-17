@@ -24,6 +24,11 @@ bin/rails server            # Start Rails server only
 bin/rails tailwindcss:watch # Watch and compile Tailwind CSS
 ```
 
+### Quick Development Workflow
+```bash
+bin/go                      # Run full development pipeline: setup, tests, security, linting
+```
+
 ### Database Operations
 ```bash
 bin/rails db:migrate        # Run pending migrations
