@@ -10,6 +10,9 @@ class Playlist < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
 
+  def archived?
+    archived_at.present?
+  end
 
   def archive!
     update!(archived_at: Time.current)
@@ -24,7 +27,19 @@ class Playlist < ApplicationRecord
               .order("playlist_activities.position ASC")
   end
 
+  def add_activity(activity, position: nil)
+    position ||= (playlist_activities.maximum(:position) || 0) + 1
 
+    playlist_activities.create!(
+      activity: activity,
+      position: position
+    )
+  end
+
+  def remove_activity(activity)
+    playlist_activity = playlist_activities.find_by(activity: activity)
+    playlist_activity&.update!(archived_at: Time.current)
+  end
 
   private
 

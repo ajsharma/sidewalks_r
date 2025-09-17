@@ -20,6 +20,9 @@ class Activity < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
 
+  def archived?
+    archived_at.present?
+  end
 
   # Archives the activity by setting archived_at timestamp
   # @return [Boolean] true if update succeeds, raises exception on failure
@@ -39,6 +42,9 @@ class Activity < ApplicationRecord
     schedule_type == "strict"
   end
 
+  def flexible_schedule?
+    schedule_type == "flexible"
+  end
 
   # Checks if activity has a deadline-based schedule type
   # @return [Boolean] true if schedule_type is 'deadline', false otherwise
