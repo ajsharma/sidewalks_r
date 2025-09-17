@@ -1,0 +1,249 @@
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900">Activity Scheduling</h1>
+    <p class="text-gray-600 mt-2">Automatically schedule your activities to Google Calendar with smart suggestions</p>
+  </div>
+
+  <!-- Date Range Selection -->
+  <div class="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">Schedule Range</h2>
+
+    <%= form_with url: schedule_path, method: :get, local: true, class: "flex flex-wrap items-end gap-4" do |form| %>
+      <div>
+        <%= form.label :start_date, "Start Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.date_field :start_date,
+            value: params[:start_date] || Date.current,
+            class: "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+
+      <div>
+        <%= form.label :end_date, "End Date", class: "block text-sm font-medium text-gray-700 mb-2" %>
+        <%= form.date_field :end_date,
+            value: params[:end_date] || (Date.current + 2.weeks),
+            class: "px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+
+      <%= form.submit "Update Schedule",
+          class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+    <% end %>
+  </div>
+
+  <!-- Summary Stats -->
+  <% if @agenda.any_events? %>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h3 class="text-sm font-medium text-gray-500">Total Activities</h3>
+        <p class="text-2xl font-bold text-gray-900"><%= @agenda.summary[:total_suggestions] %></p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h3 class="text-sm font-medium text-gray-500">Strict Schedule</h3>
+        <p class="text-2xl font-bold text-red-600"><%= @agenda.summary[:suggestions_by_type]['strict'] || 0 %></p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h3 class="text-sm font-medium text-gray-500">Flexible</h3>
+        <p class="text-2xl font-bold text-green-600"><%= @agenda.summary[:suggestions_by_type]['flexible'] || 0 %></p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h3 class="text-sm font-medium text-gray-500">Deadlines</h3>
+        <p class="text-2xl font-bold text-yellow-600"><%= @agenda.summary[:suggestions_by_type]['deadline'] || 0 %></p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow border border-gray-200 p-4">
+        <h3 class="text-sm font-medium text-gray-500">Calendar Events</h3>
+        <p class="text-2xl font-bold text-gray-600"><%= @agenda.summary[:total_existing] %></p>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Urgent Deadlines Alert -->
+  <% if @agenda.summary[:urgent_deadlines].any? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+        <h3 class="text-red-800 font-medium">Urgent Activities Detected</h3>
+      </div>
+      <p class="text-red-700 text-sm mt-1">
+        You have <%= @agenda.summary[:urgent_deadlines].count %> activities with upcoming or overdue deadlines that need immediate attention.
+      </p>
+    </div>
+  <% end %>
+
+  <!-- Combined Schedule -->
+  <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-medium text-gray-900">Your Schedule</h2>
+          <p class="text-sm text-gray-600 mt-1">Combined view of existing calendar events and suggested activities</p>
+        </div>
+
+        <% if @agenda.suggestions.any? %>
+          <div class="flex space-x-2">
+            <!-- Dry Run Button -->
+            <%= form_with url: schedule_path, method: :post, local: true, class: "inline" do |form| %>
+              <%= form.hidden_field :start_date, value: params[:start_date] %>
+              <%= form.hidden_field :end_date, value: params[:end_date] %>
+              <%= form.hidden_field :dry_run, value: true %>
+              <%= form.submit "Preview Calendar Events",
+                  class: "bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+            <% end %>
+
+            <!-- Create Events Button -->
+            <%= form_with url: schedule_path, method: :post, local: true, class: "inline" do |form| %>
+              <%= form.hidden_field :start_date, value: params[:start_date] %>
+              <%= form.hidden_field :end_date, value: params[:end_date] %>
+              <%= form.hidden_field :dry_run, value: false %>
+              <%= form.submit "Create Calendar Events",
+                  confirm: "This will create #{@agenda.suggestions.count} events in your Google Calendar. Continue?",
+                  class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <% if @agenda.any_events? %>
+        <div class="space-y-4">
+          <% @agenda.events_by_date.each do |date, day_events| %>
+            <div class="border-l-4 border-indigo-500 pl-4">
+              <h3 class="font-medium text-gray-900 mb-3">
+                <%= date.strftime("%A, %B %d, %Y") %>
+              </h3>
+
+              <div class="space-y-3">
+                <% day_events.each do |event| %>
+                  <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg
+                    <%= event.existing_event? ? 'bg-gray-50' : 'bg-blue-50' %>">
+                    <div class="flex-grow">
+                      <div class="flex items-center space-x-3 mb-2">
+                        <!-- Event Type Badge -->
+                        <span class="px-2 py-1 text-xs font-medium rounded-full
+                          <%= if event.existing_event?
+                                'bg-gray-100 text-gray-800'
+                              else
+                                case event.type
+                                when 'strict' then 'bg-red-100 text-red-800'
+                                when 'flexible' then 'bg-green-100 text-green-800'
+                                when 'deadline' then 'bg-yellow-100 text-yellow-800'
+                                else 'bg-gray-100 text-gray-800'
+                                end
+                              end %>">
+                          <%= event.existing_event? ? 'Existing' : event.type.capitalize %>
+                        </span>
+
+                        <!-- Event Title -->
+                        <span class="font-medium text-gray-900"><%= event.title %></span>
+
+                        <!-- Calendar Source -->
+                        <% if event.calendar_name %>
+                          <span class="text-xs text-gray-500">(<%= event.calendar_name %>)</span>
+                        <% end %>
+
+                        <!-- Urgency Indicator -->
+                        <% if event.urgency == 'overdue' %>
+                          <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                            OVERDUE
+                          </span>
+                        <% end %>
+
+                        <!-- Conflict Indicators -->
+                        <% if event.has_conflict? %>
+                          <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            ⚠️ Conflict
+                          </span>
+                        <% elsif event.conflict_avoided? %>
+                          <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
+                            Rescheduled
+                          </span>
+                        <% end %>
+                      </div>
+
+                      <!-- Time and Duration -->
+                      <div class="flex items-center space-x-4 text-sm text-gray-600">
+                        <span>
+                          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          <%= event.start_time.strftime("%I:%M %p") %> - <%= event.end_time.strftime("%I:%M %p") %>
+                          <span class="text-xs text-gray-500 ml-1">(<%= event.start_time.strftime("%Z") %>)</span>
+                        </span>
+
+                        <span>
+                          <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                          </svg>
+                          Duration: <%= distance_of_time_in_words(event.start_time, event.end_time) %>
+                        </span>
+
+                        <% if event.frequency_note %>
+                          <span>• <%= event.frequency_note %></span>
+                        <% end %>
+                      </div>
+
+                      <!-- Notes -->
+                      <% if event.notes.any? %>
+                        <div class="text-xs text-gray-500 mt-2">
+                          <% event.notes.each do |note| %>
+                            <div>• <%= note %></div>
+                          <% end %>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <!-- Status Badge -->
+                    <div class="flex-shrink-0 ml-4">
+                      <% if event.existing_event? %>
+                        <span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                          Busy
+                        </span>
+                      <% else %>
+                        <span class="px-2 py-1 text-xs rounded-full
+                          <%= case event.confidence
+                              when 'high' then 'bg-blue-100 text-blue-800'
+                              when 'medium' then 'bg-gray-100 text-gray-800'
+                              else 'bg-yellow-100 text-yellow-800'
+                              end %>">
+                          <%= event.confidence %> confidence
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% elsif !current_user.google_accounts.any? %>
+        <div class="text-center py-8">
+          <svg class="w-12 h-12 text-yellow-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <h3 class="text-gray-900 font-medium mb-1">Connect Google Calendar</h3>
+          <p class="text-gray-600 text-sm mb-4">
+            Connect your Google Calendar to see existing events and get smart scheduling suggestions.
+          </p>
+          <%= link_to "Sign in with Google", user_google_oauth2_omniauth_authorize_path,
+              class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+        </div>
+      <% else %>
+        <div class="text-center py-8">
+          <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <h3 class="text-gray-900 font-medium mb-1">No events to display</h3>
+          <p class="text-gray-600 text-sm mb-4">
+            No activities found in the selected date range, or all activities are already scheduled.
+          </p>
+          <%= link_to "Create an Activity", new_activity_path,
+              class: "text-blue-600 hover:text-blue-800 font-medium" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

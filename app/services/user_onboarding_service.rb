@@ -6,8 +6,8 @@ class UserOnboardingService
 
     begin
       onboarding_data = load_onboarding_data
-      created_activities = create_activities(user, onboarding_data['activities'])
-      create_playlists(user, onboarding_data['playlists'], created_activities)
+      created_activities = create_activities(user, onboarding_data["activities"])
+      create_playlists(user, onboarding_data["playlists"], created_activities)
 
       Rails.logger.info "Successfully created #{created_activities.size} activities and #{onboarding_data['playlists'].size} playlists for user #{user.id}"
     rescue StandardError => e
@@ -19,7 +19,7 @@ class UserOnboardingService
   private
 
   def self.load_onboarding_data
-    yaml_path = Rails.root.join('config', 'onboarding', 'activities.yml')
+    yaml_path = Rails.root.join("config", "onboarding", "san_francisco.yml")
     YAML.load_file(yaml_path)
   end
 
@@ -28,17 +28,17 @@ class UserOnboardingService
 
     activities_data.each do |activity_data|
       activity = user.activities.create!(
-        name: activity_data['name'],
-        description: activity_data['description'],
-        schedule_type: activity_data['schedule_type'],
-        start_time: parse_datetime(activity_data['start_time']),
-        end_time: parse_datetime(activity_data['end_time']),
-        deadline: parse_datetime(activity_data['deadline']),
-        max_frequency_days: activity_data['max_frequency_days'],
-        activity_links: activity_data['activity_links'] || []
+        name: activity_data["name"],
+        description: activity_data["description"],
+        schedule_type: activity_data["schedule_type"],
+        start_time: parse_datetime(activity_data["start_time"]),
+        end_time: parse_datetime(activity_data["end_time"]),
+        deadline: parse_datetime(activity_data["deadline"]),
+        max_frequency_days: activity_data["max_frequency_days"],
+        activity_links: activity_data["activity_links"] || []
       )
 
-      created_activities[activity_data['name']] = activity
+      created_activities[activity_data["name"]] = activity
     end
 
     created_activities
@@ -47,11 +47,11 @@ class UserOnboardingService
   def self.create_playlists(user, playlists_data, created_activities)
     playlists_data.each do |playlist_data|
       playlist = user.playlists.create!(
-        name: playlist_data['name'],
-        description: playlist_data['description']
+        name: playlist_data["name"],
+        description: playlist_data["description"]
       )
 
-      playlist_data['activities']&.each_with_index do |activity_name, index|
+      playlist_data["activities"]&.each_with_index do |activity_name, index|
         activity = created_activities[activity_name]
         next unless activity
 
@@ -70,7 +70,7 @@ class UserOnboardingService
     return nil if datetime_string.blank?
 
     # Handle relative dates like "+1.day 10:00" or "+5.days 17:00"
-    if datetime_string.start_with?('+')
+    if datetime_string.start_with?("+")
       parse_relative_datetime(datetime_string)
     else
       Time.zone.parse(datetime_string)

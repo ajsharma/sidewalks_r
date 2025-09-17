@@ -4,7 +4,7 @@ namespace :onboarding do
     puts "Testing onboarding YAML file..."
 
     begin
-      yaml_path = Rails.root.join('config', 'onboarding', 'activities.yml')
+      yaml_path = Rails.root.join("config", "onboarding", "san_francisco.yml")
       data = YAML.load_file(yaml_path)
 
       puts "✓ YAML file loaded successfully"
@@ -13,7 +13,7 @@ namespace :onboarding do
 
       # Test date parsing
       puts "\nTesting date parsing..."
-      test_dates = ["+1.day 10:00", "+5.days 17:00", "+90.days 23:59"]
+      test_dates = [ "+1.day 10:00", "+5.days 17:00", "+90.days 23:59" ]
       test_dates.each do |date_str|
         parsed = UserOnboardingService.send(:parse_datetime, date_str)
         puts "  #{date_str} -> #{parsed}"
@@ -28,7 +28,7 @@ namespace :onboarding do
 
   desc "Populate starter content for a specific user (usage: rake onboarding:populate_user EMAIL=user@example.com)"
   task populate_user: :environment do
-    email = ENV['EMAIL']
+    email = ENV["EMAIL"]
 
     if email.blank?
       puts "Please provide an email: rake onboarding:populate_user EMAIL=user@example.com"

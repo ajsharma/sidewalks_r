@@ -5,6 +5,10 @@ Rails.application.routes.draw do
   resources :activities
   resources :playlists
 
+  # Activity scheduling
+  get 'schedule', to: 'activity_scheduling#show'
+  post 'schedule', to: 'activity_scheduling#create'
+
   get "home/index"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

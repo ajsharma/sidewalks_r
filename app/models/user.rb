@@ -3,16 +3,20 @@ class User < ApplicationRecord
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable, :omniauthable,
-         omniauth_providers: [:google_oauth2]
+         omniauth_providers: [ :google_oauth2 ]
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true
+  validates :timezone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }, allow_blank: true
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
+  before_validation :set_default_timezone, on: :create
 
   has_many :google_accounts, dependent: :destroy
   has_many :activities, dependent: :destroy
   has_many :playlists, dependent: :destroy
+
+  has_one :active_google_account, -> { active }, class_name: "GoogleAccount"
 
   scope :active, -> { where(archived_at: nil) }
 
@@ -72,5 +76,10 @@ class User < ApplicationRecord
     end
 
     self.slug = potential_slug
+  end
+
+  def set_default_timezone
+    # Try to detect timezone from browser or use a reasonable default for US users
+    self.timezone ||= 'America/Los_Angeles' # Default to Pacific Time instead of UTC
   end
 end

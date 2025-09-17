@@ -44,8 +44,8 @@
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(activities_path) || params[:controller] == 'activities'}" %>
                 <%= link_to "Playlists", playlists_path,
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(playlists_path) || params[:controller] == 'playlists'}" %>
-                <%= link_to "Calendar", "#",
-                    class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200" %>
+                <%= link_to "Schedule", schedule_path,
+                    class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(schedule_path)}" %>
               </div>
             <% end %>
           </div>
@@ -105,7 +105,7 @@
                   class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
               <%= link_to "Playlists", playlists_path,
                   class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
-              <%= link_to "Calendar", "#",
+              <%= link_to "Schedule", schedule_path,
                   class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
               <div class="border-t border-gray-200 my-2"></div>
               <%= link_to "Profile", edit_user_registration_path,
