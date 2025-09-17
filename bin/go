@@ -15,7 +15,7 @@ FileUtils.chdir APP_ROOT do
   system! "bundle exec rake test"
 
   puts "\n== Running security tests =="
-  system! "bin/breakman"
+  system! "bin/brakeman"
 
   # puts "\n== Regenerating swagger =="
   # system! "bundle exec rake rswag:specs:swaggerize"
