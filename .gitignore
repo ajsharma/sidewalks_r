@@ -42,4 +42,8 @@
 # SimpleCov coverage reports
 /coverage
 
+# Secret key, only share via sneakernet or other secure method
 /config/credentials/test.key
+
+# Generated documentation files
+.yardoc

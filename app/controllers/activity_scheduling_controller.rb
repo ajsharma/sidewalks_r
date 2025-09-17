@@ -31,6 +31,7 @@ class ActivitySchedulingController < ApplicationController
     end
   rescue StandardError => e
     Rails.logger.error "Activity scheduling error: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
     redirect_to schedule_path, alert: "Failed to process scheduling request: #{e.message}"
   end
 

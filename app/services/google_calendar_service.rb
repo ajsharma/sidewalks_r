@@ -2,6 +2,9 @@ require "google/apis/calendar_v3"
 require "googleauth"
 
 class GoogleCalendarService
+  # Initializes the Google Calendar service with authentication
+  # @param google_account [GoogleAccount] authenticated Google account for API access
+  # @return [GoogleCalendarService] new instance of the service
   def initialize(google_account)
     @google_account = google_account
     @service = Google::Apis::CalendarV3::CalendarService.new
@@ -9,20 +12,15 @@ class GoogleCalendarService
   end
 
   # Fetch all calendars for the user
+  # @return [Array<ActivitySchedulingService::CalendarInfo>] array of calendar info data objects
   def fetch_calendars
     calendar_list = @service.list_calendar_lists
     calendars = calendar_list.items.map do |calendar|
-      {
-        id: calendar.id,
-        summary: calendar.summary,
-        description: calendar.description,
-        primary: calendar.primary || false,
-        access_role: calendar.access_role
-      }
+      ActivitySchedulingService::CalendarInfo.from_api(calendar)
     end
 
-    # Update the stored calendar list
-    @google_account.calendars = calendars
+    # Update the stored calendar list (convert to hash for storage)
+    @google_account.calendars = calendars.map(&:to_h)
     @google_account.save!
 
     calendars
@@ -32,6 +30,9 @@ class GoogleCalendarService
   end
 
   # Create a calendar event
+  # @param calendar_id [String] Google Calendar ID to create event in
+  # @param event_data [Hash] event data with :title, :description, :start_time, :end_time, :timezone
+  # @return [Google::Apis::CalendarV3::Event] created event object
   def create_event(calendar_id, event_data)
     event = Google::Apis::CalendarV3::Event.new(
       summary: event_data[:title],
@@ -53,6 +54,10 @@ class GoogleCalendarService
   end
 
   # Get events from a calendar within a date range
+  # @param calendar_id [String] Google Calendar ID to fetch events from
+  # @param start_date [Time] start of date range
+  # @param end_date [Time] end of date range
+  # @return [Array<Google::Apis::CalendarV3::Event>] array of events in the date range
   def list_events(calendar_id, start_date, end_date)
     @service.list_events(
       calendar_id,
@@ -67,6 +72,10 @@ class GoogleCalendarService
   end
 
   # Update an existing event
+  # @param calendar_id [String] Google Calendar ID containing the event
+  # @param event_id [String] Google Calendar event ID to update
+  # @param event_data [Hash] updated event data with :title, :description, :start_time, :end_time, :timezone
+  # @return [Google::Apis::CalendarV3::Event] updated event object
   def update_event(calendar_id, event_id, event_data)
     event = @service.get_event(calendar_id, event_id)
 
@@ -94,6 +103,9 @@ class GoogleCalendarService
   end
 
   # Delete an event
+  # @param calendar_id [String] Google Calendar ID containing the event
+  # @param event_id [String] Google Calendar event ID to delete
+  # @return [void] deletes the event, no return value
   def delete_event(calendar_id, event_id)
     @service.delete_event(calendar_id, event_id)
   rescue Google::Apis::AuthorizationError => e

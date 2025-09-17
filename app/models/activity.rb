@@ -24,38 +24,56 @@ class Activity < ApplicationRecord
   scope :flexible_schedule, -> { where(schedule_type: "flexible") }
   scope :deadline_based, -> { where(schedule_type: "deadline") }
 
+  # Checks if the activity has been archived
+  # @return [Boolean] true if archived_at is present, false otherwise
   def archived?
     archived_at.present?
   end
 
+  # Archives the activity by setting archived_at timestamp
+  # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
   end
 
+  # Returns the slug for URL parameter usage
+  # @return [String] the activity's slug for use in URLs
   def to_param
     slug
   end
 
+  # Checks if activity has a strict schedule type
+  # @return [Boolean] true if schedule_type is 'strict', false otherwise
   def strict_schedule?
     schedule_type == "strict"
   end
 
+  # Checks if activity has a flexible schedule type
+  # @return [Boolean] true if schedule_type is 'flexible', false otherwise
   def flexible_schedule?
     schedule_type == "flexible"
   end
 
+  # Checks if activity has a deadline-based schedule type
+  # @return [Boolean] true if schedule_type is 'deadline', false otherwise
   def deadline_based?
     schedule_type == "deadline"
   end
 
+  # Checks if activity has a deadline set
+  # @return [Boolean] true if deadline is present, false otherwise
   def has_deadline?
     deadline.present?
   end
 
+  # Checks if activity deadline has passed
+  # @return [Boolean] true if has deadline and deadline is in the past, false otherwise
   def expired?
     has_deadline? && deadline < Time.current
   end
 
+  # Parses and returns activity links from JSON storage
+  # @return [Array] array of link objects, empty array if none or parse error
   def activity_links
     return [] unless links.present?
 
@@ -64,10 +82,15 @@ class Activity < ApplicationRecord
     []
   end
 
+  # Sets activity links by converting data to JSON
+  # @param link_data [Object] data to be converted to JSON and stored
+  # @return [String] the JSON string that was stored
   def activity_links=(link_data)
     self.links = link_data.to_json
   end
 
+  # Returns human-readable description of frequency interval
+  # @return [String] descriptive text for the max_frequency_days value
   def max_frequency_description
     case max_frequency_days
     when 1 then "Daily"

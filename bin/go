@@ -23,5 +23,8 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Running lints =="
   system! "bundle exec rubocop -A"
 
+  puts "\n== Running YARD documentation checks =="
+  system! "bundle exec yardoc --no-output --no-cache --fail-on-warning"
+
   puts "\n== All checks passed! =="
 end

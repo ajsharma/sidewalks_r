@@ -244,11 +244,11 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
 
     results = @service.send(:format_dry_run_results, suggestions)
 
-    assert_equal 1, results[:total_suggestions]
-    assert_equal 1, results[:suggestions_by_type]["flexible"]
-    assert_equal 0, results[:existing_events_count]
-    assert results[:timeline].any?
-    assert results[:next_steps].any?
+    assert_equal 1, results.total_suggestions
+    assert_equal 1, results.suggestions_by_type["flexible"]
+    assert_equal 0, results.existing_events_count
+    assert results.timeline.any?
+    assert results.next_steps.any?
   end
 
   test "should create calendar events in dry run mode by default" do
@@ -264,9 +264,9 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
 
     results = @service.create_calendar_events(suggestions)
 
-    assert results.is_a?(Hash)
-    assert results[:total_suggestions]
-    assert results[:next_steps]
+    assert results.is_a?(ActivitySchedulingService::DryRunResults)
+    assert results.total_suggestions
+    assert results.next_steps
   end
 
   test "should handle dry run mode" do
@@ -283,9 +283,9 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     # Test dry run mode
     results = @service.create_calendar_events(suggestions, dry_run: true)
 
-    assert results.is_a?(Hash)
-    assert_equal 1, results[:total_suggestions]
-    assert results[:next_steps].any?
+    assert results.is_a?(ActivitySchedulingService::DryRunResults)
+    assert_equal 1, results.total_suggestions
+    assert results.next_steps.any?
   end
 
   # Schedule activities integration test

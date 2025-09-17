@@ -3,19 +3,27 @@ class ActivitiesController < ApplicationController
   before_action :set_activity, only: [ :show, :edit, :update, :destroy ]
   before_action :ensure_owner, only: [ :edit, :update, :destroy ]
 
+  # Lists all active activities for the current user
+  # @return [void] Sets @activities instance variable for view rendering
   def index
     @activities = current_user.activities.active.includes(:user)
                              .order(created_at: :desc)
   end
 
+  # Displays a single activity
+  # @return [void] Activity is set by before_action, renders show view
   def show
     # Activity is set by before_action
   end
 
+  # Renders form for creating a new activity
+  # @return [void] Sets @activity instance variable for form rendering
   def new
     @activity = current_user.activities.build
   end
 
+  # Creates a new activity for the current user
+  # @return [void] Redirects to activity on success, renders new form on failure
   def create
     @activity = current_user.activities.build(activity_params)
 
@@ -26,10 +34,14 @@ class ActivitiesController < ApplicationController
     end
   end
 
+  # Renders form for editing an existing activity
+  # @return [void] Activity is set by before_action and ownership is verified
   def edit
     # Activity is set by before_action and ownership is verified
   end
 
+  # Updates an existing activity with new parameters
+  # @return [void] Redirects to activity on success, renders edit form on failure
   def update
     if @activity.update(activity_params)
       redirect_to @activity, notice: "Activity was successfully updated."
@@ -38,6 +50,8 @@ class ActivitiesController < ApplicationController
     end
   end
 
+  # Archives an activity (soft delete)
+  # @return [void] Redirects to activities index with success notice
   def destroy
     @activity.archive!
     redirect_to activities_url, notice: "Activity was successfully archived."

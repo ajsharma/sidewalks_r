@@ -33,15 +33,18 @@ class AgendaProposal
   end
 
   # Get summary statistics
+  # @return [ActivitySchedulingService::AgendaSummary] summary data object with event statistics
   def summary
-    {
+    ActivitySchedulingService::AgendaSummary.new(
       total_suggestions: suggestions.count,
       total_existing: existing_events.count,
       total_events: all_events.count,
       suggestions_by_type: suggestions.group_by(&:type).transform_values(&:count),
       conflicts_avoided: suggestions.count(&:conflict_avoided?),
+      date_range_start: date_range.begin,
+      date_range_end: date_range.end,
       urgent_deadlines: suggestions.select { |s| s.urgency == "overdue" || s.urgency == "upcoming" }
-    }
+    )
   end
 
   # Check if there are any events to display

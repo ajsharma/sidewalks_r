@@ -16,20 +16,20 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
       <div class="bg-white rounded-lg p-4">
         <h3 class="text-sm font-medium text-gray-500">Total Events</h3>
-        <p class="text-2xl font-bold text-gray-900"><%= @results[:total_suggestions] %></p>
+        <p class="text-2xl font-bold text-gray-900"><%= @results.total_suggestions %></p>
       </div>
 
       <div class="bg-white rounded-lg p-4">
         <h3 class="text-sm font-medium text-gray-500">Existing Calendar Events</h3>
-        <p class="text-2xl font-bold text-gray-600"><%= @results[:existing_events_count] || 0 %></p>
+        <p class="text-2xl font-bold text-gray-600"><%= @results.existing_events_count || 0 %></p>
       </div>
 
       <div class="bg-white rounded-lg p-4">
         <h3 class="text-sm font-medium text-gray-500">Conflicts Avoided</h3>
-        <p class="text-2xl font-bold text-orange-600"><%= @results[:conflicts_avoided] || 0 %></p>
+        <p class="text-2xl font-bold text-orange-600"><%= @results.conflicts_avoided || 0 %></p>
       </div>
 
-      <% @results[:suggestions_by_type].each do |type, count| %>
+      <% @results.suggestions_by_type.each do |type, count| %>
         <div class="bg-white rounded-lg p-4">
           <h3 class="text-sm font-medium text-gray-500"><%= type.capitalize %> Events</h3>
           <p class="text-2xl font-bold
@@ -46,7 +46,7 @@
     <div class="bg-white rounded-lg p-4">
       <h3 class="font-medium text-gray-900 mb-2">Next Steps</h3>
       <ul class="text-sm text-gray-700 space-y-1">
-        <% @results[:next_steps].each do |step| %>
+        <% @results.next_steps.each do |step| %>
           <li class="flex items-center">
             <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -65,9 +65,9 @@
     </div>
 
     <div class="p-6">
-      <% if @results[:timeline].any? %>
+      <% if @results.timeline.any? %>
         <div class="space-y-4">
-          <% @results[:timeline].group_by { |event| event[:start_time].to_date }.each do |date, day_events| %>
+          <% @results.timeline.group_by { |event| event.start_time.to_date }.each do |date, day_events| %>
             <div class="border-l-4 border-blue-500 pl-4">
               <h3 class="font-medium text-gray-900 mb-3">
                 <%= date.strftime("%A, %B %d, %Y") %>
@@ -80,17 +80,17 @@
                       <div class="flex-grow">
                         <div class="flex items-center space-x-3 mb-2">
                           <span class="px-2 py-1 text-xs font-medium rounded-full
-                            <%= case event[:type]
+                            <%= case event.type
                                 when 'strict' then 'bg-red-100 text-red-800'
                                 when 'flexible' then 'bg-green-100 text-green-800'
                                 when 'deadline' then 'bg-yellow-100 text-yellow-800'
                                 end %>">
-                            <%= event[:type].capitalize %>
+                            <%= event.type.capitalize %>
                           </span>
 
-                          <span class="font-medium text-gray-900"><%= event[:title] %></span>
+                          <span class="font-medium text-gray-900"><%= event.title %></span>
 
-                          <% if event[:notes].any? { |note| note.include?("Rescheduled") } %>
+                          <% if event.notes.any? { |note| note.include?("Rescheduled") } %>
                             <span class="px-2 py-1 text-xs font-medium bg-orange-100 text-orange-800 rounded-full">
                               Rescheduled
                             </span>
@@ -103,21 +103,21 @@
                               <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                               </svg>
-                              <%= event[:start_time].strftime("%I:%M %p") %> - <%= event[:end_time].strftime("%I:%M %p") %>
+                              <%= event.start_time.strftime("%I:%M %p") %> - <%= event.end_time.strftime("%I:%M %p") %>
                             </span>
 
                             <span>
                               <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                               </svg>
-                              Duration: <%= distance_of_time_in_words(event[:start_time], event[:end_time]) %>
+                              Duration: <%= distance_of_time_in_words(event.start_time, event.end_time) %>
                             </span>
                           </div>
                         </div>
 
-                        <% if event[:notes].any? %>
+                        <% if event.notes.any? %>
                           <div class="text-xs text-gray-500">
-                            <% event[:notes].each do |note| %>
+                            <% event.notes.each do |note| %>
                               <div>• <%= note %></div>
                             <% end %>
                           </div>
@@ -126,12 +126,12 @@
 
                       <div class="flex-shrink-0 ml-4">
                         <span class="px-2 py-1 text-xs rounded-full
-                          <%= case event[:confidence]
+                          <%= case event.confidence
                               when 'high' then 'bg-blue-100 text-blue-800'
                               when 'medium' then 'bg-gray-100 text-gray-800'
                               else 'bg-yellow-100 text-yellow-800'
                               end %>">
-                          <%= event[:confidence] %> confidence
+                          <%= event.confidence %> confidence
                         </span>
                       </div>
                     </div>
@@ -162,8 +162,8 @@
         <%= form.hidden_field :start_date, value: params[:start_date] %>
         <%= form.hidden_field :end_date, value: params[:end_date] %>
         <%= form.hidden_field :dry_run, value: false %>
-        <%= form.submit "Create All #{@results[:total_suggestions]} Events",
-            confirm: "This will create #{@results[:total_suggestions]} events in your Google Calendar. This action cannot be undone. Continue?",
+        <%= form.submit "Create All #{@results.total_suggestions} Events",
+            confirm: "This will create #{@results.total_suggestions} events in your Google Calendar. This action cannot be undone. Continue?",
             class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
       <% end %>
     </div>
