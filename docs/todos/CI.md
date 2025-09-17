@@ -191,11 +191,12 @@ strategy:
 
 ## 🔑 **Encryption Setup for Testing**
 
-**FIXED:** Active Record encryption now uses test-specific credentials for CI:
+**FIXED:** Active Record encryption now uses test-specific keys for CI:
 
-- Test credentials are stored in `config/credentials/test.yml` (safe to commit)
-- No GitHub secrets required - CI works out of the box
+- Test keys are hardcoded in `config/initializers/active_record_encryption.rb` for CI environments
+- No GitHub secrets required - CI works out of the box with `ENV['CI']` detection
 - Production credentials remain secure in encrypted credentials file
+- Local development uses encrypted credentials as normal
 
 ---
 
