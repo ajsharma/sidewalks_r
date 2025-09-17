@@ -176,7 +176,7 @@ class ActivitySchedulingService
     suggestions = []
 
     # Strict activities already have defined start/end times
-    if activity.start_time.present? && activity.end_time.present?
+    if activity.start_time? && activity.end_time?
       start_date = [ activity.start_time.to_date, date_range.begin ].max
       end_date = [ activity.end_time.to_date, date_range.end ].min
 
@@ -253,7 +253,7 @@ class ActivitySchedulingService
   def suggest_deadline_schedule(activity, date_range)
     suggestions = []
 
-    return suggestions unless activity.deadline.present?
+    return suggestions unless activity.deadline?
 
     # Only suggest if deadline is within the date range
     if date_range.cover?(activity.deadline.to_date)

@@ -142,7 +142,7 @@ class GoogleCalendarService
 
   # Refresh the access token using the refresh token
   def refresh_access_token
-    return unless @google_account.refresh_token.present?
+    return unless @google_account.refresh_token?
 
     auth = build_authorization
 
