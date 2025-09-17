@@ -329,7 +329,7 @@ class ActivitySchedulingService
       suggestions_by_type = suggestions.group_by(&:type).transform_values(&:count)
     else
       # Raw hash objects (for backward compatibility with tests)
-      conflicts_avoided = @existing_events.count > 0 ? suggestions.count { |s| s[:conflict_avoided] } : 0
+      conflicts_avoided = @existing_events.count > 0 ? suggestions.count { |suggestion| suggestion[:conflict_avoided] } : 0
 
       timeline_items = suggestions.map do |suggestion|
         ActivitySchedulingService::TimelineItem.new(
@@ -347,7 +347,7 @@ class ActivitySchedulingService
         )
       end
 
-      suggestions_by_type = suggestions.group_by { |s| s[:type] }.transform_values(&:count)
+      suggestions_by_type = suggestions.group_by { |suggestion| suggestion[:type] }.transform_values(&:count)
     end
 
     next_steps = [
@@ -458,7 +458,7 @@ class ActivitySchedulingService
     end
 
     # Sort by start time
-    filtered_suggestions.sort_by { |s| s[:start_time] }
+    filtered_suggestions.sort_by { |suggestion| suggestion[:start_time] }
   end
 
   def has_conflict?(start_time, end_time, existing_events)

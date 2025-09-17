@@ -36,16 +36,18 @@ class GoogleCalendarService
   # @param event_data [Hash] event data with :title, :description, :start_time, :end_time, :timezone
   # @return [Google::Apis::CalendarV3::Event] created event object
   def create_event(calendar_id, event_data)
+    timezone = event_data[:timezone] || "America/Los_Angeles"
+
     event = Google::Apis::CalendarV3::Event.new(
       summary: event_data[:title],
       description: event_data[:description],
       start: Google::Apis::CalendarV3::EventDateTime.new(
         date_time: event_data[:start_time]&.iso8601,
-        time_zone: event_data[:timezone] || "America/Los_Angeles"
+        time_zone: timezone
       ),
       end: Google::Apis::CalendarV3::EventDateTime.new(
         date_time: event_data[:end_time]&.iso8601,
-        time_zone: event_data[:timezone] || "America/Los_Angeles"
+        time_zone: timezone
       )
     )
 
@@ -80,6 +82,7 @@ class GoogleCalendarService
   # @return [Google::Apis::CalendarV3::Event] updated event object
   def update_event(calendar_id, event_id, event_data)
     event = @service.get_event(calendar_id, event_id)
+    timezone = event_data[:timezone] || "America/Los_Angeles"
 
     event.summary = event_data[:title] if event_data[:title]
     event.description = event_data[:description] if event_data[:description]
@@ -87,14 +90,14 @@ class GoogleCalendarService
     if event_data[:start_time]
       event.start = Google::Apis::CalendarV3::EventDateTime.new(
         date_time: event_data[:start_time].iso8601,
-        time_zone: event_data[:timezone] || "America/Los_Angeles"
+        time_zone: timezone
       )
     end
 
     if event_data[:end_time]
       event.end = Google::Apis::CalendarV3::EventDateTime.new(
         date_time: event_data[:end_time].iso8601,
-        time_zone: event_data[:timezone] || "America/Los_Angeles"
+        time_zone: timezone
       )
     end
 
@@ -128,9 +131,11 @@ class GoogleCalendarService
 
   # Build the authorization object
   def build_authorization
+    google_credentials = Rails.application.credentials.google
+
     auth = Google::Auth::UserRefreshCredentials.new(
-      client_id: Rails.application.credentials.google[:client_id],
-      client_secret: Rails.application.credentials.google[:client_secret],
+      client_id: google_credentials[:client_id],
+      client_secret: google_credentials[:client_secret],
       scope: [ "https://www.googleapis.com/auth/calendar" ],
       refresh_token: @google_account.refresh_token
     )
@@ -154,9 +159,10 @@ class GoogleCalendarService
         expires_at: auth.expires_at
       )
 
-      Rails.logger.info "Successfully refreshed Google access token for user #{@google_account.user_id}"
+      logger = Rails.logger
+      logger.info "Successfully refreshed Google access token for user #{@google_account.user_id}"
     rescue Google::Apis::AuthorizationError => e
-      Rails.logger.error "Failed to refresh Google access token: #{e.message}"
+      logger.error "Failed to refresh Google access token: #{e.message}"
       # Mark the account as needing re-authorization
       @google_account.update!(access_token: nil, refresh_token: nil)
       raise

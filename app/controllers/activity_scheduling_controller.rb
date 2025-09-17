@@ -23,8 +23,9 @@ class ActivitySchedulingController < ApplicationController
       # Actually create calendar events
       @results = @scheduling_service.create_calendar_events(suggestions, dry_run: false)
 
-      success_count = @results.count { |result| result[:status] == "created" }
-      failure_count = @results.count { |result| result[:status] == "failed" }
+      results_by_status = @results.group_by { |result| result[:status] }
+      success_count = results_by_status["created"]&.count || 0
+      failure_count = results_by_status["failed"]&.count || 0
 
       if failure_count == 0
         redirect_to schedule_path, notice: "Successfully created #{success_count} calendar events!"
@@ -40,8 +41,11 @@ class ActivitySchedulingController < ApplicationController
     current_date = Date.current
     default_end_date = current_date + 2.weeks
 
-    start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : current_date
-    end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : default_end_date
+    start_date_param = params[:start_date]
+    end_date_param = params[:end_date]
+
+    start_date = start_date_param.present? ? Date.parse(start_date_param) : current_date
+    end_date = end_date_param.present? ? Date.parse(end_date_param) : default_end_date
 
     start_date..end_date
   rescue ArgumentError

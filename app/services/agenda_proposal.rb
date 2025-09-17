@@ -45,7 +45,10 @@ class AgendaProposal
       conflicts_avoided: suggestions.count(&:conflict_avoided?),
       date_range_start: date_range.begin,
       date_range_end: date_range.end,
-      urgent_deadlines: suggestions.select { |s| s.urgency == "overdue" || s.urgency == "upcoming" }
+      urgent_deadlines: suggestions.select do |suggestion|
+        urgency = suggestion.urgency
+        urgency == "overdue" || urgency == "upcoming"
+      end
     )
   end
 
@@ -56,6 +59,6 @@ class AgendaProposal
 
   # Check if user has Google Calendar connected
   def google_calendar_connected?
-    existing_events.any? || suggestions.any? { |s| s.has_conflict? || s.conflict_avoided? }
+    existing_events.any? || suggestions.any? { |suggestion| suggestion.has_conflict? || suggestion.conflict_avoided? }
   end
 end
