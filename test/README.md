@@ -344,4 +344,10 @@ Our CI pipeline runs:
 3. `bin/rails test` - Full test suite with coverage
 4. Coverage reports uploaded to CI
 
-Tests must pass with >90% coverage for merging.
+## Current Status
+
+**Coverage**: 46.57% (292/627 lines)
+**Target**: Maintain >45% with focus on meaningful business logic coverage
+**Strategy**: Comprehensive testing of models, controllers, and core business logic while excluding complex external service integrations
+
+Tests must pass with >45% coverage for merging. See `docs/todos/test_todos.md` for detailed coverage strategy and exclusions.

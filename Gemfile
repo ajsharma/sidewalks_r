@@ -74,3 +74,6 @@ group :test do
   # Code coverage analysis [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
 end
+
+gem "vcr", "~> 6.3", group: :test
+gem "webmock", "~> 3.25", group: :test

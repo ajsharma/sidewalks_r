@@ -80,6 +80,6 @@ class User < ApplicationRecord
 
   def set_default_timezone
     # Try to detect timezone from browser or use a reasonable default for US users
-    self.timezone ||= "America/Los_Angeles" # Default to Pacific Time instead of UTC
+    self.timezone ||= "Pacific Time (US & Canada)" # Default to Pacific Time instead of UTC
   end
 end

@@ -2,26 +2,26 @@
 
 one:
   user: one
-  name: MyString
-  slug: MyString
-  description: MyText
-  links: MyText
-  schedule_type: MyString
-  start_time: 2025-09-16 15:13:14
-  end_time: 2025-09-16 15:13:14
-  deadline: 2025-09-16 15:13:14
+  name: Running
+  slug: running
+  description: Daily morning run
+  links:
+  schedule_type: recurring
+  start_time: 2025-09-16 07:00:00
+  end_time: 2025-09-16 08:00:00
+  deadline:
   max_frequency_days: 1
-  archived_at: 2025-09-16 15:13:14
+  archived_at:
 
 two:
   user: two
-  name: MyString
-  slug: MyString
-  description: MyText
-  links: MyText
-  schedule_type: MyString
-  start_time: 2025-09-16 15:13:14
-  end_time: 2025-09-16 15:13:14
-  deadline: 2025-09-16 15:13:14
+  name: Reading
+  slug: reading
+  description: Evening reading session
+  links:
+  schedule_type: recurring
+  start_time: 2025-09-16 20:00:00
+  end_time: 2025-09-16 21:00:00
+  deadline:
   max_frequency_days: 1
-  archived_at: 2025-09-16 15:13:14
+  archived_at:
