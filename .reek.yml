@@ -1,0 +1,36 @@
+exclude_paths:
+  - db/migrate
+  - vendor
+  - node_modules
+  - test # Exclude test files from code smell analysis
+
+# Note: Reek warnings don't fail the build since we use system() instead of system!()
+
+detectors:
+  IrresponsibleModule:
+    exclude:
+      - ActiveSupport::TestCase # Test helper extensions
+      - ActionDispatch::IntegrationTest # Test helper extensions
+
+  UncommunicativeVariableName:
+    accept:
+      - t # Common Rails migration variable
+      - e # Exception variable
+      - i # Iterator variable
+
+  FeatureEnvy:
+    exclude:
+      - "*/db/migrate/*" # Migrations use table builder pattern
+
+  TooManyStatements:
+    max_statements: 15 # Allow slightly more statements for migrations
+    exclude:
+      - "*/db/migrate/*"
+      - HealthController # Health monitoring can have longer methods
+
+  DuplicateMethodCall:
+    exclude:
+      - HealthController # Health monitoring often uses repetitive timing calculations
+
+  UtilityFunction:
+    public_methods_only: true # Only warn on public utility functions

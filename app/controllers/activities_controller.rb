@@ -1,3 +1,5 @@
+# Controller for managing user activities.
+# Handles CRUD operations for activities with proper authorization.
 class ActivitiesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_activity, only: [ :show, :edit, :update, :destroy ]
@@ -6,8 +8,7 @@ class ActivitiesController < ApplicationController
   # Lists all active activities for the current user
   # @return [void] Sets @activities instance variable for view rendering
   def index
-    @activities = current_user.activities.active.includes(:user)
-                             .order(created_at: :desc)
+    @activities = current_user.activities.active.order(created_at: :desc)
   end
 
   # Displays a single activity

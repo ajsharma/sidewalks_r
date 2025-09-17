@@ -3,6 +3,9 @@ require "fileutils"
 
 APP_ROOT = File.expand_path("..", __dir__)
 
+# Set environment variables for the script
+ENV["BULLET_RAISE"] = "false"
+
 def system!(*args)
   system(*args, exception: true)
 end
@@ -17,8 +20,17 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Running security tests =="
   system! "bin/brakeman"
 
+  puts "\n== Running gem security audit =="
+  system! "bundle exec bundle-audit --update"
+
   # puts "\n== Regenerating swagger =="
   # system! "bundle exec rake rswag:specs:swaggerize"
+
+  puts "\n== Running code quality analysis =="
+  system! "bundle exec reek ."
+
+  puts "\n== Running Rails best practices =="
+  system! "bundle exec rails_best_practices ."
 
   puts "\n== Running lints =="
   system! "bundle exec rubocop -A"

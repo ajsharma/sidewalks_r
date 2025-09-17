@@ -1,3 +1,5 @@
+# OAuth callback controller for user authentication.
+# Handles Google OAuth2 authentication flow.
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   def google_oauth2
     auth_data = request.env["omniauth.auth"]

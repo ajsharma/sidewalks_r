@@ -1,3 +1,5 @@
+# Controller for application health checks and system monitoring.
+# Provides endpoints for monitoring services to check application status.
 class HealthController < ApplicationController
   # Skip authentication for health checks to allow monitoring systems access
   skip_before_action :verify_authenticity_token

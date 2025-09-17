@@ -1,3 +1,5 @@
+# Service for scheduling activities and generating calendar agendas.
+# Integrates with Google Calendar API to propose and create events.
 class ActivitySchedulingService
   # Represents a Google Calendar
   CalendarInfo = Data.define(

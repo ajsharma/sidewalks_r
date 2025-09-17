@@ -1,3 +1,5 @@
+# Domain object representing a proposed activity agenda.
+# Contains existing events and suggested new events for scheduling.
 class AgendaProposal
   attr_reader :raw_existing_events, :raw_suggestions, :date_range, :user_timezone
 

@@ -1,6 +1,8 @@
 require "google/apis/calendar_v3"
 require "googleauth"
 
+# Service for Google Calendar API interactions.
+# Handles authentication, calendar access, and event management.
 class GoogleCalendarService
   # Initializes the Google Calendar service with authentication
   # @param google_account [GoogleAccount] authenticated Google account for API access

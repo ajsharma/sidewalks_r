@@ -1,3 +1,5 @@
+# Service for handling user onboarding workflows.
+# Manages setup processes and starter content for new users.
 class UserOnboardingService
   # Populates starter content for new users if they have no existing activities or playlists
   # @param user [User] the user to populate content for

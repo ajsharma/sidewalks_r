@@ -1,3 +1,5 @@
+# Test helper module for Google Calendar API testing.
+# Provides sample responses and stubbing methods for external API calls.
 module GoogleTestHelper
   # Sample Google Calendar API responses for testing
   def sample_calendar_event(overrides = {})

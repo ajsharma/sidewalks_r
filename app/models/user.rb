@@ -1,3 +1,5 @@
+# User model for authentication and profile management.
+# Handles OAuth integration, timezone settings, and activity associations.
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable

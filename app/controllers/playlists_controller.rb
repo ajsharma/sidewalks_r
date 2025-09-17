@@ -1,3 +1,5 @@
+# Controller for managing user playlists.
+# Handles CRUD operations for activity playlists with proper authorization.
 class PlaylistsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_playlist, only: [ :show, :edit, :update, :destroy ]
@@ -6,7 +8,7 @@ class PlaylistsController < ApplicationController
   # Lists all active playlists for the current user
   # @return [void] Sets @playlists instance variable for view rendering
   def index
-    @playlists = current_user.playlists.active.includes(:activities)
+    @playlists = current_user.playlists.active.includes(:playlist_activities, :activities)
   end
 
   # Displays a single playlist with its activities
