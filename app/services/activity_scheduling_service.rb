@@ -202,9 +202,12 @@ class ActivitySchedulingService
     # For flexible activities, suggest optimal times based on frequency
     frequency_days = activity.max_frequency_days || 7
     duration = options[:preferred_duration]
+    activity_name = activity.name
+    name_downcase = activity_name.downcase
 
     current_date = date_range.begin
     time_offset = 0 # Stagger activities to avoid conflicts
+    time_offset_minutes = time_offset.minutes
 
     while current_date <= date_range.end
       # Skip weekends if configured
@@ -216,22 +219,22 @@ class ActivitySchedulingService
       # Suggest different times for different activity types to reduce conflicts
       base_date = current_date.in_time_zone(@user_timezone).beginning_of_day
 
-      suggested_time = if activity.name.downcase.include?("work") || activity.name.downcase.include?("meeting")
-        base_date + options[:work_hours_start].hours + time_offset.minutes
+      suggested_time = if name_downcase.include?("work") || name_downcase.include?("meeting")
+        base_date + options[:work_hours_start].hours + time_offset_minutes
       else
         # Personal activities - stagger between morning and evening
-        base_time = if activity.name.downcase.include?("walk") || activity.name.downcase.include?("exercise")
+        base_time = if name_downcase.include?("walk") || name_downcase.include?("exercise")
           7.hours # 7 AM for physical activities
         else
           19.hours # 7 PM for other activities
         end
 
-        base_date + base_time + time_offset.minutes
+        base_date + base_time + time_offset_minutes
       end
 
       suggestions << {
         activity: activity,
-        title: activity.name,
+        title: activity_name,
         description: activity.description,
         start_time: suggested_time,
         end_time: suggested_time + duration,
@@ -245,6 +248,7 @@ class ActivitySchedulingService
 
       # Increment time offset to stagger activities (max 2 hours)
       time_offset = (time_offset + 30) % 120
+      time_offset_minutes = time_offset.minutes
     end
 
     suggestions
@@ -255,21 +259,27 @@ class ActivitySchedulingService
 
     return suggestions unless activity.deadline?
 
+    deadline = activity.deadline
+    deadline_date = deadline.to_date
+    activity_name = activity.name
+    name_downcase = activity_name.downcase
+
     # Only suggest if deadline is within the date range
-    if date_range.cover?(activity.deadline.to_date)
+    if date_range.cover?(deadline_date)
       # Suggest scheduling 1-3 days before deadline depending on urgency
-      days_before = case activity.deadline - Time.current
-      when 0..2.days then 0 # Do today if deadline is very soon
-      when 2.days..1.week then 1 # Do 1 day before
+      two_days = 2.days
+      days_before = case deadline - Time.current
+      when 0..two_days then 0 # Do today if deadline is very soon
+      when two_days..1.week then 1 # Do 1 day before
       else 3 # Do 3 days before for longer deadlines
       end
 
-      scheduled_date = activity.deadline.to_date - days_before.days
+      scheduled_date = deadline_date - days_before.days
 
       if date_range.cover?(scheduled_date)
         # Schedule during work hours for work tasks, otherwise flexible
         base_date = scheduled_date.in_time_zone(@user_timezone).beginning_of_day
-        suggested_time = if activity.name.downcase.include?("work") || activity.name.downcase.include?("project")
+        suggested_time = if name_downcase.include?("work") || name_downcase.include?("project")
           base_date + options[:work_hours_start].hours
         else
           base_date + 14.hours # 2 PM
@@ -277,14 +287,14 @@ class ActivitySchedulingService
 
         suggestions << {
           activity: activity,
-          title: "Complete: #{activity.name}",
-          description: "#{activity.description}\n\nDeadline: #{activity.deadline.strftime('%B %d, %Y at %I:%M %p')}",
+          title: "Complete: #{activity_name}",
+          description: "#{activity.description}\n\nDeadline: #{deadline.strftime('%B %d, %Y at %I:%M %p')}",
           start_time: suggested_time,
           end_time: suggested_time + options[:preferred_duration],
           type: "deadline",
           confidence: "high",
           urgency: activity.expired? ? "overdue" : "upcoming",
-          deadline: activity.deadline
+          deadline: deadline
         }
       end
     end
@@ -505,30 +515,28 @@ class ActivitySchedulingService
 
   def generate_time_slots(date)
     slots = []
-
     base_date = date.in_time_zone(@user_timezone).beginning_of_day
+    minutes = [ 0, 30 ]
 
     # Morning slots (7 AM - 11 AM)
-    (7..10).each do |hour|
-      [ 0, 30 ].each do |minute|
-        slots << base_date + hour.hours + minute.minutes
-      end
-    end
+    slots.concat(generate_hourly_slots(base_date, 7..10, minutes))
 
     # Afternoon slots (1 PM - 5 PM)
-    (13..16).each do |hour|
-      [ 0, 30 ].each do |minute|
-        slots << base_date + hour.hours + minute.minutes
-      end
-    end
+    slots.concat(generate_hourly_slots(base_date, 13..16, minutes))
 
     # Evening slots (6 PM - 9 PM)
-    (18..20).each do |hour|
-      [ 0, 30 ].each do |minute|
+    slots.concat(generate_hourly_slots(base_date, 18..20, minutes))
+
+    slots
+  end
+
+  def generate_hourly_slots(base_date, hour_range, minutes)
+    slots = []
+    hour_range.each do |hour|
+      minutes.each do |minute|
         slots << base_date + hour.hours + minute.minutes
       end
     end
-
     slots
   end
 end
