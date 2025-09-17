@@ -22,9 +22,6 @@ class User < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
 
-  def archived?
-    archived_at.present?
-  end
 
   def archive!
     update!(archived_at: Time.current)
