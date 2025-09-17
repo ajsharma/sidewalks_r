@@ -13,7 +13,7 @@ class CreateGoogleAccounts < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :google_accounts, [:user_id, :google_id], unique: true       # One Google account per user+google_id combo
+    add_index :google_accounts, [ :user_id, :google_id ], unique: true       # One Google account per user+google_id combo
     add_index :google_accounts, :google_id                                  # Fast lookup by Google ID
   end
 end

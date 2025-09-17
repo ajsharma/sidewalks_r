@@ -1,13 +1,13 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
+  devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
 
   # RESTful resources
   resources :activities
   resources :playlists
 
   # Activity scheduling
-  get 'schedule', to: 'activity_scheduling#show'
-  post 'schedule', to: 'activity_scheduling#create'
+  get "schedule", to: "activity_scheduling#show"
+  post "schedule", to: "activity_scheduling#create"
 
   get "home/index"
 

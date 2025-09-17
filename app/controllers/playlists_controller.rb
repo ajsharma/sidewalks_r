@@ -1,7 +1,7 @@
 class PlaylistsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_playlist, only: [:show, :edit, :update, :destroy]
-  before_action :ensure_owner, only: [:show, :edit, :update, :destroy]
+  before_action :set_playlist, only: [ :show, :edit, :update, :destroy ]
+  before_action :ensure_owner, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @playlists = current_user.playlists.active.includes(:activities)
@@ -19,7 +19,7 @@ class PlaylistsController < ApplicationController
     @playlist = current_user.playlists.build(playlist_params)
 
     if @playlist.save
-      redirect_to @playlist, notice: 'Playlist was successfully created.'
+      redirect_to @playlist, notice: "Playlist was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -30,7 +30,7 @@ class PlaylistsController < ApplicationController
 
   def update
     if @playlist.update(playlist_params)
-      redirect_to @playlist, notice: 'Playlist was successfully updated.'
+      redirect_to @playlist, notice: "Playlist was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -38,7 +38,7 @@ class PlaylistsController < ApplicationController
 
   def destroy
     @playlist.archive!
-    redirect_to playlists_path, notice: 'Playlist was successfully archived.'
+    redirect_to playlists_path, notice: "Playlist was successfully archived."
   end
 
   private
@@ -48,7 +48,7 @@ class PlaylistsController < ApplicationController
   end
 
   def ensure_owner
-    redirect_to playlists_path, alert: 'Access denied.' unless @playlist.user == current_user
+    redirect_to playlists_path, alert: "Access denied." unless @playlist.user == current_user
   end
 
   def playlist_params

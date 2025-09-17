@@ -1,7 +1,7 @@
 namespace :scheduling do
   desc "Test the activity scheduling system for a user (usage: rake scheduling:test EMAIL=user@example.com)"
   task test: :environment do
-    email = ENV['EMAIL']
+    email = ENV["EMAIL"]
 
     if email.blank?
       puts "Please provide an email: rake scheduling:test EMAIL=user@example.com"

@@ -10,7 +10,8 @@ Our test suite follows Rails conventions with additional quality standards to en
 
 ### No Mocking Policy
 
-**Do not mock internal application code.** This includes:
+**Do not mock internal application code.** 
+This includes:
 - Models and their methods
 - Controllers and services
 - Database interactions

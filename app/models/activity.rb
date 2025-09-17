@@ -2,7 +2,7 @@ class Activity < ApplicationRecord
   belongs_to :user
 
   SCHEDULE_TYPES = %w[strict flexible deadline].freeze
-  MAX_FREQUENCY_OPTIONS = [1, 30, 60, 90, 180, 365, nil].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
+  MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
 
   validates :name, presence: true
   validates :slug, presence: true, uniqueness: true
@@ -13,9 +13,9 @@ class Activity < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
   scope :by_schedule_type, ->(type) { where(schedule_type: type) }
-  scope :strict_schedule, -> { where(schedule_type: 'strict') }
-  scope :flexible_schedule, -> { where(schedule_type: 'flexible') }
-  scope :deadline_based, -> { where(schedule_type: 'deadline') }
+  scope :strict_schedule, -> { where(schedule_type: "strict") }
+  scope :flexible_schedule, -> { where(schedule_type: "flexible") }
+  scope :deadline_based, -> { where(schedule_type: "deadline") }
 
   def archived?
     archived_at.present?
@@ -30,15 +30,15 @@ class Activity < ApplicationRecord
   end
 
   def strict_schedule?
-    schedule_type == 'strict'
+    schedule_type == "strict"
   end
 
   def flexible_schedule?
-    schedule_type == 'flexible'
+    schedule_type == "flexible"
   end
 
   def deadline_based?
-    schedule_type == 'deadline'
+    schedule_type == "deadline"
   end
 
   def has_deadline?

@@ -17,7 +17,7 @@ class CreateActivities < ActiveRecord::Migration[8.0]
     end
 
     add_index :activities, :slug, unique: true                               # Unique slug across all activities
-    add_index :activities, [:user_id, :archived_at]                          # User's active activities
+    add_index :activities, [ :user_id, :archived_at ]                          # User's active activities
     add_index :activities, :schedule_type                                     # Filter by schedule type
   end
 end

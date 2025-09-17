@@ -9,7 +9,7 @@ class CreatePlaylistActivities < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :playlist_activities, [:playlist_id, :activity_id], unique: true # One activity per playlist
-    add_index :playlist_activities, [:playlist_id, :position]                # Ordered activities in playlist
+    add_index :playlist_activities, [ :playlist_id, :activity_id ], unique: true # One activity per playlist
+    add_index :playlist_activities, [ :playlist_id, :position ]                # Ordered activities in playlist
   end
 end

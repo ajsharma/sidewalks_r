@@ -1,7 +1,7 @@
 class ActivitiesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_activity, only: [:show, :edit, :update, :destroy]
-  before_action :ensure_owner, only: [:edit, :update, :destroy]
+  before_action :set_activity, only: [ :show, :edit, :update, :destroy ]
+  before_action :ensure_owner, only: [ :edit, :update, :destroy ]
 
   def index
     @activities = current_user.activities.active.includes(:user)
@@ -20,7 +20,7 @@ class ActivitiesController < ApplicationController
     @activity = current_user.activities.build(activity_params)
 
     if @activity.save
-      redirect_to @activity, notice: 'Activity was successfully created.'
+      redirect_to @activity, notice: "Activity was successfully created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -32,7 +32,7 @@ class ActivitiesController < ApplicationController
 
   def update
     if @activity.update(activity_params)
-      redirect_to @activity, notice: 'Activity was successfully updated.'
+      redirect_to @activity, notice: "Activity was successfully updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -40,7 +40,7 @@ class ActivitiesController < ApplicationController
 
   def destroy
     @activity.archive!
-    redirect_to activities_url, notice: 'Activity was successfully archived.'
+    redirect_to activities_url, notice: "Activity was successfully archived."
   end
 
   private
@@ -51,7 +51,7 @@ class ActivitiesController < ApplicationController
 
   def ensure_owner
     unless @activity.user == current_user
-      redirect_to activities_path, alert: 'You can only edit your own activities.'
+      redirect_to activities_path, alert: "You can only edit your own activities."
     end
   end
 

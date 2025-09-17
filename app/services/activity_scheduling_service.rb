@@ -6,7 +6,7 @@ class ActivitySchedulingService
     @activities = activities || user.activities.active
     @options = default_options.merge(options)
     @existing_events = []
-    @user_timezone = user.timezone || 'America/Los_Angeles'
+    @user_timezone = user.timezone || "America/Los_Angeles"
     Rails.logger.info "ActivitySchedulingService initialized with user timezone: #{@user_timezone}"
   end
 
