@@ -139,6 +139,8 @@ class GoogleCalendarService
         access_token: auth.access_token,
         expires_at: auth.expires_at
       )
+
+      Rails.logger.info "Successfully refreshed Google access token for user #{@google_account.user_id}"
     rescue Google::Apis::AuthorizationError => e
       Rails.logger.error "Failed to refresh Google access token: #{e.message}"
       # Mark the account as needing re-authorization

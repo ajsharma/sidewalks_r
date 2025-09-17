@@ -1,4 +1,10 @@
 Rails.application.routes.draw do
+  # Health check endpoints
+  get "health" => "health#index"
+  get "health/detailed" => "health#detailed"
+  get "health/ready" => "health#ready"
+  get "health/live" => "health#live"
+
   devise_for :users, controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
 
   # RESTful resources

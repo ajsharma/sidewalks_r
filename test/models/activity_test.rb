@@ -36,7 +36,17 @@ class ActivityTest < ActiveSupport::TestCase
   test "should allow valid schedule_types" do
     Activity::SCHEDULE_TYPES.each do |type|
       @activity.schedule_type = type
-      assert @activity.valid?, "#{type} should be valid"
+
+      # Add required fields for specific schedule types
+      case type
+      when "strict"
+        @activity.start_time = 1.hour.from_now
+        @activity.end_time = 2.hours.from_now
+      when "deadline"
+        @activity.deadline = 1.week.from_now
+      end
+
+      assert @activity.valid?, "#{type} should be valid. Errors: #{@activity.errors.full_messages}"
     end
   end
 

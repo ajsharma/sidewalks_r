@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_17_023648) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_17_070801) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -28,9 +28,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_023648) do
     t.datetime "archived_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["deadline"], name: "index_activities_on_deadline_not_null", where: "(deadline IS NOT NULL)", comment: "Optimize deadline-based activity queries"
+    t.index ["max_frequency_days"], name: "index_activities_on_max_frequency", where: "(max_frequency_days IS NOT NULL)", comment: "Optimize frequency-based activity filtering"
     t.index ["schedule_type"], name: "index_activities_on_schedule_type"
     t.index ["slug"], name: "index_activities_on_slug", unique: true
     t.index ["user_id", "archived_at"], name: "index_activities_on_user_id_and_archived_at"
+    t.index ["user_id", "schedule_type", "archived_at"], name: "index_activities_on_user_schedule_archived", comment: "Optimize queries for user activities by schedule type and archived status"
     t.index ["user_id"], name: "index_activities_on_user_id"
   end
 
@@ -46,6 +49,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_023648) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["google_id"], name: "index_google_accounts_on_google_id"
+    t.index ["user_id", "expires_at"], name: "index_google_accounts_on_user_expires", comment: "Optimize token refresh and expiration queries"
     t.index ["user_id", "google_id"], name: "index_google_accounts_on_user_id_and_google_id", unique: true
     t.index ["user_id"], name: "index_google_accounts_on_user_id"
   end
@@ -91,6 +95,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_023648) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["slug"], name: "index_users_on_slug", unique: true
+    t.index ["timezone"], name: "index_users_on_timezone", comment: "Optimize timezone-based user grouping and scheduling"
   end
 
   add_foreign_key "activities", "users"
