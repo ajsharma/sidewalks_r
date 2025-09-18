@@ -1,0 +1,11 @@
+RemoveUnusedMethodsCheck:
+  except_methods: ["archived?", "archive", "flexible_schedule?", "add_activity", "remove_activity"]
+
+MoveModelLogicIntoModelCheck:
+  use_count: 10
+
+UseScopeAccessCheck:
+  ignored_files: []
+
+MoveCodeIntoHelperCheck:
+  array_count: 5

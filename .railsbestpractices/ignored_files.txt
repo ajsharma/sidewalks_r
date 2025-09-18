@@ -1,1 +1,1 @@
-app/controllers/health_controller.rb
+./app/controllers/health_controller.rb
