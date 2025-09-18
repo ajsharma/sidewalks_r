@@ -42,12 +42,6 @@ class Playlist < ApplicationRecord
     active_activities_count
   end
 
-  private
-
-  def active_activities_count
-    activities.where(playlist_activities: { archived_at: nil }).count
-  end
-
   def add_activity(activity, position: nil)
     position ||= (playlist_activities.maximum(:position) || 0) + 1
 
@@ -63,6 +57,10 @@ class Playlist < ApplicationRecord
   end
 
   private
+
+  def active_activities_count
+    activities.where(playlist_activities: { archived_at: nil }).count
+  end
 
   def generate_slug
     base_slug = name.parameterize

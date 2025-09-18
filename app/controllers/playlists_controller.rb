@@ -12,7 +12,7 @@ class PlaylistsController < ApplicationController
                             .left_joins(:playlist_activities)
                             .group("playlists.id")
                             .select("playlists.*, COUNT(CASE WHEN playlist_activities.archived_at IS NULL THEN playlist_activities.id END) as activities_count")
-                            .includes(:activities)
+                            .includes(activities: [])
   end
 
   # Displays a single playlist with its activities
