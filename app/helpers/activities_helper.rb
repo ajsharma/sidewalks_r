@@ -1,3 +1,4 @@
+# Helper methods for Activities views and forms
 module ActivitiesHelper
   def schedule_type_options
     [

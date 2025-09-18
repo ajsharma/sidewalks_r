@@ -23,6 +23,7 @@ detectors:
       - "*/db/migrate/*" # Migrations use table builder pattern
       - ActivitySchedulingService # Service objects work with domain objects
       - GoogleCalendarService # Service objects work with event data
+      - User # Model methods working with external auth data
 
   TooManyStatements:
     max_statements: 15 # Allow slightly more statements for migrations
@@ -42,6 +43,10 @@ detectors:
     exclude:
       - "*Controller" # Rails controllers commonly use instance variables
       - "*/controllers/*" # All controller files use instance variables for views
+      - ActivitiesController
+      - ActivitySchedulingController
+      - PlaylistsController
+      - Users::OmniauthCallbacksController
 
   UncommunicativeMethodName:
     accept:
@@ -88,4 +93,4 @@ detectors:
 
   NilCheck:
     exclude:
-      - "*" # Nil checks are defensive programming and acceptable in Rails
+      - Activity # Model methods may perform defensive nil checks
