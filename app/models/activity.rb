@@ -21,6 +21,7 @@ class Activity < ApplicationRecord
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
 
   scope :active, -> { where(archived_at: nil) }
+  scope :owned_by, ->(user) { where(user: user) }
 
   def archived?
     archived_at.present?

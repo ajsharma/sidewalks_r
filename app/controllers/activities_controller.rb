@@ -65,7 +65,7 @@ class ActivitiesController < ApplicationController
   end
 
   def ensure_owner
-    unless @activity.user == current_user
+    unless Activity.owned_by(current_user).exists?(@activity.id)
       redirect_to activities_path, alert: "You can only edit your own activities."
     end
   end

@@ -64,7 +64,7 @@ class PlaylistsController < ApplicationController
   end
 
   def ensure_owner
-    redirect_to playlists_path, alert: "Access denied." unless @playlist.user == current_user
+    redirect_to playlists_path, alert: "Access denied." unless Playlist.owned_by(current_user).exists?(@playlist.id)
   end
 
   def playlist_params
