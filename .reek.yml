@@ -80,3 +80,19 @@ detectors:
 
   TooManyStatements:
     max_statements: 25 # Allow more statements for complex service methods
+
+  NilCheck:
+    exclude:
+      - Activity # Defensive nil checks are appropriate in model methods
+
+  BooleanParameter:
+    exclude:
+      - ActivitySchedulingService # Service objects often use boolean flags for dry runs and options
+
+  ControlParameter:
+    exclude:
+      - ActivitySchedulingService # Service objects often have conditional behavior based on parameters
+
+  DataClump:
+    exclude:
+      - ActivitySchedulingService # Service objects may pass similar parameters to multiple related methods

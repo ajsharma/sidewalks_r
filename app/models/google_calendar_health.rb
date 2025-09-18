@@ -8,11 +8,13 @@ class GoogleCalendarHealth
       recent_account = find_recent_active_account
       return { status: "warning", message: "No active Google accounts found" } unless recent_account
 
+      response_time = response_time_ms(start_time)
+
       if recent_account.needs_refresh?
         return {
           status: "warning",
           message: "Google Calendar tokens need refresh",
-          response_time_ms: response_time_ms(start_time)
+          response_time_ms: response_time
         }
       end
 
@@ -23,7 +25,7 @@ class GoogleCalendarHealth
         status: "healthy",
         message: "Google Calendar API accessible",
         active_accounts: GoogleAccount.where.not(access_token: nil).count,
-        response_time_ms: response_time_ms(start_time)
+        response_time_ms: response_time
       }
     rescue => e
       {
@@ -42,9 +44,11 @@ class GoogleCalendarHealth
   end
 
   def self.build_auth_credentials(account)
+    google_credentials = Rails.application.credentials.google
+
     auth = Google::Auth::UserRefreshCredentials.new(
-      client_id: Rails.application.credentials.google[:client_id],
-      client_secret: Rails.application.credentials.google[:client_secret],
+      client_id: google_credentials[:client_id],
+      client_secret: google_credentials[:client_secret],
       scope: [ "https://www.googleapis.com/auth/calendar" ],
       refresh_token: account.refresh_token
     )

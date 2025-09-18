@@ -55,9 +55,16 @@ class User < ApplicationRecord
   # Create or update Google account from OAuth data (idempotent)
   def update_google_account(auth)
     google_account = google_accounts.find_or_initialize_by(google_id: auth.uid)
-    credentials = auth.credentials
 
-    # Always update with latest token data to ensure fresh credentials
+    attributes = build_google_account_attributes(auth)
+    google_account.update!(attributes)
+    google_account
+  end
+
+  private
+
+  def build_google_account_attributes(auth)
+    credentials = auth.credentials
     expires_at = credentials.expires_at
     refresh_token = credentials.refresh_token
 
@@ -72,11 +79,8 @@ class User < ApplicationRecord
       attributes[:refresh_token] = refresh_token
     end
 
-    google_account.update!(attributes)
-    google_account
+    attributes
   end
-
-  private
 
   def generate_slug
     base_slug = name.parameterize
