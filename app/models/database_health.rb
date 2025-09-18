@@ -20,12 +20,10 @@ class DatabaseHealth
       connection = ActiveRecord::Base.connection
       connection.execute("SELECT 1")
 
-      response_time = calculate_response_time(start_time)
-
       {
         status: "healthy",
         message: "Database connection successful",
-        response_time_ms: response_time,
+        response_time_ms: calculate_response_time(start_time),
         **connection_metrics
       }
     rescue => e

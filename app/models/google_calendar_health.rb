@@ -8,13 +8,11 @@ class GoogleCalendarHealth
       recent_account = find_recent_active_account
       return { status: "warning", message: "No active Google accounts found" } unless recent_account
 
-      response_time = response_time_ms(start_time)
-
       if recent_account.needs_refresh?
         return {
           status: "warning",
           message: "Google Calendar tokens need refresh",
-          response_time_ms: response_time
+          response_time_ms: response_time_ms(start_time)
         }
       end
 
@@ -25,7 +23,7 @@ class GoogleCalendarHealth
         status: "healthy",
         message: "Google Calendar API accessible",
         active_accounts: GoogleAccount.where.not(access_token: nil).count,
-        response_time_ms: response_time
+        response_time_ms: response_time_ms(start_time)
       }
     rescue => e
       {
