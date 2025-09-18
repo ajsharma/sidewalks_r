@@ -39,9 +39,8 @@ class ActivitySchedulingController < ApplicationController
   private
 
   def preload_associations
-    # Preload google_accounts to avoid N+1 queries
-    @current_user = current_user
-    @current_user.association(:google_accounts).load
+    # Preload google_accounts to avoid N+1 queries in the view
+    current_user.google_accounts.load if current_user.persisted?
   end
 
   def parse_date_range

@@ -36,8 +36,15 @@ class Playlist < ApplicationRecord
 
   def activities_count
     # Use the pre-calculated count from the query if available, otherwise calculate
-    super.presence || activities.where(playlist_activities: { archived_at: nil }).count
+    return super if defined?(super) && super.present?
+    active_activities_count
   rescue NoMethodError
+    active_activities_count
+  end
+
+  private
+
+  def active_activities_count
     activities.where(playlist_activities: { archived_at: nil }).count
   end
 
