@@ -8,7 +8,11 @@ class PlaylistsController < ApplicationController
   # Lists all active playlists for the current user
   # @return [void] Sets @playlists instance variable for view rendering
   def index
-    @playlists = current_user.playlists.active.includes(:playlist_activities, :activities)
+    @playlists = current_user.playlists.active
+                            .includes(playlist_activities: :activity)
+                            .left_joins(:playlist_activities)
+                            .group("playlists.id")
+                            .select("playlists.*, COUNT(CASE WHEN playlist_activities.archived_at IS NULL THEN playlist_activities.id END) as activities_count")
   end
 
   # Displays a single playlist with its activities

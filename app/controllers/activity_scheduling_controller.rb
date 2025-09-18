@@ -2,6 +2,7 @@
 # Handles Google Calendar API integration and agenda generation.
 class ActivitySchedulingController < ApplicationController
   before_action :authenticate_user!
+  before_action :preload_associations
 
   def show
     @scheduling_service = ActivitySchedulingService.new(current_user)
@@ -36,6 +37,12 @@ class ActivitySchedulingController < ApplicationController
   end
 
   private
+
+  def preload_associations
+    # Preload google_accounts to avoid N+1 queries
+    @current_user = current_user
+    @current_user.association(:google_accounts).load
+  end
 
   def parse_date_range
     current_date = Date.current

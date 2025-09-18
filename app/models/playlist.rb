@@ -34,6 +34,13 @@ class Playlist < ApplicationRecord
               .order("playlist_activities.position ASC")
   end
 
+  def activities_count
+    # Use the pre-calculated count from the query if available, otherwise calculate
+    super.presence || activities.where(playlist_activities: { archived_at: nil }).count
+  rescue NoMethodError
+    activities.where(playlist_activities: { archived_at: nil }).count
+  end
+
   def add_activity(activity, position: nil)
     position ||= (playlist_activities.maximum(:position) || 0) + 1
 

@@ -14,7 +14,7 @@
               <%= link_to playlist.name, playlist, class: "hover:text-blue-600" %>
             </h3>
             <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              <%= pluralize(playlist.activities.count, 'activity') %>
+              <%= pluralize(playlist.activities_count, 'activity') %>
             </span>
           </div>
 
@@ -24,7 +24,7 @@
             </p>
           <% end %>
 
-          <% if playlist.activities.any? %>
+          <% if playlist.activities_count > 0 %>
             <div class="mb-4">
               <div class="flex -space-x-2">
                 <% playlist.activities.limit(3).each do |activity| %>
@@ -32,9 +32,9 @@
                     <%= activity.name.first.upcase %>
                   </div>
                 <% end %>
-                <% if playlist.activities.count > 3 %>
+                <% if playlist.activities_count > 3 %>
                   <div class="w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-xs font-medium border-2 border-white">
-                    +<%= playlist.activities.count - 3 %>
+                    +<%= playlist.activities_count - 3 %>
                   </div>
                 <% end %>
               </div>

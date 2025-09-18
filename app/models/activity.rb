@@ -2,6 +2,8 @@
 # Handles different schedule types, validation, and archiving functionality.
 class Activity < ApplicationRecord
   belongs_to :user
+  has_many :playlist_activities, dependent: :destroy
+  has_many :playlists, through: :playlist_activities
 
   SCHEDULE_TYPES = %w[strict flexible deadline].freeze
   MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never

@@ -34,6 +34,8 @@ detectors:
     exclude:
       - HealthController # Health monitoring often uses repetitive timing calculations
       - ActivitySchedulingService # Complex service with legitimate repeated method calls for clarity
+      - DatabaseHealth # Health monitoring models may need repeated timing calculations
+      - GoogleCalendarHealth # Health monitoring models may need repeated timing calculations
 
   UtilityFunction:
     public_methods_only: true # Only warn on public utility functions
