@@ -21,6 +21,11 @@
                   end %>">
               <%= activity.schedule_type.capitalize %>
             </span>
+            <% if activity.archived? %>
+              <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                Archived
+              </span>
+            <% end %>
           </div>
 
           <% if activity.description? %>
@@ -36,6 +41,13 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <%= activity.start_time.strftime("%B %d, %Y at %I:%M %p") %>
+              </div>
+            <% elsif activity.flexible_schedule? %>
+              <div class="flex items-center text-sm text-gray-600">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                Flexible scheduling
               </div>
             <% end %>
 

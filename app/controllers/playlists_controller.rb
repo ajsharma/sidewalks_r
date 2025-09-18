@@ -2,8 +2,8 @@
 # Handles CRUD operations for activity playlists with proper authorization.
 class PlaylistsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_playlist, only: [ :show, :edit, :update, :destroy ]
-  before_action :ensure_owner, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_playlist, only: [ :show, :edit, :update, :destroy, :add_activity, :remove_activity ]
+  before_action :ensure_owner, only: [ :show, :edit, :update, :destroy, :add_activity, :remove_activity ]
 
   # Lists all active playlists for the current user
   # @return [void] Sets @playlists instance variable for view rendering
@@ -55,6 +55,26 @@ class PlaylistsController < ApplicationController
   def destroy
     @playlist.archive!
     redirect_to playlists_path, notice: "Playlist was successfully archived."
+  end
+
+  # Adds an activity to the playlist
+  # @return [void] Redirects to playlist with success notice
+  def add_activity
+    activity = current_user.activities.find(params[:activity_id])
+    @playlist.add_activity(activity)
+    redirect_to @playlist, notice: "Activity added to playlist."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to @playlist, alert: "Activity not found."
+  end
+
+  # Removes an activity from the playlist
+  # @return [void] Redirects to playlist with success notice
+  def remove_activity
+    activity = current_user.activities.find(params[:activity_id])
+    @playlist.remove_activity(activity)
+    redirect_to @playlist, notice: "Activity removed from playlist."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to @playlist, alert: "Activity not found."
   end
 
   private

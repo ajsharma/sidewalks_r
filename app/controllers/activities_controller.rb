@@ -54,8 +54,11 @@ class ActivitiesController < ApplicationController
   # Archives an activity (soft delete)
   # @return [void] Redirects to activities index with success notice
   def destroy
-    @activity.archive!
-    redirect_to activities_url, notice: "Activity was successfully archived."
+    if @activity.archive
+      redirect_to activities_url, notice: "Activity was successfully archived."
+    else
+      redirect_to activities_url, alert: "Failed to archive activity."
+    end
   end
 
   private
