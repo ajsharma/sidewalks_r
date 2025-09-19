@@ -409,7 +409,7 @@ class ActivitySchedulingService
 
       calendars.each do |calendar|
         events = google_service.list_events(
-          calendar.fetch(:id),
+          calendar.id,
           date_range.begin.beginning_of_day,
           date_range.end.end_of_day
         )
@@ -424,8 +424,8 @@ class ActivitySchedulingService
             summary: event.summary || "Busy",
             start_time: event.start.date_time,
             end_time: event.end.date_time,
-            calendar_id: calendar.fetch(:id),
-            calendar_name: calendar.fetch(:summary)
+            calendar_id: calendar.id,
+            calendar_name: calendar.summary
           }
         end
       end
