@@ -4,7 +4,7 @@ require "fileutils"
 APP_ROOT = File.expand_path("..", __dir__)
 
 # Set environment variables for the script
-ENV["BULLET_RAISE"] = "false"
+# ENV["BULLET_RAISE"] = "false"
 
 def system!(*args)
   system(*args, exception: true)

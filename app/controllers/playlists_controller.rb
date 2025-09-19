@@ -12,13 +12,12 @@ class PlaylistsController < ApplicationController
                             .left_joins(:playlist_activities)
                             .group("playlists.id")
                             .select("playlists.*, COUNT(CASE WHEN playlist_activities.archived_at IS NULL THEN playlist_activities.id END) as activities_count")
-                            .includes(activities: [])
   end
 
   # Displays a single playlist with its activities
   # @return [void] Sets @activities instance variable for view rendering
   def show
-    @activities = @playlist.ordered_activities.includes(:user)
+    @activities = @playlist.ordered_activities
   end
 
   # Renders form for creating a new playlist
