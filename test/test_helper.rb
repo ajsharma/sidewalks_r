@@ -24,7 +24,7 @@ SimpleCov.start "rails" do
   # Coverage requirements - realistic target based on current state
   # Target: Maintain >90% overall coverage with comprehensive tests for business logic
   # Focus on meaningful coverage rather than absolute numbers
-  minimum_coverage 70
+  minimum_coverage 80
   # Note: Per-file minimums disabled due to varied complexity
 
   track_files "app/**/*.rb"
