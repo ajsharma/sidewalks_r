@@ -1,5 +1,9 @@
 require "simplecov"
 SimpleCov.start "rails" do
+  # This is typically useful for ERB. Set ERB#filename= to
+  # make it possible for SimpleCov to trace the original .erb source file.
+  enable_coverage_for_eval
+
   # Basic filters
   add_filter "/test/"
   add_filter "/config/"
@@ -18,9 +22,9 @@ SimpleCov.start "rails" do
   add_group "Mailers", "app/mailers"
 
   # Coverage requirements - realistic target based on current state
-  # Target: Maintain >58% overall coverage with comprehensive tests for business logic
+  # Target: Maintain >90% overall coverage with comprehensive tests for business logic
   # Focus on meaningful coverage rather than absolute numbers
-  minimum_coverage 58
+  minimum_coverage 70
   # Note: Per-file minimums disabled due to varied complexity
 
   track_files "app/**/*.rb"
