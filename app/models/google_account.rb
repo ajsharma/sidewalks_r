@@ -1,3 +1,5 @@
+# Model representing a user's Google account integration.
+# Handles OAuth tokens, calendar access, and account management.
 class GoogleAccount < ApplicationRecord
   belongs_to :user
 
@@ -16,6 +18,10 @@ class GoogleAccount < ApplicationRecord
 
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def archive
+    update(archived_at: Time.current)
   end
 
   def token_expired?

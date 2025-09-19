@@ -22,6 +22,9 @@ jobs:
       - name: Scan for common Rails security vulnerabilities using static analysis
         run: bin/brakeman --no-pager
 
+      - name: Audit Ruby gems for security vulnerabilities
+        run: bundle exec bundle-audit --update
+
   scan_js:
     runs-on: ubuntu-latest
 
@@ -52,6 +55,12 @@ jobs:
 
       - name: Lint code for consistent style
         run: bin/rubocop -f github
+
+      - name: Check code smells with Reek
+        run: bundle exec reek .
+
+      - name: Check Rails best practices
+        run: bundle exec rails_best_practices .
 
       - name: Check YARD documentation
         run: bundle exec yardoc --no-output --no-cache --fail-on-warning

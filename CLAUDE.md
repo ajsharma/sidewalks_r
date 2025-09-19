@@ -26,8 +26,17 @@ bin/rails tailwindcss:watch # Watch and compile Tailwind CSS
 
 ### Quick Development Workflow
 ```bash
-bin/go                      # Run full development pipeline: setup, tests, security, linting
+bin/go                      # Run full development pipeline: setup, tests, security, code quality, linting
 ```
+
+### CI/CD Pipeline
+The project includes a comprehensive CI/CD pipeline with:
+- **Parallel job execution** - Security scanning, linting, and testing run in parallel
+- **Security scanning** - Brakeman for Rails vulnerabilities, bundle-audit for gem vulnerabilities, importmap audit for JS dependencies
+- **Code quality analysis** - RuboCop styling, Reek code smells, Rails best practices
+- **Automated testing** - Full test suite with SimpleCov coverage reporting
+- **Performance monitoring** - Bullet detects N+1 queries in development/test
+- **Migration safety** - Strong migrations prevents unsafe database changes
 
 ### Database Operations
 ```bash
@@ -49,6 +58,9 @@ bin/rails test test/models/specific_test.rb  # Run specific test file
 bin/rubocop                # Run RuboCop linter
 bin/rubocop -a             # Run RuboCop with auto-corrections
 bin/brakeman               # Run security analysis
+bundle exec bundle-audit --update  # Audit Ruby gems for security vulnerabilities
+bundle exec reek .         # Check for code smells
+bundle exec rails_best_practices .  # Rails-specific code analysis
 ```
 
 ### Asset Management
@@ -86,6 +98,13 @@ bin/rails routes           # Show all routes
 ### Development and Testing
 - **Rubocop Rails Omakase** - Ruby styling and linting
 - **Brakeman** - Security vulnerability scanner
+- **Bundler Audit** - Ruby gem security vulnerability scanner
+- **Reek** - Code smell detection
+- **Rails Best Practices** - Rails-specific code analyzer
+- **Strong Migrations** - Catch unsafe migrations in development
+- **Bullet** - N+1 query detection
+- **SimpleCov** - Code coverage analysis (81.33% current coverage)
+- **Axe Core Capybara** - Accessibility testing
 - **Capybara + Selenium** - System testing
 - **Debug gem** - Debugging tools
 

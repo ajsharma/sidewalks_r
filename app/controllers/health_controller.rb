@@ -1,3 +1,5 @@
+# Controller for application health checks and system monitoring.
+# Provides endpoints for monitoring services to check application status.
 class HealthController < ApplicationController
   # Skip authentication for health checks to allow monitoring systems access
   skip_before_action :verify_authenticity_token
@@ -132,31 +134,7 @@ class HealthController < ApplicationController
   end
 
   def check_database_connection_detailed
-    start_time = Time.current
-    begin
-      connection = ActiveRecord::Base.connection
-      connection.execute("SELECT 1")
-
-      # Additional database health metrics
-      pool = ActiveRecord::Base.connection_pool
-
-      {
-        status: "healthy",
-        message: "Database connection successful",
-        response_time_ms: ((Time.current - start_time) * 1000).round(2),
-        pool_size: pool.size,
-        active_connections: pool.connections.count(&:in_use?),
-        available_connections: pool.size - pool.connections.count(&:in_use?),
-        database_version: connection.database_version
-      }
-    rescue => e
-      {
-        status: "unhealthy",
-        message: "Database connection failed",
-        error: e.message,
-        response_time_ms: ((Time.current - start_time) * 1000).round(2)
-      }
-    end
+    DatabaseHealth.check_connection
   end
 
   def check_rails_application
@@ -271,48 +249,7 @@ class HealthController < ApplicationController
   end
 
   def check_google_calendar_api
-    return { status: "healthy", message: "No Google accounts configured" } if GoogleAccount.count == 0
-
-    start_time = Time.current
-    begin
-      # Test Google Calendar API connectivity with a recent account
-      recent_account = GoogleAccount.where.not(access_token: nil).order(:updated_at).last
-      return { status: "warning", message: "No active Google accounts found" } unless recent_account
-
-      # Basic connectivity test - just check if we can authenticate
-      auth = Google::Auth::UserRefreshCredentials.new(
-        client_id: Rails.application.credentials.google[:client_id],
-        client_secret: Rails.application.credentials.google[:client_secret],
-        scope: [ "https://www.googleapis.com/auth/calendar" ],
-        refresh_token: recent_account.refresh_token
-      )
-
-      auth.access_token = recent_account.access_token
-      auth.expires_at = recent_account.expires_at
-
-      # If token is expired, don't try to refresh in health check
-      if recent_account.needs_refresh?
-        return {
-          status: "warning",
-          message: "Google Calendar tokens need refresh",
-          response_time_ms: ((Time.current - start_time) * 1000).round(2)
-        }
-      end
-
-      {
-        status: "healthy",
-        message: "Google Calendar API accessible",
-        active_accounts: GoogleAccount.where.not(access_token: nil).count,
-        response_time_ms: ((Time.current - start_time) * 1000).round(2)
-      }
-    rescue => e
-      {
-        status: "warning",
-        message: "Google Calendar API check failed",
-        error: e.message,
-        response_time_ms: ((Time.current - start_time) * 1000).round(2)
-      }
-    end
+    GoogleCalendarHealth.check_api_connectivity
   end
 
   def check_background_jobs

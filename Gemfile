@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem "rails", "~> 8.0.2"
+gem "rails", ">= 8.0.2.1"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
 # Use postgresql as the database for Active Record
@@ -47,6 +47,9 @@ gem "kamal", require: false
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 
+# Catch unsafe migrations in development [https://github.com/ankane/strong_migrations]
+gem "strong_migrations"
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
@@ -57,8 +60,23 @@ group :development, :test do
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
+  # Security vulnerability scanner for Ruby gems [https://github.com/postmodern/bundler-audit]
+  gem "bundler-audit", require: false
+
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Code smell detection for Ruby [https://github.com/troessner/reek]
+  gem "reek", require: false
+
+  # Rails best practices code analyzer [https://github.com/railsbp/rails_best_practices]
+  gem "rails_best_practices", require: false
+
+  # Performance monitoring and benchmarking [https://github.com/schneems/derailed_benchmarks]
+  gem "derailed_benchmarks", require: false
+
+  # N+1 query detection [https://github.com/flyerhzm/bullet]
+  gem "bullet"
 
   # YARD documentation generation [https://yardoc.org/]
   gem "yard", require: false
@@ -76,6 +94,9 @@ group :test do
 
   # Code coverage analysis [https://github.com/simplecov-ruby/simplecov]
   gem "simplecov", require: false
+
+  # Accessibility testing with axe-core [https://github.com/dequelabs/axe-core-gems]
+  gem "axe-core-capybara"
 
   gem "vcr", "~> 6.3"
   gem "webmock", "~> 3.25"

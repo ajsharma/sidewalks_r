@@ -1,3 +1,5 @@
+# Domain object representing a single proposed event in an agenda.
+# Wraps event data with timezone-aware time handling.
 class AgendaProposedEvent
   attr_reader :raw_data, :user_timezone, :source
 

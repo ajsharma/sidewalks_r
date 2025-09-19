@@ -1,3 +1,5 @@
+# Service for handling user onboarding workflows.
+# Manages setup processes and starter content for new users.
 class UserOnboardingService
   # Populates starter content for new users if they have no existing activities or playlists
   # @param user [User] the user to populate content for
@@ -5,13 +7,17 @@ class UserOnboardingService
   def self.populate_starter_content(user)
     return if user.activities.exists? || user.playlists.exists?
 
-    Rails.logger.info "Populating starter content for user #{user.id} (#{user.email})"
+    logger = Rails.logger
+    user_id = user.id
+
+    logger.info "Populating starter content for user #{user_id} (#{user.email})"
 
     onboarding_data = load_onboarding_data
+    playlists_data = onboarding_data["playlists"]
     created_activities = create_activities(user, onboarding_data["activities"])
-    create_playlists(user, onboarding_data["playlists"], created_activities)
+    create_playlists(user, playlists_data, created_activities)
 
-    Rails.logger.info "Successfully created #{created_activities.size} activities and #{onboarding_data['playlists'].size} playlists for user #{user.id}"
+    logger.info "Successfully created #{created_activities.size} activities and #{playlists_data.size} playlists for user #{user_id}"
   end
 
   private
@@ -25,8 +31,10 @@ class UserOnboardingService
     created_activities = {}
 
     activities_data.each do |activity_data|
+      activity_name = activity_data["name"]
+
       activity = user.activities.create!(
-        name: activity_data["name"],
+        name: activity_name,
         description: activity_data["description"],
         schedule_type: activity_data["schedule_type"],
         start_time: parse_datetime(activity_data["start_time"]),
@@ -36,7 +44,7 @@ class UserOnboardingService
         activity_links: activity_data["activity_links"] || []
       )
 
-      created_activities[activity_data["name"]] = activity
+      created_activities[activity_name] = activity
     end
 
     created_activities
