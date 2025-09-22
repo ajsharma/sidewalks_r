@@ -70,7 +70,7 @@ class ActivitiesControllerTest < ActionDispatch::IntegrationTest
       start_time: 1.day.from_now.beginning_of_day + 7.hours,
       end_time: 1.day.from_now.beginning_of_day + 8.hours,
       max_frequency_days: 1,
-      activity_links: ["https://youtube.com/workout", "https://myfitnesspal.com"]
+      activity_links: [ "https://youtube.com/workout", "https://myfitnesspal.com" ]
     )
 
     get activity_path(activity)
@@ -117,7 +117,7 @@ class ActivitiesControllerTest < ActionDispatch::IntegrationTest
       description: "Read for personal development",
       schedule_type: "flexible",
       max_frequency_days: 30,
-      activity_links: ["https://goodreads.com"]
+      activity_links: [ "https://goodreads.com" ]
     )
 
     get activity_path(activity)
