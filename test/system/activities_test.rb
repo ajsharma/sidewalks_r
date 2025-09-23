@@ -36,5 +36,7 @@ class ActivitiesTest < ApplicationSystemTestCase
     fill_in "Email", with: user.email
     fill_in "Password", with: "password"
     click_button "Sign in"
+    # Wait for successful authentication by checking for the user's name in the navigation
+    assert_text user.name
   end
 end

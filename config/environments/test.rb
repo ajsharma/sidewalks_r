@@ -51,6 +51,11 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # Set a fallback secret_key_base for tests when credentials aren't available
+  if Rails.application.credentials.secret_key_base.blank?
+    config.secret_key_base = "test_secret_key_base_for_devise_authentication_" + "a" * 40
+  end
+
   # Configure Bullet for N+1 query detection in tests
   config.after_initialize do
     Bullet.enable = true

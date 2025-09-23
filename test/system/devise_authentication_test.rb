@@ -36,7 +36,7 @@ class DeviseAuthenticationTest < ApplicationSystemTestCase
     user = users(:one)
     sign_in user
     visit edit_user_registration_path
-    assert_text "Edit User"
+    assert_text "Edit Profile"
   end
 
   private
@@ -46,5 +46,7 @@ class DeviseAuthenticationTest < ApplicationSystemTestCase
     fill_in "Email", with: user.email
     fill_in "Password", with: "password"
     click_button "Sign in"
+    # Wait for successful authentication by checking for the user's name in the navigation
+    assert_text user.name
   end
 end

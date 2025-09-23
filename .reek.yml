@@ -4,8 +4,6 @@ exclude_paths:
   - node_modules
   - test # Exclude test files from code smell analysis
 
-# Note: Reek warnings don't fail the build since we use system() instead of system!()
-
 detectors:
   IrresponsibleModule:
     exclude:
