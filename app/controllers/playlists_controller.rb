@@ -34,7 +34,7 @@ class PlaylistsController < ApplicationController
     if @playlist.save
       redirect_to @playlist, notice: "Playlist was successfully created."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -49,7 +49,7 @@ class PlaylistsController < ApplicationController
     if @playlist.update(playlist_params)
       redirect_to @playlist, notice: "Playlist was successfully updated."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
