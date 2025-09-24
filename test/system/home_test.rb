@@ -11,7 +11,8 @@ class HomeTest < ApplicationSystemTestCase
     sign_in user
     visit root_url
     click_link "Activities"
-    assert_text "My Activities"
+    # Wait for page to load by checking for the Activities page heading
+    assert_selector "h1", text: "My Activities"
   end
 
   private
