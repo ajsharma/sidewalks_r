@@ -38,5 +38,7 @@ class ActivitiesTest < ApplicationSystemTestCase
     click_button "Sign in"
     # Wait for successful authentication by checking for the user's name in the navigation
     assert_text user.name
+    # Ensure we're redirected away from the sign-in page
+    assert_current_path root_path
   end
 end
