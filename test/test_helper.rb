@@ -24,7 +24,7 @@ SimpleCov.start "rails" do
   # Coverage requirements - different expectations for different test types
   # Unit tests should have high coverage (80%+) as they test business logic thoroughly
   # System tests have lower coverage (~45%) as they test end-to-end workflows
-  minimum_coverage ENV['SYSTEM_TEST_MODE'] ? 40 : 80
+  minimum_coverage ENV["SYSTEM_TEST_MODE"] ? 40 : 80
   # Note: Per-file minimums disabled due to varied complexity
 
   track_files "app/**/*.rb"
