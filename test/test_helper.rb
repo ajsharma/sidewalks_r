@@ -21,11 +21,10 @@ SimpleCov.start "rails" do
   add_group "Jobs", "app/jobs"
   add_group "Mailers", "app/mailers"
 
-  # Coverage requirements - realistic target based on current state
-  # Target: Maintain >80% overall coverage with comprehensive tests for business logic
-  # Focus on meaningful coverage rather than absolute numbers
-  # Only enforce minimum coverage when not running system tests in isolation
-  minimum_coverage 80 unless ENV["RAILS_TEST_ISOLATE_SYSTEM"]
+  # Coverage requirements - different expectations for different test types
+  # Unit tests should have high coverage (80%+) as they test business logic thoroughly
+  # System tests have lower coverage (~45%) as they test end-to-end workflows
+  minimum_coverage ENV['SYSTEM_TEST_MODE'] ? 40 : 80
   # Note: Per-file minimums disabled due to varied complexity
 
   track_files "app/**/*.rb"
