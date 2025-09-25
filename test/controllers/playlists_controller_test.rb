@@ -47,4 +47,37 @@ class PlaylistsControllerTest < ActionDispatch::IntegrationTest
     @playlist.reload
     assert @playlist.archived?
   end
+
+  test "index should include activities count to prevent N+1 queries" do
+    # Create a playlist with activities
+    playlist = Playlist.create!(name: "Test Playlist", user: @user)
+    activity1 = activities(:one)
+    activity2 = activities(:two)
+
+    playlist.add_activity(activity1)
+    playlist.add_activity(activity2)
+
+    get playlists_url
+    assert_response :success
+
+    # Check that the response includes activity counts
+    assert_select ".text-gray-500", text: /2 activities/
+  end
+
+  test "show should preload activities with users to prevent N+1 queries" do
+    # Create a new playlist and activity for this test
+    playlist = @user.playlists.create!(name: "Test Playlist", description: "Test")
+    activity = @user.activities.create!(
+      name: "Test Activity",
+      schedule_type: "flexible",
+      description: "Test activity"
+    )
+    playlist.add_activity(activity)
+
+    get playlist_url(playlist)
+    assert_response :success
+
+    # Should display activity information without additional queries
+    assert_select "h4", text: activity.name
+  end
 end

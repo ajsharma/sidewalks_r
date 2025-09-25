@@ -1,18 +1,23 @@
+# Controller for managing user playlists.
+# Handles CRUD operations for activity playlists with proper authorization.
 class PlaylistsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_playlist, only: [ :show, :edit, :update, :destroy ]
-  before_action :ensure_owner, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_playlist, only: [ :show, :edit, :update, :destroy, :add_activity, :remove_activity ]
+  before_action :ensure_owner, only: [ :show, :edit, :update, :destroy, :add_activity, :remove_activity ]
 
   # Lists all active playlists for the current user
   # @return [void] Sets @playlists instance variable for view rendering
   def index
-    @playlists = current_user.playlists.active.includes(:activities)
+    @playlists = current_user.playlists.active
+                            .left_joins(:playlist_activities)
+                            .group("playlists.id")
+                            .select("playlists.*, COUNT(CASE WHEN playlist_activities.archived_at IS NULL THEN playlist_activities.id END) as activities_count")
   end
 
   # Displays a single playlist with its activities
   # @return [void] Sets @activities instance variable for view rendering
   def show
-    @activities = @playlist.ordered_activities.includes(:user)
+    @activities = @playlist.ordered_activities
   end
 
   # Renders form for creating a new playlist
@@ -29,7 +34,7 @@ class PlaylistsController < ApplicationController
     if @playlist.save
       redirect_to @playlist, notice: "Playlist was successfully created."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -44,7 +49,7 @@ class PlaylistsController < ApplicationController
     if @playlist.update(playlist_params)
       redirect_to @playlist, notice: "Playlist was successfully updated."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
@@ -55,14 +60,34 @@ class PlaylistsController < ApplicationController
     redirect_to playlists_path, notice: "Playlist was successfully archived."
   end
 
+  # Adds an activity to the playlist
+  # @return [void] Redirects to playlist with success notice
+  def add_activity
+    activity = current_user.activities.find(params[:activity_id])
+    @playlist.add_activity(activity)
+    redirect_to @playlist, notice: "Activity added to playlist."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to @playlist, alert: "Activity not found."
+  end
+
+  # Removes an activity from the playlist
+  # @return [void] Redirects to playlist with success notice
+  def remove_activity
+    activity = current_user.activities.find(params[:activity_id])
+    @playlist.remove_activity(activity)
+    redirect_to @playlist, notice: "Activity removed from playlist."
+  rescue ActiveRecord::RecordNotFound
+    redirect_to @playlist, alert: "Activity not found."
+  end
+
   private
 
   def set_playlist
-    @playlist = Playlist.active.find_by!(slug: params[:id])
+    @playlist = current_user.playlists.active.find_by!(slug: params[:id])
   end
 
   def ensure_owner
-    redirect_to playlists_path, alert: "Access denied." unless @playlist.user == current_user
+    redirect_to playlists_path, alert: "Access denied." unless Playlist.owned_by(current_user).exists?(@playlist.id)
   end
 
   def playlist_params

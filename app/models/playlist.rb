@@ -1,3 +1,5 @@
+# Model representing a collection of activities organized by users.
+# Handles activity ordering, management, and archiving functionality.
 class Playlist < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
@@ -9,6 +11,7 @@ class Playlist < ApplicationRecord
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
 
   scope :active, -> { where(archived_at: nil) }
+  scope :owned_by, ->(user) { where(user: user) }
 
   def archived?
     archived_at.present?
@@ -18,6 +21,10 @@ class Playlist < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
+  def archive
+    update(archived_at: Time.current)
+  end
+
   def to_param
     slug
   end
@@ -25,6 +32,14 @@ class Playlist < ApplicationRecord
   def ordered_activities
     activities.where(playlist_activities: { archived_at: nil })
               .order("playlist_activities.position ASC")
+  end
+
+  def activities_count
+    # Use the pre-calculated count from the query if available, otherwise calculate
+    return super if defined?(super) && super.present?
+    active_activities_count
+  rescue NoMethodError
+    active_activities_count
   end
 
   def add_activity(activity, position: nil)
@@ -42,6 +57,10 @@ class Playlist < ApplicationRecord
   end
 
   private
+
+  def active_activities_count
+    activities.where(playlist_activities: { archived_at: nil }).count
+  end
 
   def generate_slug
     base_slug = name.parameterize

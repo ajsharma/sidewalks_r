@@ -1,0 +1,98 @@
+exclude_paths:
+  - db/migrate
+  - vendor
+  - node_modules
+  - test # Exclude test files from code smell analysis
+
+detectors:
+  IrresponsibleModule:
+    exclude:
+      - ActiveSupport::TestCase # Test helper extensions
+      - ActionDispatch::IntegrationTest # Test helper extensions
+
+  UncommunicativeVariableName:
+    accept:
+      - t # Common Rails migration variable
+      - e # Exception variable
+      - i # Iterator variable
+
+  FeatureEnvy:
+    exclude:
+      - "*/db/migrate/*" # Migrations use table builder pattern
+      - ActivitySchedulingService # Service classes legitimately work with domain objects passed as parameters
+      - GoogleCalendarService # Service classes legitimately work with data objects passed as parameters
+
+  TooManyStatements:
+    max_statements: 15 # Allow slightly more statements for migrations
+    exclude:
+      - "*/db/migrate/*"
+      - HealthController # Health monitoring can have longer methods
+
+  DuplicateMethodCall:
+    exclude:
+      - HealthController # Health monitoring often uses repetitive timing calculations
+      - ActivitySchedulingService # Complex service with legitimate repeated method calls for clarity
+      - DatabaseHealth # Health monitoring models may need repeated timing calculations
+      - GoogleCalendarHealth # Health monitoring models may need repeated timing calculations
+
+  UtilityFunction:
+    public_methods_only: true # Only warn on public utility functions
+
+  InstanceVariableAssumption:
+    exclude:
+      - "*Controller" # Rails controllers commonly use instance variables
+      - "*/controllers/*" # All controller files use instance variables for views
+      - ActivitiesController
+      - ActivitySchedulingController
+      - PlaylistsController
+      - Users::OmniauthCallbacksController
+
+  UncommunicativeMethodName:
+    accept:
+      - google_oauth2 # OAuth provider callback method name
+
+  TooManyMethods:
+    max_methods: 20 # Allow more methods for complex Rails classes
+
+  TooManyInstanceVariables:
+    max_instance_variables: 5
+
+  TooManyStatements:
+    max_statements: 15
+
+  RepeatedConditional:
+    exclude:
+      - AgendaProposedEvent # Domain objects may have repeated conditionals
+      - HealthController # Health monitoring may check same conditions multiple times
+
+  ManualDispatch:
+    exclude:
+      - HealthController # Health monitoring often uses dynamic method dispatch
+      - ActivitySchedulingService # Service objects may use conditional dispatch patterns
+
+  NestedIterators:
+    exclude:
+      - UserOnboardingService # Onboarding may need nested iteration for setup
+      - ActivitySchedulingService # Complex scheduling logic may need nested iteration
+
+  TooManyInstanceVariables:
+    max_instance_variables: 6 # Allow more for complex service classes
+
+  TooManyStatements:
+    max_statements: 25 # Allow more statements for complex service methods
+
+  NilCheck:
+    exclude:
+      - Activity # Defensive nil checks are appropriate in model methods
+
+  BooleanParameter:
+    exclude:
+      - ActivitySchedulingService # Service objects often use boolean flags for dry runs and options
+
+  ControlParameter:
+    exclude:
+      - ActivitySchedulingService # Service objects often have conditional behavior based on parameters
+
+  DataClump:
+    exclude:
+      - ActivitySchedulingService # Service objects may pass similar parameters to multiple related methods

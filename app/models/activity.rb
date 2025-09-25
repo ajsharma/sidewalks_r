@@ -1,5 +1,9 @@
+# Model representing user activities for scheduling and management.
+# Handles different schedule types, validation, and archiving functionality.
 class Activity < ApplicationRecord
   belongs_to :user
+  has_many :playlist_activities, dependent: :destroy
+  has_many :playlists, through: :playlist_activities
 
   SCHEDULE_TYPES = %w[strict flexible deadline].freeze
   MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
@@ -19,13 +23,8 @@ class Activity < ApplicationRecord
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
 
   scope :active, -> { where(archived_at: nil) }
-  scope :by_schedule_type, ->(type) { where(schedule_type: type) }
-  scope :strict_schedule, -> { where(schedule_type: "strict") }
-  scope :flexible_schedule, -> { where(schedule_type: "flexible") }
-  scope :deadline_based, -> { where(schedule_type: "deadline") }
+  scope :owned_by, ->(user) { where(user: user) }
 
-  # Checks if the activity has been archived
-  # @return [Boolean] true if archived_at is present, false otherwise
   def archived?
     archived_at.present?
   end
@@ -34,6 +33,10 @@ class Activity < ApplicationRecord
   # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
+  end
+
+  def archive
+    update(archived_at: Time.current)
   end
 
   # Returns the slug for URL parameter usage
@@ -48,8 +51,6 @@ class Activity < ApplicationRecord
     schedule_type == "strict"
   end
 
-  # Checks if activity has a flexible schedule type
-  # @return [Boolean] true if schedule_type is 'flexible', false otherwise
   def flexible_schedule?
     schedule_type == "flexible"
   end

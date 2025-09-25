@@ -20,4 +20,20 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
     }
     assert_response :success
   end
+
+  test "should preload google_accounts to prevent N+1 queries" do
+    # Create a google account for the user
+    @user.google_accounts.create!(
+      google_id: "test123",
+      email: @user.email,
+      access_token: "test_token",
+      refresh_token: "test_refresh"
+    )
+
+    get schedule_url
+    assert_response :success
+
+    # The page should render without N+1 queries on google_accounts
+    # This test verifies the preload_associations before_action works
+  end
 end

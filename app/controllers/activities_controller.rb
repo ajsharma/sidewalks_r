@@ -1,3 +1,5 @@
+# Controller for managing user activities.
+# Handles CRUD operations for activities with proper authorization.
 class ActivitiesController < ApplicationController
   before_action :authenticate_user!
   before_action :set_activity, only: [ :show, :edit, :update, :destroy ]
@@ -6,8 +8,7 @@ class ActivitiesController < ApplicationController
   # Lists all active activities for the current user
   # @return [void] Sets @activities instance variable for view rendering
   def index
-    @activities = current_user.activities.active.includes(:user)
-                             .order(created_at: :desc)
+    @activities = current_user.activities.active.order(created_at: :desc)
   end
 
   # Displays a single activity
@@ -30,7 +31,7 @@ class ActivitiesController < ApplicationController
     if @activity.save
       redirect_to @activity, notice: "Activity was successfully created."
     else
-      render :new, status: :unprocessable_entity
+      render :new, status: :unprocessable_content
     end
   end
 
@@ -46,25 +47,28 @@ class ActivitiesController < ApplicationController
     if @activity.update(activity_params)
       redirect_to @activity, notice: "Activity was successfully updated."
     else
-      render :edit, status: :unprocessable_entity
+      render :edit, status: :unprocessable_content
     end
   end
 
   # Archives an activity (soft delete)
   # @return [void] Redirects to activities index with success notice
   def destroy
-    @activity.archive!
-    redirect_to activities_url, notice: "Activity was successfully archived."
+    if @activity.archive
+      redirect_to activities_url, notice: "Activity was successfully archived."
+    else
+      redirect_to activities_url, alert: "Failed to archive activity."
+    end
   end
 
   private
 
   def set_activity
-    @activity = Activity.active.find_by!(slug: params[:id])
+    @activity = current_user.activities.active.find_by!(slug: params[:id])
   end
 
   def ensure_owner
-    unless @activity.user == current_user
+    unless Activity.owned_by(current_user).exists?(@activity.id)
       redirect_to activities_path, alert: "You can only edit your own activities."
     end
   end
