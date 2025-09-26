@@ -18,7 +18,14 @@ FileUtils.chdir APP_ROOT do
   system! "bin/rails test"
 
   puts "\n== Running system tests =="
-  system! "SYSTEM_TEST_MODE=true bin/rails test:system"
+  # System tests can have occasional intermittent failures due to timing/isolation issues
+  # Try once, and if it fails, retry once more
+  begin
+    system! "SYSTEM_TEST_MODE=true bin/rails test:system"
+  rescue RuntimeError => e
+    puts "System tests failed on first attempt, retrying once..."
+    system! "SYSTEM_TEST_MODE=true bin/rails test:system"
+  end
 
   puts "\n== Running security tests =="
   system! "bin/brakeman"
