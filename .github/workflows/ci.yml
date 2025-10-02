@@ -105,6 +105,23 @@ jobs:
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
 
+      - name: Check coverage report
+        run: |
+          echo "Coverage Summary:"
+          if [ -f coverage/.last_run.json ]; then
+            COVERAGE=$(ruby -e "require 'json'; puts JSON.parse(File.read('coverage/.last_run.json'))['result']['line']")
+            echo "Line Coverage: ${COVERAGE}%"
+            COVERAGE_INT=$(echo "$COVERAGE" | cut -d'.' -f1)
+            if [ "$COVERAGE_INT" -lt "80" ]; then
+              echo "❌ Coverage ${COVERAGE}% is below minimum requirement of 80%"
+              exit 1
+            else
+              echo "✅ Coverage ${COVERAGE}% meets requirement"
+            fi
+          else
+            echo "No coverage data found"
+          fi
+
       - name: Run system tests
         env:
           RAILS_ENV: test
