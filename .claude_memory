@@ -1,0 +1,13 @@
+# Claude Memory for ajsharma/sidewalks_r
+
+## User Preferences
+
+### Development Workflow
+- **No automatic retries**: Never add retry logic or error recovery mechanisms without explicit permission from the user
+- **Fail fast**: Let tests and commands fail immediately so issues are visible and can be properly diagnosed
+- **Explicit control**: User prefers to handle failures manually rather than having automated workarounds
+
+## Project Context
+- Rails 8 application with comprehensive CI/CD pipeline
+- System tests can have intermittent timing issues but should fail visibly when they occur
+- bin/go script runs full development pipeline including unit tests, system tests, security scans, and code quality checks

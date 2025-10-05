@@ -2,7 +2,7 @@
 
 one:
   email: john@example.com
-  encrypted_password: <%= Devise::Encryptor.digest(User, 'password') %>
+  encrypted_password: $2a$04$v5/YfcAg1NR5wRTA7lHbue8xL1BJzA8enEFWwN5k8cLMpJDleseL.
   name: John Doe
   slug: john-doe
   timezone: America/Los_Angeles
@@ -10,7 +10,7 @@ one:
 
 two:
   email: jane@example.com
-  encrypted_password: <%= Devise::Encryptor.digest(User, 'password') %>
+  encrypted_password: $2a$04$v5/YfcAg1NR5wRTA7lHbue8xL1BJzA8enEFWwN5k8cLMpJDleseL.
   name: Jane Smith
   slug: jane-smith
   timezone: America/New_York

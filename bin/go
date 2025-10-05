@@ -15,7 +15,10 @@ FileUtils.chdir APP_ROOT do
   system! "bin/setup --skip-server"
 
   puts "\n== Running tests =="
-  system! "bundle exec rake test"
+  system! "bin/rails test"
+
+  puts "\n== Running system tests =="
+  system! "SYSTEM_TEST_MODE=true bin/rails test:system"
 
   puts "\n== Running security tests =="
   system! "bin/brakeman"
