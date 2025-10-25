@@ -8,11 +8,14 @@ class PlaylistActivity < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
 
-
+  # Archives the playlist-activity association by setting archived_at timestamp
+  # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
   end
 
+  # Archives the playlist-activity association by setting archived_at timestamp (safe version)
+  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end

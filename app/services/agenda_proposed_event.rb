@@ -19,18 +19,26 @@ class AgendaProposedEvent
     end
   end
 
+  # Returns the event start time in the user's timezone
+  # @return [ActiveSupport::TimeWithZone, nil] normalized start time or nil if not present
   def start_time
     @start_time ||= normalize_time(raw_data[:start_time])
   end
 
+  # Returns the event end time in the user's timezone
+  # @return [ActiveSupport::TimeWithZone, nil] normalized end time or nil if not present
   def end_time
     @end_time ||= normalize_time(raw_data[:end_time])
   end
 
+  # Calculates the duration of the event in seconds
+  # @return [Float] duration in seconds between start and end time
   def duration
     end_time - start_time
   end
 
+  # Returns the type of event: 'existing' for calendar events or activity type for suggestions
+  # @return [String] event type identifier
   def type
     case source
     when "calendar"
@@ -50,10 +58,14 @@ class AgendaProposedEvent
     raw_data[:confidence] if source == "suggestion"
   end
 
+  # Returns urgency level for suggested activities
+  # @return [String, nil] urgency level (e.g., 'high', 'medium', 'low') or nil if not a suggestion
   def urgency
     raw_data[:urgency] if source == "suggestion"
   end
 
+  # Returns frequency information for suggested activities
+  # @return [String, nil] human-readable frequency note or nil if not a suggestion
   def frequency_note
     raw_data[:frequency_note] if source == "suggestion"
   end
@@ -66,6 +78,8 @@ class AgendaProposedEvent
     raw_data[:conflict_avoided] == true
   end
 
+  # Returns additional notes or metadata about the event
+  # @return [Array] array of note strings, empty array if none
   def notes
     raw_data[:notes] || []
   end
@@ -85,6 +99,8 @@ class AgendaProposedEvent
     raw_data[:activity] if source == "suggestion"
   end
 
+  # Returns the Google Calendar ID for calendar events
+  # @return [String, nil] calendar ID or nil if not a calendar event
   def calendar_id
     raw_data[:calendar_id] if source == "calendar"
   end

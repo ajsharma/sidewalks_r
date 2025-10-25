@@ -1,6 +1,9 @@
 # OAuth callback controller for user authentication.
 # Handles Google OAuth2 authentication flow.
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
+  # Handles successful Google OAuth2 authentication
+  # Creates or updates user and Google account, then signs in the user
+  # GET /users/auth/google_oauth2/callback
   def google_oauth2
     auth_data = request.env["omniauth.auth"]
 
@@ -30,6 +33,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     end
   end
 
+  # Handles OAuth authentication failures
+  # Logs error and redirects to root with error message
+  # GET /users/auth/google_oauth2/callback (when authentication fails)
   def failure
     error_message = params[:message]
     Rails.logger.error "OAuth failure: #{error_message} - #{params[:error_description]}"

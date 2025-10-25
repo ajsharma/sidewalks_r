@@ -5,7 +5,10 @@ class Activity < ApplicationRecord
   has_many :playlist_activities, dependent: :destroy
   has_many :playlists, through: :playlist_activities
 
+  # Valid schedule types for activities
+  # @return [Array<String>] frozen array of valid schedule types: strict, flexible, deadline
   SCHEDULE_TYPES = %w[strict flexible deadline].freeze
+
   MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
@@ -35,6 +38,8 @@ class Activity < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
+  # Archives the activity by setting archived_at timestamp (safe version)
+  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end

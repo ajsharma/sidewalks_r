@@ -26,14 +26,20 @@ class User < ApplicationRecord
     archived_at.present?
   end
 
+  # Archives the user by setting archived_at timestamp
+  # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
   end
 
+  # Archives the user by setting archived_at timestamp (safe version)
+  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end
 
+  # Returns the slug for URL parameter usage
+  # @return [String] the user's slug for use in URLs
   def to_param
     slug
   end
