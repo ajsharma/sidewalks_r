@@ -1,6 +1,8 @@
 require "test_helper"
 
 class GoogleIntegrationTest < ActionDispatch::IntegrationTest
+  include GoogleHelpers::GoogleCalendarTestHelper
+
   setup do
     @user = users(:one)
     @google_account = create_test_google_account(@user)

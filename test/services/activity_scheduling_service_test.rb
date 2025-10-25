@@ -1,6 +1,8 @@
 require "test_helper"
 
 class ActivitySchedulingServiceTest < ActiveSupport::TestCase
+  include GoogleHelpers::GoogleCalendarMockHelper
+
   setup do
     @user = users(:one)
 
@@ -521,26 +523,10 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
   private
 
   # ============================================================================
-  # Test Helpers - Clean, professional mocking without accessing internals
+  # Test Helpers
   # ============================================================================
-
-  def with_mocked_google_calendar(events)
-    mock_service = MockGoogleCalendarService.new(events)
-
-    # Temporarily replace GoogleCalendarService.new
-    original_method = GoogleCalendarService.singleton_class.instance_method(:new)
-
-    GoogleCalendarService.define_singleton_method(:new) do |*args|
-      mock_service
-    end
-
-    begin
-      yield
-    ensure
-      # Restore original behavior
-      GoogleCalendarService.singleton_class.define_method(:new, original_method)
-    end
-  end
+  # Note: with_mocked_google_calendar is provided by GoogleHelpers::GoogleCalendarMockHelper
+  # in test/support/google_helpers/google_calendar_mock_helper.rb
 
   def build_test_suggestions(activities)
     activities.map do |activity|
@@ -552,37 +538,6 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
         type: activity.schedule_type || "flexible",
         confidence: "medium"
       }
-    end
-  end
-end
-
-# Mock object for GoogleCalendarService - encapsulates test double behavior
-class MockGoogleCalendarService
-  def initialize(events)
-    @events = events
-  end
-
-  def fetch_calendars
-    [
-      ActivitySchedulingService::CalendarInfo.new(
-        id: "primary",
-        summary: "Primary Calendar",
-        description: "Main calendar",
-        primary: true,
-        access_role: "owner"
-      )
-    ]
-  end
-
-  def list_events(_calendar_id, _start_time, _end_time)
-    require "ostruct"
-
-    @events.map do |event_data|
-      OpenStruct.new(
-        summary: event_data[:summary],
-        start: OpenStruct.new(date_time: event_data[:start_time]),
-        end: OpenStruct.new(date_time: event_data[:end_time])
-      )
     end
   end
 end
