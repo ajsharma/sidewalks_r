@@ -40,18 +40,19 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     assert_equal 8, service.options[:work_hours_start]
   end
 
-  test "should set user timezone from user or default" do
+  test "should set user timezone from user" do
     @user.update!(timezone: "Eastern Time (US & Canada)")
     service = ActivitySchedulingService.new(@user)
 
     assert_equal "Eastern Time (US & Canada)", service.instance_variable_get(:@user_timezone)
   end
 
-  test "should use default timezone when user timezone is nil" do
+  test "should raise error when user timezone is nil" do
     @user.update!(timezone: nil)
-    service = ActivitySchedulingService.new(@user)
 
-    assert_equal "America/Los_Angeles", service.instance_variable_get(:@user_timezone)
+    assert_raises ArgumentError do 
+      ActivitySchedulingService.new(@user)
+    end
   end
 
   # Agenda generation tests
