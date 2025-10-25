@@ -84,8 +84,7 @@ open coverage/index.html
 ```
 
 **Coverage Goals:**
-- Maintain >90% overall coverage
-- 100% coverage for critical business logic
+- Maintain >80% overall coverage
 - Focus on meaningful tests, not just coverage numbers
 
 ## Writing Good Tests
@@ -342,12 +341,4 @@ Our CI pipeline runs:
 1. `bin/rubocop` - Code quality checks
 2. `bin/brakeman` - Security analysis
 3. `bin/rails test` - Full test suite with coverage
-4. Coverage reports uploaded to CI
-
-## Current Status
-
-**Coverage**: 46.57% (292/627 lines)
-**Target**: Maintain >45% with focus on meaningful business logic coverage
-**Strategy**: Comprehensive testing of models, controllers, and core business logic while excluding complex external service integrations
-
-Tests must pass with >45% coverage for merging. See `docs/todos/test_todos.md` for detailed coverage strategy and exclusions.
+4. Coverage validation to ensure >80% minimum
