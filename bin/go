@@ -14,7 +14,7 @@ FileUtils.chdir APP_ROOT do
   puts "== Running setup =="
   system! "bin/setup --skip-server"
 
-  puts "\n== Running tests=="
+  puts "\n== Running tests =="
   system! "bin/rails test"
 
   puts "\n== Running security tests =="
