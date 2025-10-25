@@ -171,27 +171,25 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     end
   end
 
-  # TODO: Re-enable when service bug with Date#weekend? is fixed
-  # The service currently calls .weekend? on Date which requires ActiveSupport
-  # test "generate_agenda respects exclude weekends option" do
-  #   @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
-  #
-  #   with_mocked_google_calendar([]) do
-  #     service = ActivitySchedulingService.new(
-  #       @user,
-  #       [ @activity_flexible ],
-  #       { exclude_weekends: true }
-  #     )
-  #
-  #     agenda = service.generate_agenda(@date_range)
-  #
-  #     weekend_suggestions = agenda.suggestions.select do |s|
-  #       s.start_time.to_date.saturday? || s.start_time.to_date.sunday?
-  #     end
-  #
-  #     assert_empty weekend_suggestions, "Should not schedule on weekends when excluded"
-  #   end
-  # end
+  test "generate_agenda respects exclude weekends option" do
+    @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
+  
+    with_mocked_google_calendar([]) do
+      service = ActivitySchedulingService.new(
+        @user,
+        [ @activity_flexible ],
+        { exclude_weekends: true }
+      )
+  
+      agenda = service.generate_agenda(@date_range)
+  
+      weekend_suggestions = agenda.suggestions.select do |s|
+        s.start_time.to_date.saturday? || s.start_time.to_date.sunday?
+      end
+  
+      assert_empty weekend_suggestions, "Should not schedule on weekends when excluded"
+    end
+  end
 
   # ============================================================================
   # Public API: Conflict Detection and Resolution Tests

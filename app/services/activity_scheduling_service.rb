@@ -213,7 +213,7 @@ class ActivitySchedulingService
 
     while current_date <= date_range.end
       # Skip weekends if configured
-      if options[:exclude_weekends] && current_date.weekend?
+      if options[:exclude_weekends] && current_date.on_weekend?
         current_date += 1.day
         next
       end
