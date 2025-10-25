@@ -63,7 +63,7 @@ class ActivitySchedulingService
   # @param options [Hash] scheduling options to override defaults
   # @return [ActivitySchedulingService] new instance of the service
   def initialize(user, activities = nil, options = {})
-    raise ArgumentError, "Blank use is not supported" if user.blank?
+    raise ArgumentError, "Blank user is not supported" if user.blank?
     raise ArgumentError, "Blank time zone is not supported" if user.timezone.blank?
 
     @user = user
