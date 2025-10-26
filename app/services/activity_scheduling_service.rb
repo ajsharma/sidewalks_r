@@ -198,7 +198,7 @@ class ActivitySchedulingService
     suggestions
   end
 
-  def suggest_flexible_schedule(activity, date_range)
+  def suggest_flexible_schedule(activity, date_range, time_offset_tracker = { offset: 0 })
     suggestions = []
 
     # For flexible activities, suggest optimal times based on frequency
@@ -208,8 +208,10 @@ class ActivitySchedulingService
     name_downcase = activity_name.downcase
 
     current_date = date_range.begin
-    time_offset = 0 # Stagger activities to avoid conflicts
-    time_offset_minutes = time_offset.minutes
+    # Use shared time offset to stagger activities across different activity types
+    # For the first occurrence of THIS activity, use the shared offset
+    base_offset = time_offset_tracker[:offset]
+    occurrence_count = 0
 
     while current_date <= date_range.end
       # Skip weekends if configured
@@ -217,6 +219,11 @@ class ActivitySchedulingService
         current_date += 1.day
         next
       end
+
+      # Calculate time offset: base offset for this activity + stagger for multiple occurrences
+      # Use modulo only for occurrences within this activity to keep them within a 2-hour window
+      time_offset = base_offset + ((occurrence_count * 30) % 120)
+      time_offset_minutes = time_offset.minutes
 
       # Suggest different times for different activity types to reduce conflicts
       base_date = current_date.in_time_zone(@user_timezone).beginning_of_day
@@ -245,13 +252,15 @@ class ActivitySchedulingService
         frequency_note: "Suggested every #{frequency_days} days"
       }
 
+      occurrence_count += 1
+
       # Move to next occurrence based on frequency
       current_date += frequency_days.days
-
-      # Increment time offset to stagger activities (max 2 hours)
-      time_offset = (time_offset + 30) % 120
-      time_offset_minutes = time_offset.minutes
     end
+
+    # Update the shared offset tracker for the next activity
+    # Increment by 30 minutes for each new activity to stagger them
+    time_offset_tracker[:offset] = base_offset + 30
 
     suggestions
   end
@@ -382,13 +391,14 @@ class ActivitySchedulingService
   # Extract activity suggestion generation into separate method
   def generate_activity_suggestions(date_range, existing_events)
     suggestions = []
+    time_offset_tracker = { offset: 0 } # Shared offset tracker across all activities
 
     activities.each do |activity|
       case activity.schedule_type
       when "strict"
         suggestions.concat(suggest_strict_schedule(activity, date_range))
       when "flexible"
-        suggestions.concat(suggest_flexible_schedule(activity, date_range))
+        suggestions.concat(suggest_flexible_schedule(activity, date_range, time_offset_tracker))
       when "deadline"
         suggestions.concat(suggest_deadline_schedule(activity, date_range))
       end
@@ -442,15 +452,16 @@ class ActivitySchedulingService
   end
 
   def filter_conflicting_suggestions(suggestions, existing_events)
-    return suggestions if existing_events.empty?
-
     filtered_suggestions = []
 
     suggestions.each do |suggestion|
-      if has_conflict?(suggestion[:start_time], suggestion[:end_time], existing_events)
+      # Check conflicts with both existing events and already-scheduled suggestions
+      all_conflicts = existing_events + filtered_suggestions
+
+      if has_conflict?(suggestion[:start_time], suggestion[:end_time], all_conflicts)
         # Try to reschedule flexible activities
         if suggestion[:type] == "flexible"
-          rescheduled = find_alternative_time(suggestion, existing_events)
+          rescheduled = find_alternative_time(suggestion, all_conflicts)
           if rescheduled
             filtered_suggestions << rescheduled
           else
