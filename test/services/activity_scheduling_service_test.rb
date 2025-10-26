@@ -304,6 +304,122 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     assert_kind_of Array, agenda.suggestions
   end
 
+  test "generate_agenda staggers multiple flexible activities on the same day" do
+    # Create multiple flexible activities that would be scheduled on the same day
+    # Use generic names to ensure they all get the same base time slot
+    activity1 = Activity.create!(
+      user: @user,
+      name: "Activity A",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    activity2 = Activity.create!(
+      user: @user,
+      name: "Activity B",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    activity3 = Activity.create!(
+      user: @user,
+      name: "Activity C",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    with_mocked_google_calendar([]) do
+      service = ActivitySchedulingService.new(@user, [ activity1, activity2, activity3 ])
+      agenda = service.generate_agenda(@date_range)
+
+      # Get suggestions for the first day only
+      first_day = agenda.suggestions.first.start_time.to_date
+      same_day_suggestions = agenda.suggestions.select { |s| s.start_time.to_date == first_day }
+
+      # Verify we have multiple activities on the same day
+      assert same_day_suggestions.count >= 2, "Should have multiple activities on the same day"
+
+      # Verify they have different start times (staggered)
+      start_times = same_day_suggestions.map(&:start_time).uniq
+      assert_equal same_day_suggestions.count, start_times.count,
+        "All activities on the same day should have different start times"
+
+      # Verify activities don't overlap with each other
+      same_day_suggestions.combination(2).each do |s1, s2|
+        overlaps = s1.start_time < s2.end_time && s1.end_time > s2.start_time
+        refute overlaps, "Activities #{s1.title} and #{s2.title} should not overlap"
+      end
+    end
+  end
+
+  test "generate_agenda prevents rescheduled activities from conflicting with each other" do
+    conflict_time = 2.days.from_now.beginning_of_day + 19.hours # 7 PM
+
+    # Multiple existing events that block the preferred evening time slot
+    events = [
+      {
+        summary: "Evening Event 1",
+        start_time: conflict_time,
+        end_time: conflict_time + 1.hour
+      },
+      {
+        summary: "Evening Event 2",
+        start_time: conflict_time + 1.hour,
+        end_time: conflict_time + 2.hours
+      }
+    ]
+
+    # Create multiple flexible activities that would prefer evening slots
+    activity1 = Activity.create!(
+      user: @user,
+      name: "Evening Activity 1",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    activity2 = Activity.create!(
+      user: @user,
+      name: "Evening Activity 2",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    activity3 = Activity.create!(
+      user: @user,
+      name: "Evening Activity 3",
+      schedule_type: "flexible",
+      max_frequency_days: 1  # Daily
+    )
+
+    with_mocked_google_calendar(events) do
+      service = ActivitySchedulingService.new(@user, [ activity1, activity2, activity3 ])
+      agenda = service.generate_agenda(@date_range)
+
+      # Get suggestions for the conflict day
+      conflict_day = conflict_time.to_date
+      conflict_day_suggestions = agenda.suggestions.select { |s| s.start_time.to_date == conflict_day }
+
+      # Should have suggestions (possibly rescheduled)
+      assert conflict_day_suggestions.any?, "Should have suggestions for the conflict day"
+
+      # Verify no suggestions overlap with existing events
+      conflict_day_suggestions.each do |suggestion|
+        events.each do |event|
+          overlaps = suggestion.start_time < event[:end_time] &&
+                    suggestion.end_time > event[:start_time]
+          refute overlaps, "#{suggestion.title} should not overlap with #{event[:summary]}"
+        end
+      end
+
+      # Verify rescheduled activities don't overlap with each other
+      conflict_day_suggestions.combination(2).each do |s1, s2|
+        overlaps = s1.start_time < s2.end_time && s1.end_time > s2.start_time
+        refute overlaps,
+          "Rescheduled activities #{s1.title} and #{s2.title} should not overlap with each other"
+      end
+    end
+  end
+
   # ============================================================================
   # Public API: create_calendar_events Tests
   # ============================================================================
