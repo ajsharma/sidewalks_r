@@ -4,12 +4,17 @@ class ActivitySchedulingController < ApplicationController
   before_action :authenticate_user!
   before_action :preload_associations
 
+  # Displays the scheduling interface with current agenda and suggestions
+  # GET /schedule
   def show
     @scheduling_service = ActivitySchedulingService.new(current_user)
     @date_range = parse_date_range
     @agenda = @scheduling_service.generate_agenda(@date_range)
   end
 
+  # Creates calendar events from activity suggestions
+  # POST /schedule
+  # Accepts dry_run parameter: if not "false", shows preview instead of creating events
   def create
     @scheduling_service = ActivitySchedulingService.new(current_user)
     @date_range = parse_date_range

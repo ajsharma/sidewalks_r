@@ -17,23 +17,34 @@ class Playlist < ApplicationRecord
     archived_at.present?
   end
 
+  # Archives the playlist by setting archived_at timestamp
+  # @return [Boolean] true if update succeeds, raises exception on failure
   def archive!
     update!(archived_at: Time.current)
   end
 
+  # Archives the playlist by setting archived_at timestamp (safe version)
+  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end
 
+  # Returns the slug for URL parameter usage
+  # @return [String] the playlist's slug for use in URLs
   def to_param
     slug
   end
 
+  # Returns active activities in the playlist ordered by position
+  # @return [ActiveRecord::Relation] activities that are not archived, ordered by position
   def ordered_activities
     activities.where(playlist_activities: { archived_at: nil })
               .order("playlist_activities.position ASC")
   end
 
+  # Returns count of active activities in the playlist
+  # Uses pre-calculated count if available, otherwise calculates from association
+  # @return [Integer] number of active activities in the playlist
   def activities_count
     # Use the pre-calculated count from the query if available, otherwise calculate
     return super if defined?(super) && super.present?
@@ -42,6 +53,10 @@ class Playlist < ApplicationRecord
     active_activities_count
   end
 
+  # Adds an activity to the playlist at the specified position
+  # @param activity [Activity] the activity to add to the playlist
+  # @param position [Integer, nil] the position for the activity, defaults to end of list
+  # @return [PlaylistActivity] the created playlist_activity association record
   def add_activity(activity, position: nil)
     position ||= (playlist_activities.maximum(:position) || 0) + 1
 
@@ -51,6 +66,9 @@ class Playlist < ApplicationRecord
     )
   end
 
+  # Removes an activity from the playlist by archiving the association
+  # @param activity [Activity] the activity to remove from the playlist
+  # @return [Boolean, nil] true if activity was found and archived, nil otherwise
   def remove_activity(activity)
     playlist_activity = playlist_activities.find_by(activity: activity)
     playlist_activity&.update!(archived_at: Time.current)
