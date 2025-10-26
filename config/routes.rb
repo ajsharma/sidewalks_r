@@ -12,9 +12,10 @@ Rails.application.routes.draw do
   resources :playlists
 
   # Activity scheduling
-  get "schedule", to: "activity_scheduling#show"
-  post "schedule", to: "activity_scheduling#create"
-  post "schedule/create_single", to: "activity_scheduling#create_single", as: :create_single_schedule
+  resource :schedule, only: [:show], controller: 'activity_scheduling' do
+    post 'events', to: 'activity_scheduling#create', as: :events
+    post 'events/batch', to: 'activity_scheduling#batch', as: :batch_events
+  end
 
   get "home/index"
 

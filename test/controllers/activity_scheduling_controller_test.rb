@@ -14,8 +14,8 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should create schedule in dry run mode" do
-    post schedule_url, params: {
+  test "should batch create events in dry run mode" do
+    post batch_events_schedule_url, params: {
       dry_run: "true",
       start_date: Date.current.to_s,
       end_date: (Date.current + 1.week).to_s
@@ -53,7 +53,7 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
 
     # Mock the Google Calendar API
     with_mocked_google_calendar([]) do
-      post create_single_schedule_url, params: {
+      post events_schedule_url, params: {
         activity_id: @activity.id,
         start_time: start_time.iso8601,
         end_time: end_time.iso8601,
@@ -66,11 +66,11 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "should handle activity not found in create_single" do
+  test "should handle activity not found in create" do
     start_time = 1.day.from_now.beginning_of_day + 10.hours
     end_time = start_time + 1.hour
 
-    post create_single_schedule_url, params: {
+    post events_schedule_url, params: {
       activity_id: 999999, # Non-existent ID
       start_time: start_time.iso8601,
       end_time: end_time.iso8601
@@ -80,7 +80,7 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Activity not found", flash[:alert]
   end
 
-  test "should handle invalid date format in create_single" do
+  test "should handle invalid date format in create" do
     # Create a google account for the user
     google_account = @user.google_accounts.create!(
       google_id: "test123",
@@ -89,7 +89,7 @@ class ActivitySchedulingControllerTest < ActionDispatch::IntegrationTest
       refresh_token: "test_refresh"
     )
 
-    post create_single_schedule_url, params: {
+    post events_schedule_url, params: {
       activity_id: @activity.id,
       start_time: "invalid-date",
       end_time: "invalid-date"
