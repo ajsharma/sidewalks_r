@@ -52,7 +52,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Test preview functionality (dry run)
-    post "/schedule", params: { dry_run: true, start_date: Date.current, end_date: Date.current + 1.week }
+    post "/schedule/events/batch", params: { dry_run: true, start_date: Date.current, end_date: Date.current + 1.week }
     assert_response :success
     assert_select "h1", text: "Calendar Events Preview"
   end
@@ -152,7 +152,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     sign_in @user
 
     # Make a POST request with dry_run=true to trigger preview
-    post "/schedule", params: {
+    post "/schedule/events/batch", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true
@@ -188,7 +188,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
   test "activity_scheduling/preview.html.erb renders event timeline" do
     sign_in @user
 
-    post "/schedule", params: {
+    post "/schedule/events/batch", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true
@@ -216,7 +216,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
 
     sign_in @user
 
-    post "/schedule", params: {
+    post "/schedule/events/batch", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true

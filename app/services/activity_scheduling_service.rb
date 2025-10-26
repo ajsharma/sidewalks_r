@@ -117,15 +117,21 @@ class ActivitySchedulingService
     created_events = []
     google_service = GoogleCalendarService.new(user.active_google_account)
 
+    # Convert Rails timezone to IANA identifier for Google Calendar API
+    iana_timezone = GoogleCalendarService.to_iana_timezone(@user_timezone)
+
     activity_suggestions.each do |suggestion|
       begin
-        event = google_service.create_event(
-          summary: suggestion.title,
+        calendar_id = suggestion.raw_data[:calendar_id] || "primary"
+        event_data = {
+          title: suggestion.title,
           description: suggestion.raw_data[:description],
           start_time: suggestion.start_time,
           end_time: suggestion.end_time,
-          calendar_id: suggestion.raw_data[:calendar_id] || "primary"
-        )
+          timezone: iana_timezone
+        }
+
+        event = google_service.create_event(calendar_id, event_data)
 
         created_events << {
           activity: suggestion.activity,

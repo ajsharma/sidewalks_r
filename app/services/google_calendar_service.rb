@@ -4,6 +4,23 @@ require "googleauth"
 # Service for Google Calendar API interactions.
 # Handles authentication, calendar access, and event management.
 class GoogleCalendarService
+  # General error
+  class Error < RuntimeError; end
+  # Custom exception for timezone conversion errors
+  class InvalidTimezoneError < Error; end
+
+  # Converts Rails timezone name to IANA timezone identifier for Google Calendar API
+  # @param rails_timezone [String] Rails timezone name (e.g., "Pacific Time (US & Canada)")
+  # @return [String] IANA timezone identifier (e.g., "America/Los_Angeles")
+  # @raise [InvalidTimezoneError] if timezone is invalid or cannot be converted
+  def self.to_iana_timezone(rails_timezone)
+    iana_timezone = ActiveSupport::TimeZone[rails_timezone]&.tzinfo&.identifier
+    unless iana_timezone
+      raise InvalidTimezoneError, "Invalid timezone: #{rails_timezone}"
+    end
+    iana_timezone
+  end
+
   # Initializes the Google Calendar service with authentication
   # @param google_account [GoogleAccount] authenticated Google account for API access
   # @return [GoogleCalendarService] new instance of the service
@@ -36,7 +53,7 @@ class GoogleCalendarService
   # @param event_data [Hash] event data with :title, :description, :start_time, :end_time, :timezone
   # @return [Google::Apis::CalendarV3::Event] created event object
   def create_event(calendar_id, event_data)
-    timezone = event_data[:timezone] || "America/Los_Angeles"
+    timezone = event_data[:timezone]
 
     event = Google::Apis::CalendarV3::Event.new(
       summary: event_data[:title],
@@ -82,7 +99,7 @@ class GoogleCalendarService
   # @return [Google::Apis::CalendarV3::Event] updated event object
   def update_event(calendar_id, event_id, event_data)
     event = @service.get_event(calendar_id, event_id)
-    timezone = event_data[:timezone] || "America/Los_Angeles"
+    timezone = event_data[:timezone]
 
     title = event_data[:title]
     description = event_data[:description]

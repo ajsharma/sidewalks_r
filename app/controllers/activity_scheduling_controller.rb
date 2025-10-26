@@ -12,10 +12,52 @@ class ActivitySchedulingController < ApplicationController
     @agenda = @scheduling_service.generate_agenda(@date_range)
   end
 
-  # Creates calendar events from activity suggestions
-  # POST /schedule
-  # Accepts dry_run parameter: if not "false", shows preview instead of creating events
+  # Creates a single calendar event from a specific activity suggestion
+  # POST /schedule/events
+  # Expects params: activity_id, start_time, end_time
   def create
+    activity = current_user.activities.find(params[:activity_id])
+    activity_name = activity.name
+
+    # Parse and validate times
+    time_zone = Time.zone
+    start_time = time_zone.parse(params[:start_time])
+    end_time = time_zone.parse(params[:end_time])
+
+    # Check if parsing returned nil (invalid format)
+    if start_time.nil? || end_time.nil?
+      redirect_to schedule_path, alert: "Invalid date/time format"
+      return
+    end
+
+    # Create event directly using Google Calendar service
+    google_service = GoogleCalendarService.new(current_user.active_google_account)
+
+    begin
+      event_data = {
+        title: activity_name,
+        description: activity.description,
+        start_time: start_time,
+        end_time: end_time,
+        timezone: GoogleCalendarService.to_iana_timezone(current_user.timezone)
+      }
+
+      event = google_service.create_event("primary", event_data)
+
+      redirect_to schedule_path, notice: "Successfully added '#{activity_name}' to your calendar!"
+    rescue Google::Auth::AuthorizationError, Google::Apis::ClientError => e
+      log_and_redirect_with_error(e, "Failed to create calendar event", "Failed to create calendar event. Please check your Google Calendar connection.")
+    end
+  rescue GoogleCalendarService::InvalidTimezoneError => e
+    log_and_redirect_with_error(e, "Invalid timezone", "Invalid timezone configuration. Please update your profile")
+  rescue ActiveRecord::RecordNotFound
+    redirect_to schedule_path, alert: "Activity not found"
+  end
+
+  # Batch creates calendar events from multiple activity suggestions
+  # POST /schedule/events/batch
+  # Accepts dry_run parameter: if not "false", shows preview instead of creating events
+  def batch
     @scheduling_service = ActivitySchedulingService.new(current_user)
     @date_range = parse_date_range
     @agenda = @scheduling_service.generate_agenda(@date_range)
@@ -41,7 +83,13 @@ class ActivitySchedulingController < ApplicationController
     end
   end
 
+
   private
+
+  def log_and_redirect_with_error(error, log_message, alert_message)
+    Rails.logger.error "#{log_message}: #{error.message}"
+    redirect_to schedule_path, alert: alert_message
+  end
 
   def preload_associations
     # Preload google_accounts to avoid N+1 queries in the view

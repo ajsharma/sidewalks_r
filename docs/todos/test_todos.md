@@ -77,6 +77,16 @@ As of the latest test run, we have **87.66% coverage** (1237/1411 lines).
 2. **Regular VCR Updates** - Monthly cassette refresh for Google API changes
 3. **Integration Test Enhancement** - Add more end-to-end scenarios as business logic grows
 4. **Performance Test Expansion** - Add load testing as user base scales
+5. **Contract Testing for Mocks** - Add interface/contract tests to prevent mock/implementation mismatches
+   - **Problem**: Discovered that mocks can have wrong signatures (e.g., MockGoogleCalendarService had keyword args while real service used positional args)
+   - **Impact**: Tests pass but production code fails due to signature mismatch
+   - **Solution Options**:
+     - Add Mocktail gem for verified mocking (best option, but adds dependency)
+     - Implement shared contract tests that both real and mock implementations must pass
+     - Add method signature validation tests for critical service interfaces
+   - **Priority**: Medium - prevents hard-to-debug production issues
+   - **Files to consider**: GoogleCalendarService, ActivitySchedulingService, any other external API integrations
+   - **Example**: See discussion in PR/commit adding individual calendar event creation feature
 
 ## Test Categories Completed ✅
 
