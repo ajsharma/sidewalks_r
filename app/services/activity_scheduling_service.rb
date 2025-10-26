@@ -64,7 +64,7 @@ class ActivitySchedulingService
   # @return [ActivitySchedulingService] new instance of the service
   def initialize(user, activities = nil, options = {})
     raise ArgumentError, "Blank user is not supported" if user.blank?
-    raise ArgumentError, "Blank time zone is not supported" if user.timezone.blank?
+    raise ArgumentError, "Blank time zone is not supported" unless user.timezone?
 
     @user = user
     @activities = activities || user.activities.active
