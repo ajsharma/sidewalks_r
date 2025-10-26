@@ -53,7 +53,7 @@ class GoogleCalendarService
   # @param event_data [Hash] event data with :title, :description, :start_time, :end_time, :timezone
   # @return [Google::Apis::CalendarV3::Event] created event object
   def create_event(calendar_id, event_data)
-    timezone = event_data[:timezone] || "America/Los_Angeles"
+    timezone = event_data[:timezone]
 
     event = Google::Apis::CalendarV3::Event.new(
       summary: event_data[:title],
@@ -99,7 +99,7 @@ class GoogleCalendarService
   # @return [Google::Apis::CalendarV3::Event] updated event object
   def update_event(calendar_id, event_id, event_data)
     event = @service.get_event(calendar_id, event_id)
-    timezone = event_data[:timezone] || "America/Los_Angeles"
+    timezone = event_data[:timezone]
 
     title = event_data[:title]
     description = event_data[:description]

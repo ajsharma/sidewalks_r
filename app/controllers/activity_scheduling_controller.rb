@@ -26,20 +26,20 @@ class ActivitySchedulingController < ApplicationController
 
     # Check if parsing returned nil (invalid format)
     if start_time.nil? || end_time.nil?
-      redirect_to schedule_path, alert: "Invalid date/time format" and return
+      redirect_to schedule_path, alert: "Invalid date/time format"
+      return
     end
 
     # Create event directly using Google Calendar service
     google_service = GoogleCalendarService.new(current_user.active_google_account)
-    iana_timezone = GoogleCalendarService.to_iana_timezone(current_user.timezone)
 
     begin
       event_data = {
-        title: params[:title] || activity_name,
+        title: activity_name,
         description: activity.description,
         start_time: start_time,
         end_time: end_time,
-        timezone: iana_timezone
+        timezone: GoogleCalendarService.to_iana_timezone(current_user.timezone)
       }
 
       event = google_service.create_event("primary", event_data)
