@@ -1,5 +1,7 @@
 # Model for Google Calendar API health checks
 class GoogleCalendarHealth
+  # Checks Google Calendar API connectivity and token health
+  # @return [Hash] hash containing status (healthy/warning/unhealthy), message, active_accounts count, and response_time_ms
   def self.check_api_connectivity
     return { status: "healthy", message: "No Google accounts configured" } if GoogleAccount.count == 0
 

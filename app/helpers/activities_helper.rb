@@ -1,5 +1,7 @@
 # Helper methods for Activities views and forms
 module ActivitiesHelper
+  # Returns options for schedule type select field
+  # @return [Array<Array>] array of [label, value] pairs for schedule type dropdown
   def schedule_type_options
     [
       [ "Flexible - Can be done anytime", "flexible" ],
@@ -8,6 +10,8 @@ module ActivitiesHelper
     ]
   end
 
+  # Returns options for max frequency select field
+  # @return [Array<Array>] array of [label, value] pairs for frequency dropdown, values in days
   def max_frequency_options
     [
       [ "Daily", 1 ],

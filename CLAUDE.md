@@ -49,7 +49,6 @@ bin/rails db:schema:load    # Load schema into database
 ### Testing
 ```bash
 bin/rails test             # Run all tests
-bin/rails test:system      # Run system tests
 bin/rails test test/models/specific_test.rb  # Run specific test file
 ```
 
@@ -103,7 +102,7 @@ bin/rails routes           # Show all routes
 - **Rails Best Practices** - Rails-specific code analyzer
 - **Strong Migrations** - Catch unsafe migrations in development
 - **Bullet** - N+1 query detection
-- **SimpleCov** - Code coverage analysis (81.33% current coverage)
+- **SimpleCov** - Code coverage analysis
 - **Axe Core Capybara** - Accessibility testing
 - **Capybara + Selenium** - System testing
 - **Debug gem** - Debugging tools
