@@ -4,8 +4,10 @@ require "googleauth"
 # Service for Google Calendar API interactions.
 # Handles authentication, calendar access, and event management.
 class GoogleCalendarService
+  # General error
+  class Error < RuntimeError; end
   # Custom exception for timezone conversion errors
-  class InvalidTimezoneError < StandardError; end
+  class InvalidTimezoneError < Error; end
 
   # Converts Rails timezone name to IANA timezone identifier for Google Calendar API
   # @param rails_timezone [String] Rails timezone name (e.g., "Pacific Time (US & Canada)")
