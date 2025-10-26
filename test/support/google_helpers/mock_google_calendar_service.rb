@@ -31,13 +31,13 @@ module GoogleHelpers
       end
     end
 
-    def create_event(summary:, description:, start_time:, end_time:, calendar_id: "primary")
+    def create_event(calendar_id, event_data)
       event = {
         "id" => "event_#{Time.now.to_i}_#{rand(1000)}",
-        "summary" => summary,
-        "description" => description,
-        "start" => { "dateTime" => start_time.iso8601 },
-        "end" => { "dateTime" => end_time.iso8601 },
+        "summary" => event_data[:title],
+        "description" => event_data[:description],
+        "start" => { "dateTime" => event_data[:start_time].iso8601 },
+        "end" => { "dateTime" => event_data[:end_time].iso8601 },
         "calendar_id" => calendar_id
       }
       @created_events << event
