@@ -31,6 +31,7 @@ class ActivitySchedulingController < ApplicationController
 
     # Create event directly using Google Calendar service
     google_service = GoogleCalendarService.new(current_user.active_google_account)
+    iana_timezone = GoogleCalendarService.to_iana_timezone(current_user.timezone)
 
     begin
       event_data = {
@@ -38,16 +39,17 @@ class ActivitySchedulingController < ApplicationController
         description: activity.description,
         start_time: start_time,
         end_time: end_time,
-        timezone: current_user.timezone
+        timezone: iana_timezone
       }
 
       event = google_service.create_event("primary", event_data)
 
       redirect_to schedule_path, notice: "Successfully added '#{activity_name}' to your calendar!"
     rescue Google::Auth::AuthorizationError, Google::Apis::ClientError => e
-      Rails.logger.error "Failed to create calendar event: #{e.message}"
-      redirect_to schedule_path, alert: "Failed to create calendar event. Please check your Google Calendar connection."
+      log_and_redirect_with_error(e, "Failed to create calendar event", "Failed to create calendar event. Please check your Google Calendar connection.")
     end
+  rescue GoogleCalendarService::InvalidTimezoneError => e
+    log_and_redirect_with_error(e, "Invalid timezone", "Invalid timezone configuration. Please update your profile")
   rescue ActiveRecord::RecordNotFound
     redirect_to schedule_path, alert: "Activity not found"
   end
@@ -83,6 +85,11 @@ class ActivitySchedulingController < ApplicationController
 
 
   private
+
+  def log_and_redirect_with_error(error, log_message, alert_message)
+    Rails.logger.error "#{log_message}: #{error.message}"
+    redirect_to schedule_path, alert: alert_message
+  end
 
   def preload_associations
     # Preload google_accounts to avoid N+1 queries in the view
