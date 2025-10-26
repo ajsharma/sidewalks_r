@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   # Activity scheduling
   get "schedule", to: "activity_scheduling#show"
   post "schedule", to: "activity_scheduling#create"
+  post "schedule/create_single", to: "activity_scheduling#create_single", as: :create_single_schedule
 
   get "home/index"
 

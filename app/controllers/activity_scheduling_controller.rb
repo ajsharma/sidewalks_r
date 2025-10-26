@@ -41,6 +41,42 @@ class ActivitySchedulingController < ApplicationController
     end
   end
 
+  # Creates a single calendar event from a specific activity suggestion
+  # POST /schedule/create_single
+  # Expects params: activity_id, start_time, end_time
+  def create_single
+    activity = current_user.activities.find(params[:activity_id])
+
+    # Parse and validate times
+    start_time = Time.zone.parse(params[:start_time])
+    end_time = Time.zone.parse(params[:end_time])
+
+    # Check if parsing returned nil (invalid format)
+    if start_time.nil? || end_time.nil?
+      redirect_to schedule_path, alert: "Invalid date/time format" and return
+    end
+
+    # Create event directly using Google Calendar service
+    google_service = GoogleCalendarService.new(current_user.active_google_account)
+
+    begin
+      event = google_service.create_event(
+        summary: params[:title] || activity.name,
+        description: activity.description,
+        start_time: start_time,
+        end_time: end_time,
+        calendar_id: "primary"
+      )
+
+      redirect_to schedule_path, notice: "Successfully added '#{activity.name}' to your calendar!"
+    rescue Google::Auth::AuthorizationError, Google::Apis::ClientError => e
+      Rails.logger.error "Failed to create calendar event: #{e.message}"
+      redirect_to schedule_path, alert: "Failed to create calendar event. Please check your Google Calendar connection."
+    end
+  rescue ActiveRecord::RecordNotFound
+    redirect_to schedule_path, alert: "Activity not found"
+  end
+
   private
 
   def preload_associations
