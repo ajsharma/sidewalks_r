@@ -99,5 +99,5 @@ group :test do
   gem "axe-core-capybara"
 
   gem "vcr", "~> 6.3"
-  gem "webmock", "~> 3.25"
+  gem "webmock", "~> 3.26"
 end
