@@ -229,82 +229,31 @@ class ActivitySchedulingService
   def suggest_flexible_schedule(activity, date_range, time_offset_tracker = { offset: 0 })
     suggestions = []
     min_time = minimum_start_time
-
-    # For flexible activities, suggest optimal times based on frequency
     frequency_days = activity.max_frequency_days || 7
-    duration = options[:preferred_duration]
-    activity_name = activity.name
-    name_downcase = activity_name.downcase
 
     current_date = date_range.begin
-    # Use shared time offset to stagger activities across different activity types
-    # For the first occurrence of THIS activity, use the shared offset
     base_offset = time_offset_tracker[:offset]
     occurrence_count = 0
 
     while current_date <= date_range.end
-      # Skip weekends if configured
-      if options[:exclude_weekends] && current_date.on_weekend?
-        current_date += 1.day
+      next if skip_weekend?(current_date)
+
+      time_offset_minutes = calculate_time_offset(base_offset, occurrence_count)
+      suggested_time = calculate_flexible_activity_time(activity, current_date, time_offset_minutes)
+
+      adjusted_time = adjust_for_past_time(suggested_time, min_time, current_date)
+      if adjusted_time.nil?
+        current_date += frequency_days.days
+        occurrence_count += 1
         next
       end
 
-      # Calculate time offset: base offset for this activity + stagger for multiple occurrences
-      # Use modulo only for occurrences within this activity to keep them within a 2-hour window
-      time_offset = base_offset + ((occurrence_count * 30) % 120)
-      time_offset_minutes = time_offset.minutes
-
-      # Suggest different times for different activity types to reduce conflicts
-      base_date = current_date.in_time_zone(@user_timezone).beginning_of_day
-
-      suggested_time = if name_downcase.include?("work") || name_downcase.include?("meeting")
-        base_date + options[:work_hours_start].hours + time_offset_minutes
-      else
-        # Personal activities - stagger between morning and evening
-        base_time = if name_downcase.include?("walk") || name_downcase.include?("exercise")
-          7.hours # 7 AM for physical activities
-        else
-          19.hours # 7 PM for other activities
-        end
-
-        base_date + base_time + time_offset_minutes
-      end
-
-      # Ensure suggested time is not in the past
-      # If on today and suggested time is before minimum time, use minimum time instead
-      if suggested_time < min_time
-        # If this is today and we can't schedule it, try the minimum time
-        if current_date == Date.current
-          suggested_time = min_time
-        else
-          # Skip this occurrence and move to next day
-          current_date += frequency_days.days
-          occurrence_count += 1
-          next
-        end
-      end
-
-      suggestions << {
-        activity: activity,
-        title: activity_name,
-        description: activity.description,
-        start_time: suggested_time,
-        end_time: suggested_time + duration,
-        type: "flexible",
-        confidence: "medium",
-        frequency_note: "Suggested every #{frequency_days} days"
-      }
-
+      suggestions << build_flexible_suggestion(activity, adjusted_time, frequency_days)
       occurrence_count += 1
-
-      # Move to next occurrence based on frequency
       current_date += frequency_days.days
     end
 
-    # Update the shared offset tracker for the next activity
-    # Increment by 30 minutes for each new activity to stagger them
     time_offset_tracker[:offset] = base_offset + 30
-
     suggestions
   end
 
@@ -373,6 +322,62 @@ class ActivitySchedulingService
     end
 
     suggestions
+  end
+
+  # Helper method to check if a date should be skipped due to weekend exclusion
+  def skip_weekend?(date)
+    options[:exclude_weekends] && date.on_weekend?
+  end
+
+  # Calculate time offset for staggering activities
+  def calculate_time_offset(base_offset, occurrence_count)
+    time_offset = base_offset + ((occurrence_count * 30) % 120)
+    time_offset.minutes
+  end
+
+  # Calculate suggested time for flexible activity based on activity type
+  def calculate_flexible_activity_time(activity, date, time_offset_minutes)
+    base_date = date.in_time_zone(@user_timezone).beginning_of_day
+    name_downcase = activity.name.downcase
+
+    if name_downcase.include?("work") || name_downcase.include?("meeting")
+      base_date + options[:work_hours_start].hours + time_offset_minutes
+    else
+      base_time = activity_base_time(name_downcase)
+      base_date + base_time + time_offset_minutes
+    end
+  end
+
+  # Determine base time for personal activities
+  def activity_base_time(name_downcase)
+    if name_downcase.include?("walk") || name_downcase.include?("exercise")
+      7.hours # 7 AM for physical activities
+    else
+      19.hours # 7 PM for other activities
+    end
+  end
+
+  # Adjust suggested time if it's in the past, returns nil if should be skipped
+  def adjust_for_past_time(suggested_time, min_time, current_date)
+    return suggested_time if suggested_time >= min_time
+
+    # If this is today, use minimum time; otherwise skip this occurrence
+    current_date == Date.current ? min_time : nil
+  end
+
+  # Build a flexible activity suggestion hash
+  def build_flexible_suggestion(activity, suggested_time, frequency_days)
+    duration = options[:preferred_duration]
+    {
+      activity: activity,
+      title: activity.name,
+      description: activity.description,
+      start_time: suggested_time,
+      end_time: suggested_time + duration,
+      type: "flexible",
+      confidence: "medium",
+      frequency_note: "Suggested every #{frequency_days} days"
+    }
   end
 
   def format_dry_run_results(suggestions)
