@@ -166,6 +166,24 @@ class ActivitySchedulingService
 
   private
 
+  # Calculate minimum allowed start time: current time + 1 hour, rounded up to nearest half-hour
+  # @return [ActiveSupport::TimeWithZone] minimum start time for suggestions
+  def minimum_start_time
+    now = Time.current.in_time_zone(@user_timezone)
+    time_plus_one_hour = now + 1.hour
+
+    # Round up to nearest half-hour
+    minutes = time_plus_one_hour.min
+    if minutes <= 30
+      rounded_time = time_plus_one_hour.change(min: 30, sec: 0)
+    else
+      # Round up to next hour
+      rounded_time = (time_plus_one_hour + 1.hour).change(min: 0, sec: 0)
+    end
+
+    rounded_time
+  end
+
   def default_options
     {
       work_hours_start: 9,
@@ -185,6 +203,10 @@ class ActivitySchedulingService
 
     # Strict activities already have defined start/end times
     if activity.start_time? && activity.end_time?
+      # Skip if the activity starts before the minimum allowed time
+      min_time = minimum_start_time
+      return suggestions if activity.start_time < min_time
+
       start_date = [ activity.start_time.to_date, date_range.begin ].max
       end_date = [ activity.end_time.to_date, date_range.end ].min
 
@@ -206,6 +228,7 @@ class ActivitySchedulingService
 
   def suggest_flexible_schedule(activity, date_range, time_offset_tracker = { offset: 0 })
     suggestions = []
+    min_time = minimum_start_time
 
     # For flexible activities, suggest optimal times based on frequency
     frequency_days = activity.max_frequency_days || 7
@@ -247,6 +270,20 @@ class ActivitySchedulingService
         base_date + base_time + time_offset_minutes
       end
 
+      # Ensure suggested time is not in the past
+      # If on today and suggested time is before minimum time, use minimum time instead
+      if suggested_time < min_time
+        # If this is today and we can't schedule it, try the minimum time
+        if current_date == Date.current
+          suggested_time = min_time
+        else
+          # Skip this occurrence and move to next day
+          current_date += frequency_days.days
+          occurrence_count += 1
+          next
+        end
+      end
+
       suggestions << {
         activity: activity,
         title: activity_name,
@@ -277,12 +314,20 @@ class ActivitySchedulingService
     return suggestions unless activity.deadline?
 
     deadline = activity.deadline
-    deadline_date = deadline.to_date
+    # Convert deadline to user timezone to get correct date
+    deadline_in_timezone = deadline.in_time_zone(@user_timezone)
+    deadline_date = deadline_in_timezone.to_date
     activity_name = activity.name
     name_downcase = activity_name.downcase
+    min_time = minimum_start_time
 
-    # Only suggest if deadline is within the date range
-    if date_range.cover?(deadline_date)
+    # Include urgent deadlines even if their date is before date_range start,
+    # as long as the deadline itself is in the future
+    is_urgent = deadline_in_timezone > Time.current && deadline_in_timezone < (Time.current + 24.hours)
+    deadline_in_range = date_range.cover?(deadline_date) || is_urgent
+
+    # Only suggest if deadline is within the date range (or is urgent and still in future)
+    if deadline_in_range
       # Suggest scheduling 1-3 days before deadline depending on urgency
       two_days = 2.days
       days_before = case deadline - Time.current
@@ -302,17 +347,28 @@ class ActivitySchedulingService
           base_date + 14.hours # 2 PM
         end
 
-        suggestions << {
-          activity: activity,
-          title: "Complete: #{activity_name}",
-          description: "#{activity.description}\n\nDeadline: #{deadline.strftime('%B %d, %Y at %I:%M %p')}",
-          start_time: suggested_time,
-          end_time: suggested_time + options[:preferred_duration],
-          type: "deadline",
-          confidence: "high",
-          urgency: activity.expired? ? "overdue" : "upcoming",
-          deadline: deadline
-        }
+        # Ensure suggested time is not in the past
+        suggested_time = min_time if suggested_time < min_time
+
+        # Only suggest if start time is before the deadline
+        # For urgent deadlines, we still show them even if there isn't enough time for full duration
+        if suggested_time < deadline_in_timezone
+          # Adjust end time if it would exceed the deadline
+          end_time = suggested_time + options[:preferred_duration]
+          end_time = deadline_in_timezone if end_time > deadline_in_timezone
+
+          suggestions << {
+            activity: activity,
+            title: "Complete: #{activity_name}",
+            description: "#{activity.description}\n\nDeadline: #{deadline.strftime('%B %d, %Y at %I:%M %p')}",
+            start_time: suggested_time,
+            end_time: end_time,
+            type: "deadline",
+            confidence: "high",
+            urgency: activity.expired? ? "overdue" : "upcoming",
+            deadline: deadline
+          }
+        end
       end
     end
 
@@ -536,6 +592,7 @@ class ActivitySchedulingService
     slots = []
     base_date = date.in_time_zone(@user_timezone).beginning_of_day
     minutes = [ 0, 30 ]
+    min_time = minimum_start_time
 
     # Morning slots (7 AM - 11 AM)
     slots.concat(generate_hourly_slots(base_date, 7..10, minutes))
@@ -546,7 +603,8 @@ class ActivitySchedulingService
     # Evening slots (6 PM - 9 PM)
     slots.concat(generate_hourly_slots(base_date, 18..20, minutes))
 
-    slots
+    # Filter out slots that are in the past
+    slots.select { |slot| slot >= min_time }
   end
 
   def generate_hourly_slots(base_date, hour_range, minutes)
