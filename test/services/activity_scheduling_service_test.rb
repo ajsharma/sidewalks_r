@@ -193,6 +193,41 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     end
   end
 
+  test "generate_agenda does not schedule events in the past" do
+    @activity_flexible.update!(
+      name: "Morning Walk",
+      schedule_type: "flexible",
+      max_frequency_days: 1
+    )
+
+    with_mocked_google_calendar([]) do
+      # Simulate it being 9:18 AM
+      travel_to Time.zone.parse("2025-10-26 09:18:00") do
+        service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+        date_range = Date.current..(Date.current + 1.day)
+        agenda = service.generate_agenda(date_range)
+
+        # Get the minimum allowed start time (current + 1 hour, rounded to nearest half-hour)
+        # 9:18 AM + 1 hour = 10:18 AM, rounded up = 10:30 AM
+        min_time = service.send(:minimum_start_time)
+        current_time = Time.current
+
+        # Verify minimum time calculation
+        assert min_time > current_time, "Minimum time should be after current time"
+        assert_equal 30, min_time.min, "Minimum time should be rounded to :30"
+
+        # Verify all suggestions are scheduled at or after minimum time
+        today_suggestions = agenda.suggestions.select { |s| s.start_time.to_date == Date.current }
+        assert today_suggestions.any?, "Should have suggestions for today"
+
+        today_suggestions.each do |suggestion|
+          assert suggestion.start_time >= min_time,
+            "Suggestion #{suggestion.title} at #{suggestion.start_time} should not be before minimum time #{min_time}"
+        end
+      end
+    end
+  end
+
   # ============================================================================
   # Public API: Conflict Detection and Resolution Tests
   # ============================================================================
