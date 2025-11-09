@@ -178,4 +178,61 @@ class ActivityTest < ActiveSupport::TestCase
       assert_equal expected, @activity.max_frequency_description
     end
   end
+
+  # AI-related tests
+  test "ai_generated? should return true when ai_generated is true" do
+    activity = activities(:ai_generated)
+    assert activity.ai_generated?
+  end
+
+  test "ai_generated? should return false when ai_generated is false" do
+    activity = activities(:one)
+    assert_not activity.ai_generated?
+  end
+
+  test "formatted_suggested_months should return month names" do
+    activity = activities(:ai_generated)
+    assert_equal "May, June, July, August, September", activity.formatted_suggested_months
+  end
+
+  test "formatted_suggested_months should return 'Any time' when empty" do
+    activity = activities(:one)
+    assert_equal "Any time", activity.formatted_suggested_months
+  end
+
+  test "formatted_suggested_days should return day names" do
+    activity = activities(:ai_generated)
+    assert_equal "Sunday, Saturday", activity.formatted_suggested_days
+  end
+
+  test "formatted_suggested_days should return 'Any day' when empty" do
+    activity = activities(:one)
+    assert_equal "Any day", activity.formatted_suggested_days
+  end
+
+  test "formatted_time_of_day should return titleized time" do
+    activity = activities(:ai_generated)
+    assert_equal "Morning", activity.formatted_time_of_day
+  end
+
+  test "formatted_time_of_day should return 'Flexible' when nil" do
+    activity = activities(:one)
+    assert_equal "Flexible", activity.formatted_time_of_day
+  end
+
+  test "has_many ai_suggestions association" do
+    activity = activities(:one)
+    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion.update!(final_activity: activity, accepted: true)
+
+    assert_includes activity.ai_suggestions, suggestion
+  end
+
+  test "originating_suggestion should return accepted suggestion" do
+    activity = activities(:one)
+    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion.update!(final_activity: activity, accepted: true)
+
+    assert_equal suggestion, activity.originating_suggestion
+  end
 end
