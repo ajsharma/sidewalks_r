@@ -51,7 +51,7 @@ class AiSuggestionGeneratorJobTest < ActiveJob::TestCase
       .to_return(
         status: 200,
         body: {
-          content: [{ text: response.to_json }],
+          content: [ { text: response.to_json } ],
           model: "claude-3-5-sonnet-20241022",
           usage: { input_tokens: 100, output_tokens: 150 }
         }.to_json,

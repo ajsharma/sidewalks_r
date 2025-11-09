@@ -1,15 +1,17 @@
+# Model for tracking AI-generated activity suggestions.
+# Stores user input, AI responses, lifecycle status, and relationship to created activities.
 class AiActivitySuggestion < ApplicationRecord
   # Associations
   belongs_to :user
-  belongs_to :final_activity, class_name: 'Activity', optional: true
+  belongs_to :final_activity, class_name: "Activity", optional: true
 
   # Enums
-  enum :input_type, { text: 'text', url: 'url' }, validate: true
+  enum :input_type, { text: "text", url: "url" }, validate: true
   enum :status, {
-    pending: 'pending',
-    processing: 'processing',
-    completed: 'completed',
-    failed: 'failed'
+    pending: "pending",
+    processing: "processing",
+    completed: "completed",
+    failed: "failed"
   }, validate: true
 
   # Validations
@@ -22,7 +24,7 @@ class AiActivitySuggestion < ApplicationRecord
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
   scope :accepted, -> { where(accepted: true) }
-  scope :rejected, -> { where(accepted: false).where.not(status: 'pending') }
+  scope :rejected, -> { where(accepted: false).where.not(status: "pending") }
   scope :for_user, ->(user) { where(user: user) }
   scope :this_month, -> { where(created_at: Time.current.beginning_of_month..Time.current.end_of_month) }
 
@@ -36,22 +38,22 @@ class AiActivitySuggestion < ApplicationRecord
         accepted: true,
         accepted_at: Time.current,
         final_activity: activity,
-        status: 'completed'
+        status: "completed"
       )
     end
   end
 
   def reject!
-    update!(accepted: false, status: 'completed')
+    update!(accepted: false, status: "completed")
   end
 
   def mark_processing!
-    update!(status: 'processing')
+    update!(status: "processing")
   end
 
   def mark_completed!(data = {})
     update!(
-      status: 'completed',
+      status: "completed",
       suggested_data: data,
       confidence_score: data[:confidence_score] || data["confidence_score"]
     )
@@ -59,7 +61,7 @@ class AiActivitySuggestion < ApplicationRecord
 
   def mark_failed!(error)
     update!(
-      status: 'failed',
+      status: "failed",
       error_message: error.message
     )
   end
@@ -69,34 +71,34 @@ class AiActivitySuggestion < ApplicationRecord
     # Input: $3/MTok, Output: $15/MTok
     return 0 unless api_response.present?
 
-    input_tokens = api_response.dig('usage', 'input_tokens') || 0
-    output_tokens = api_response.dig('usage', 'output_tokens') || 0
+    input_tokens = api_response.dig("usage", "input_tokens") || 0
+    output_tokens = api_response.dig("usage", "output_tokens") || 0
 
     (input_tokens / 1_000_000.0 * 3.0) + (output_tokens / 1_000_000.0 * 15.0)
   end
 
   def suggested_activity_name
-    suggested_data['name'] || 'Untitled Activity'
+    suggested_data["name"] || "Untitled Activity"
   end
 
   def suggested_description
-    suggested_data['description']
+    suggested_data["description"]
   end
 
   def confidence_label
-    return 'Unknown' unless confidence_score
+    return "Unknown" unless confidence_score
 
     case confidence_score
     when 0..30
-      'Low confidence'
+      "Low confidence"
     when 31..65
-      'Moderate confidence'
+      "Moderate confidence"
     when 66..85
-      'Good confidence'
+      "Good confidence"
     when 86..100
-      'High confidence'
+      "High confidence"
     else
-      'Unknown'
+      "Unknown"
     end
   end
 

@@ -1,3 +1,5 @@
+# Background job for generating AI activity suggestions.
+# Calls AI services asynchronously and broadcasts results via Turbo Streams.
 class AiSuggestionGeneratorJob < ApplicationJob
   queue_as :default
 
@@ -36,8 +38,8 @@ class AiSuggestionGeneratorJob < ApplicationJob
   def broadcast_suggestion_ready(user, suggestion)
     Turbo::StreamsChannel.broadcast_prepend_to(
       "ai_suggestions_#{user.id}",
-      target: 'ai-suggestions-list',
-      partial: 'ai_activities/suggestion_card',
+      target: "ai-suggestions-list",
+      partial: "ai_activities/suggestion_card",
       locals: { suggestion: suggestion }
     )
   end
@@ -45,8 +47,8 @@ class AiSuggestionGeneratorJob < ApplicationJob
   def broadcast_suggestion_error(user, error_message)
     Turbo::StreamsChannel.broadcast_append_to(
       "ai_suggestions_#{user.id}",
-      target: 'ai-suggestions-errors',
-      partial: 'ai_activities/error_message',
+      target: "ai-suggestions-errors",
+      partial: "ai_activities/error_message",
       locals: { error: error_message }
     )
   end

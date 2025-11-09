@@ -1,4 +1,7 @@
+# Orchestration service for generating AI-powered activity suggestions.
+# Coordinates URL extraction, Claude API calls, rate limiting, and suggestion persistence.
 class AiActivityService
+  # Raised when user exceeds per-hour or per-day rate limits
   class RateLimitExceededError < StandardError; end
 
   RATE_LIMIT_PER_HOUR = 20
@@ -22,11 +25,11 @@ class AiActivityService
     begin
       # Process based on input type
       result = case @input_type
-               when :url
+      when :url
                  generate_from_url
-               when :text
+      when :text
                  generate_from_text
-               end
+      end
 
       # Mark as completed with the AI response
       @suggestion.mark_completed!(result)
@@ -66,7 +69,7 @@ class AiActivityService
 
   def check_rate_limits!
     hourly_count = @user.ai_suggestions
-                        .where('created_at > ?', 1.hour.ago)
+                        .where("created_at > ?", 1.hour.ago)
                         .count
 
     if hourly_count >= RATE_LIMIT_PER_HOUR
@@ -74,7 +77,7 @@ class AiActivityService
     end
 
     daily_count = @user.ai_suggestions
-                       .where('created_at > ?', 1.day.ago)
+                       .where("created_at > ?", 1.day.ago)
                        .count
 
     if daily_count >= RATE_LIMIT_PER_DAY
@@ -87,7 +90,7 @@ class AiActivityService
       input_type: @input_type,
       input_text: @input_type == :text ? @input : nil,
       source_url: @input_type == :url ? @input : nil,
-      status: 'pending'
+      status: "pending"
     )
   end
 
@@ -101,10 +104,10 @@ class AiActivityService
 
     # Update suggestion with API metadata
     @suggestion.update!(
-      model_used: ai_response['api_metadata']['model'],
+      model_used: ai_response["api_metadata"]["model"],
       processing_time_ms: processing_time,
       api_request: { input: @input },
-      api_response: ai_response['api_metadata']['usage']
+      api_response: ai_response["api_metadata"]["usage"]
     )
 
     # Return structured data
@@ -131,23 +134,23 @@ class AiActivityService
                       html_content: url_data[:html_content],
                       structured_data: url_data[:structured_data]
                     )
-                  else
+    else
                     # Use structured data directly, but still run through AI for categorization
                     claude_service.extract_activity_from_url(
                       url: @input,
                       html_content: nil,
                       structured_data: url_data[:structured_data]
                     )
-                  end
+    end
 
     processing_time = ((Time.current - start_time) * 1000).to_i
 
     # Update suggestion with API metadata
     @suggestion.update!(
-      model_used: ai_response['api_metadata']['model'],
+      model_used: ai_response["api_metadata"]["model"],
       processing_time_ms: processing_time,
       api_request: { url: @input, needs_ai_parsing: url_data[:needs_ai_parsing] },
-      api_response: ai_response['api_metadata']['usage']
+      api_response: ai_response["api_metadata"]["usage"]
     )
 
     # Merge URL metadata with AI response
@@ -161,29 +164,29 @@ class AiActivityService
 
   def extract_suggestion_data(ai_response)
     {
-      name: ai_response['name'],
-      description: ai_response['description'],
-      schedule_type: ai_response['schedule_type'],
-      suggested_months: ai_response['suggested_months'] || [],
-      suggested_days_of_week: ai_response['suggested_days_of_week'] || [],
-      suggested_time_of_day: ai_response['suggested_time_of_day'],
-      category_tags: ai_response['category_tags'] || [],
-      duration_estimate: ai_response['duration_estimate'],
-      confidence_score: ai_response['confidence_score'],
-      reasoning: ai_response['reasoning']
+      name: ai_response["name"],
+      description: ai_response["description"],
+      schedule_type: ai_response["schedule_type"],
+      suggested_months: ai_response["suggested_months"] || [],
+      suggested_days_of_week: ai_response["suggested_days_of_week"] || [],
+      suggested_time_of_day: ai_response["suggested_time_of_day"],
+      category_tags: ai_response["category_tags"] || [],
+      duration_estimate: ai_response["duration_estimate"],
+      confidence_score: ai_response["confidence_score"],
+      reasoning: ai_response["reasoning"]
     }
   end
 
   def self.build_activity_params(suggested_data, user_edits)
     # Start with AI suggested data
     params = {
-      name: suggested_data[:name] || suggested_data['name'],
-      description: suggested_data[:description] || suggested_data['description'],
-      schedule_type: suggested_data[:schedule_type] || suggested_data['schedule_type'] || 'flexible',
-      suggested_months: suggested_data[:suggested_months] || suggested_data['suggested_months'] || [],
-      suggested_days_of_week: suggested_data[:suggested_days_of_week] || suggested_data['suggested_days_of_week'] || [],
-      suggested_time_of_day: suggested_data[:suggested_time_of_day] || suggested_data['suggested_time_of_day'],
-      category_tags: suggested_data[:category_tags] || suggested_data['category_tags'] || []
+      name: suggested_data[:name] || suggested_data["name"],
+      description: suggested_data[:description] || suggested_data["description"],
+      schedule_type: suggested_data[:schedule_type] || suggested_data["schedule_type"] || "flexible",
+      suggested_months: suggested_data[:suggested_months] || suggested_data["suggested_months"] || [],
+      suggested_days_of_week: suggested_data[:suggested_days_of_week] || suggested_data["suggested_days_of_week"] || [],
+      suggested_time_of_day: suggested_data[:suggested_time_of_day] || suggested_data["suggested_time_of_day"],
+      category_tags: suggested_data[:category_tags] || suggested_data["category_tags"] || []
     }
 
     # Apply user edits

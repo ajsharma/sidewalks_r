@@ -202,19 +202,19 @@ class AiSuggestionsTest < ApplicationSystemTestCase
       .to_return(
         status: 200,
         body: {
-          content: [{
+          content: [ {
             text: {
               name: "Hiking Trip",
               description: "Outdoor hiking activity",
               schedule_type: "flexible",
-              suggested_months: [6, 7, 8],
-              suggested_days_of_week: [0, 6],
+              suggested_months: [ 6, 7, 8 ],
+              suggested_days_of_week: [ 0, 6 ],
               suggested_time_of_day: "morning",
-              category_tags: ["outdoor", "exercise"],
+              category_tags: [ "outdoor", "exercise" ],
               confidence_score: 85,
               reasoning: "Hiking is best in summer months on weekends"
             }.to_json
-          }],
+          } ],
           model: "claude-3-5-sonnet-20241022",
           usage: { input_tokens: 100, output_tokens: 150 }
         }.to_json,

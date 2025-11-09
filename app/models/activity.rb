@@ -4,7 +4,7 @@ class Activity < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
   has_many :playlists, through: :playlist_activities
-  has_many :ai_suggestions, class_name: 'AiActivitySuggestion', foreign_key: :final_activity_id, dependent: :nullify
+  has_many :ai_suggestions, class_name: "AiActivitySuggestion", foreign_key: :final_activity_id, dependent: :nullify
 
   # Valid schedule types for activities
   # @return [Array<String>] frozen array of valid schedule types: strict, flexible, deadline
@@ -116,23 +116,23 @@ class Activity < ApplicationRecord
   # Returns formatted list of suggested months
   # @return [String] comma-separated month names or 'Any time' if none specified
   def formatted_suggested_months
-    return 'Any time' if suggested_months.blank?
+    return "Any time" if suggested_months.blank?
 
-    suggested_months.sort.map { |month| Date::MONTHNAMES[month] }.join(', ')
+    suggested_months.sort.map { |month| Date::MONTHNAMES[month] }.join(", ")
   end
 
   # Returns formatted list of suggested days of week
   # @return [String] comma-separated day names or 'Any day' if none specified
   def formatted_suggested_days
-    return 'Any day' if suggested_days_of_week.blank?
+    return "Any day" if suggested_days_of_week.blank?
 
-    suggested_days_of_week.sort.map { |day| Date::DAYNAMES[day] }.join(', ')
+    suggested_days_of_week.sort.map { |day| Date::DAYNAMES[day] }.join(", ")
   end
 
   # Returns human-readable time of day suggestion
   # @return [String] time of day label or 'Flexible' if none specified
   def formatted_time_of_day
-    return 'Flexible' if suggested_time_of_day.blank?
+    return "Flexible" if suggested_time_of_day.blank?
 
     suggested_time_of_day.titleize
   end

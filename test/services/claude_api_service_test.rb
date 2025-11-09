@@ -2,9 +2,9 @@ require "test_helper"
 
 class ClaudeApiServiceTest < ActiveSupport::TestCase
   def setup
-    @service = ClaudeApiService.new
     @original_api_key = ENV["ANTHROPIC_API_KEY"]
     ENV["ANTHROPIC_API_KEY"] = "test-api-key"
+    @service = ClaudeApiService.new
   end
 
   def teardown
@@ -29,7 +29,7 @@ class ClaudeApiServiceTest < ActiveSupport::TestCase
     assert_equal "Weekend Hiking", result["name"]
     assert_equal "flexible", result["schedule_type"]
     assert_equal 85, result["confidence_score"]
-    assert_equal [6, 7], result["suggested_months"]
+    assert_equal [ 6, 7 ], result["suggested_months"]
     assert_not_nil result["api_metadata"]
   end
 
@@ -126,10 +126,10 @@ class ClaudeApiServiceTest < ActiveSupport::TestCase
             name: "Weekend Hiking",
             description: "Enjoy nature on a hiking trail",
             schedule_type: "flexible",
-            suggested_months: [6, 7],
-            suggested_days_of_week: [0, 6],
+            suggested_months: [ 6, 7 ],
+            suggested_days_of_week: [ 0, 6 ],
             suggested_time_of_day: "morning",
-            category_tags: ["outdoor", "exercise"],
+            category_tags: [ "outdoor", "exercise" ],
             confidence_score: 85
           }.to_json
         }

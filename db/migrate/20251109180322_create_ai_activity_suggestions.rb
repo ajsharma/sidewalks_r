@@ -42,6 +42,6 @@ class CreateAiActivitySuggestions < ActiveRecord::Migration[8.1]
     add_index :ai_activity_suggestions, :input_type, algorithm: :concurrently
     add_index :ai_activity_suggestions, :accepted, algorithm: :concurrently
     add_index :ai_activity_suggestions, :created_at, algorithm: :concurrently
-    add_index :ai_activity_suggestions, [:user_id, :created_at], algorithm: :concurrently
+    add_index :ai_activity_suggestions, [ :user_id, :created_at ], algorithm: :concurrently
   end
 end

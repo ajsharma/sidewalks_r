@@ -1,9 +1,13 @@
-require 'nokogiri'
-require 'uri'
-require 'net/http'
+require "nokogiri"
+require "uri"
+require "net/http"
 
+# Service for extracting structured event/activity data from URLs.
+# Implements SSRF protection, parses Schema.org markup, OpenGraph tags, and HTML metadata.
 class UrlExtractorService
+  # Raised when URL is invalid, blocked, or malformed
   class InvalidUrlError < StandardError; end
+  # Raised when URL fetch fails due to network issues or HTTP errors
   class FetchError < StandardError; end
 
   TIMEOUT_SECONDS = 10
@@ -61,20 +65,20 @@ class UrlExtractorService
 
     # Ensure HTTP/HTTPS
     unless %w[http https].include?(uri.scheme&.downcase)
-      raise InvalidUrlError, 'URL must use HTTP or HTTPS protocol'
+      raise InvalidUrlError, "URL must use HTTP or HTTPS protocol"
     end
 
     # Validate host is present
-    raise InvalidUrlError, 'URL must have a valid host' unless uri.host
+    raise InvalidUrlError, "URL must have a valid host" unless uri.host
 
     # SSRF prevention - check for blocked patterns
     if BLOCKED_PATTERNS.any? { |pattern| uri.host.match?(pattern) }
-      raise InvalidUrlError, 'URL host is not allowed (private/internal network)'
+      raise InvalidUrlError, "URL host is not allowed (private/internal network)"
     end
 
     # Check for IP addresses (basic check)
     if uri.host.match?(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)
-      raise InvalidUrlError, 'Direct IP addresses are not allowed'
+      raise InvalidUrlError, "Direct IP addresses are not allowed"
     end
 
     uri
@@ -83,7 +87,7 @@ class UrlExtractorService
   end
 
   def fetch_url_content(redirect_count = 0)
-    raise FetchError, 'Too many redirects' if redirect_count >= MAX_REDIRECTS
+    raise FetchError, "Too many redirects" if redirect_count >= MAX_REDIRECTS
 
     response = make_http_request
 
@@ -92,8 +96,8 @@ class UrlExtractorService
       validate_content_length(response)
       response.body
     when Net::HTTPRedirection
-      location = response['location']
-      raise FetchError, 'Redirect with no location' unless location
+      location = response["location"]
+      raise FetchError, "Redirect with no location" unless location
 
       # Validate redirect URL
       @uri = parse_and_validate_url_from_redirect(location)
@@ -113,18 +117,18 @@ class UrlExtractorService
     Net::HTTP.start(
       @uri.host,
       @uri.port,
-      use_ssl: @uri.scheme == 'https',
+      use_ssl: @uri.scheme == "https",
       open_timeout: TIMEOUT_SECONDS,
       read_timeout: TIMEOUT_SECONDS
     ) do |http|
       request = Net::HTTP::Get.new(@uri.request_uri)
-      request['User-Agent'] = 'SidewalksBot/1.0 (Activity Planning Assistant)'
+      request["User-Agent"] = "SidewalksBot/1.0 (Activity Planning Assistant)"
       http.request(request)
     end
   end
 
   def validate_content_length(response)
-    content_length = response['content-length']&.to_i
+    content_length = response["content-length"]&.to_i
     if content_length && content_length > MAX_CONTENT_LENGTH
       raise FetchError, "Content too large: #{content_length} bytes"
     end
@@ -132,11 +136,11 @@ class UrlExtractorService
 
   def parse_and_validate_url_from_redirect(location)
     # Handle relative redirects
-    redirect_uri = location.start_with?('http') ? URI.parse(location) : @uri + location
+    redirect_uri = location.start_with?("http") ? URI.parse(location) : @uri + location
 
     # Re-validate the redirect URL for SSRF
     if BLOCKED_PATTERNS.any? { |pattern| redirect_uri.host.match?(pattern) }
-      raise InvalidUrlError, 'Redirect to blocked host'
+      raise InvalidUrlError, "Redirect to blocked host"
     end
 
     redirect_uri
@@ -176,22 +180,22 @@ class UrlExtractorService
         json_ld = JSON.parse(script.content)
 
         # Handle both single objects and arrays
-        json_ld = [json_ld] unless json_ld.is_a?(Array)
+        json_ld = [ json_ld ] unless json_ld.is_a?(Array)
 
         json_ld.each do |item|
           next unless item.is_a?(Hash)
 
-          type = item['@type']
+          type = item["@type"]
           next unless %w[Event SocialEvent BusinessEvent].include?(type)
 
-          data[:name] ||= item['name']
-          data[:description] ||= item['description']
-          data[:start_date] ||= item['startDate']
-          data[:end_date] ||= item['endDate']
-          data[:location] ||= extract_location(item['location'])
-          data[:image_url] ||= extract_image(item['image'])
-          data[:organizer] ||= extract_organizer(item['organizer'])
-          data[:price] ||= extract_price(item['offers'])
+          data[:name] ||= item["name"]
+          data[:description] ||= item["description"]
+          data[:start_date] ||= item["startDate"]
+          data[:end_date] ||= item["endDate"]
+          data[:location] ||= extract_location(item["location"])
+          data[:image_url] ||= extract_image(item["image"])
+          data[:organizer] ||= extract_organizer(item["organizer"])
+          data[:price] ||= extract_price(item["offers"])
         end
       rescue JSON::ParserError
         next
@@ -205,18 +209,18 @@ class UrlExtractorService
     data = {}
 
     doc.css('meta[property^="og:"]').each do |meta|
-      property = meta['property']
-      content = meta['content']
+      property = meta["property"]
+      content = meta["content"]
       next unless content.present?
 
       case property
-      when 'og:title'
+      when "og:title"
         data[:name] ||= content
-      when 'og:description'
+      when "og:description"
         data[:description] ||= content
-      when 'og:image'
+      when "og:image"
         data[:image_url] ||= content
-      when 'og:url'
+      when "og:url"
         data[:canonical_url] ||= content
       end
     end
@@ -228,16 +232,16 @@ class UrlExtractorService
     data = {}
 
     doc.css('meta[name^="twitter:"]').each do |meta|
-      name = meta['name']
-      content = meta['content']
+      name = meta["name"]
+      content = meta["content"]
       next unless content.present?
 
       case name
-      when 'twitter:title'
+      when "twitter:title"
         data[:name] ||= content
-      when 'twitter:description'
+      when "twitter:description"
         data[:description] ||= content
-      when 'twitter:image'
+      when "twitter:image"
         data[:image_url] ||= content
       end
     end
@@ -249,15 +253,15 @@ class UrlExtractorService
     data = {}
 
     # Title
-    data[:name] ||= doc.at_css('title')&.text&.strip
+    data[:name] ||= doc.at_css("title")&.text&.strip
 
     # Meta description
     meta_desc = doc.at_css('meta[name="description"]')
-    data[:description] ||= meta_desc['content']&.strip if meta_desc
+    data[:description] ||= meta_desc["content"]&.strip if meta_desc
 
     # Canonical URL
     canonical = doc.at_css('link[rel="canonical"]')
-    data[:canonical_url] ||= canonical['href'] if canonical
+    data[:canonical_url] ||= canonical["href"] if canonical
 
     data.compact
   end
@@ -265,10 +269,10 @@ class UrlExtractorService
   def extract_location(location_data)
     return nil unless location_data.is_a?(Hash)
 
-    if location_data['name']
-      location_data['name']
-    elsif location_data['address']
-      format_address(location_data['address'])
+    if location_data["name"]
+      location_data["name"]
+    elsif location_data["address"]
+      format_address(location_data["address"])
     end
   end
 
@@ -276,11 +280,11 @@ class UrlExtractorService
     return address unless address.is_a?(Hash)
 
     [
-      address['streetAddress'],
-      address['addressLocality'],
-      address['addressRegion'],
-      address['postalCode']
-    ].compact.join(', ')
+      address["streetAddress"],
+      address["addressLocality"],
+      address["addressRegion"],
+      address["postalCode"]
+    ].compact.join(", ")
   end
 
   def extract_image(image_data)
@@ -290,16 +294,16 @@ class UrlExtractorService
     when String
       image_data
     when Hash
-      image_data['url']
+      image_data["url"]
     when Array
-      image_data.first.is_a?(String) ? image_data.first : image_data.first['url']
+      image_data.first.is_a?(String) ? image_data.first : image_data.first["url"]
     end
   end
 
   def extract_organizer(organizer_data)
     return nil unless organizer_data.is_a?(Hash)
 
-    organizer_data['name']
+    organizer_data["name"]
   end
 
   def extract_price(offers_data)
@@ -308,8 +312,8 @@ class UrlExtractorService
     offers = offers_data.is_a?(Array) ? offers_data.first : offers_data
     return nil unless offers.is_a?(Hash)
 
-    price = offers['price']
-    currency = offers['priceCurrency'] || 'USD'
+    price = offers["price"]
+    currency = offers["priceCurrency"] || "USD"
 
     return nil unless price
 

@@ -17,7 +17,7 @@ class User < ApplicationRecord
   has_many :google_accounts, dependent: :destroy
   has_many :activities, dependent: :destroy
   has_many :playlists, dependent: :destroy
-  has_many :ai_suggestions, class_name: 'AiActivitySuggestion', dependent: :destroy
+  has_many :ai_suggestions, class_name: "AiActivitySuggestion", dependent: :destroy
 
   has_one :active_google_account, -> { active }, class_name: "GoogleAccount"
 
