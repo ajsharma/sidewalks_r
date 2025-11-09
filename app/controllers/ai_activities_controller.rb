@@ -6,9 +6,13 @@ class AiActivitiesController < ApplicationController
   # GET /ai_activities
   def index
     @suggestions = current_user.ai_suggestions
-                              .includes(:final_activity)
                               .recent
                               .limit(50)
+
+    respond_to do |format|
+      format.html
+      format.json { render json: @suggestions }
+    end
   end
 
   # GET /ai_activities/new
@@ -63,7 +67,10 @@ class AiActivitiesController < ApplicationController
 
   # GET /ai_activities/:id
   def show
-    # Display a single suggestion
+    respond_to do |format|
+      format.html # Display a single suggestion
+      format.json { render json: @suggestion }
+    end
   end
 
   # POST /ai_activities/:id/accept

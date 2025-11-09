@@ -18,9 +18,16 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to new_user_session_path
   end
 
-  test "index returns user's suggestions" do
+  test "index returns user's suggestions as JSON" do
     get ai_activities_path, as: :json
     assert_response :success
+  end
+
+  test "index renders HTML view" do
+    get ai_activities_path
+    assert_response :success
+    assert_select "h1", text: "AI Activity Suggestions"
+    assert_select "textarea[name='input']"
   end
 
   test "index checks AI feature enabled" do
@@ -64,10 +71,19 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "show displays suggestion" do
+  test "show displays suggestion as JSON" do
     suggestion = ai_activity_suggestions(:text_completed)
     get ai_activity_path(suggestion), as: :json
     assert_response :success
+  end
+
+  test "show renders HTML view" do
+    suggestion = ai_activity_suggestions(:text_completed)
+    get ai_activity_path(suggestion)
+    assert_response :success
+    assert_select "h1", text: suggestion.suggested_activity_name
+    assert_select "input[name='name']"
+    assert_select "input[type='submit'][value='Accept & Create Activity']"
   end
 
   test "show returns 404 for other user's suggestion" do
