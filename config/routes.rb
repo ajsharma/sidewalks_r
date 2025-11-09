@@ -12,7 +12,7 @@ Rails.application.routes.draw do
   resources :playlists
 
   # AI Activity Suggestions
-  resources :ai_activities, path: 'ai-suggestions' do
+  resources :ai_activities, path: "ai-suggestions" do
     collection do
       post :generate
     end

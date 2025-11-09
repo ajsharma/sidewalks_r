@@ -139,10 +139,10 @@ class AiActivityServiceTest < ActiveSupport::TestCase
       "name" => "Test Activity",
       "description" => "Test description",
       "schedule_type" => "flexible",
-      "suggested_months" => [6, 7, 8],
-      "suggested_days_of_week" => [0, 6],
+      "suggested_months" => [ 6, 7, 8 ],
+      "suggested_days_of_week" => [ 0, 6 ],
       "suggested_time_of_day" => "morning",
-      "category_tags" => ["outdoor"]
+      "category_tags" => [ "outdoor" ]
     }
 
     params = AiActivityService.build_activity_params(suggested_data, {})
@@ -150,7 +150,7 @@ class AiActivityServiceTest < ActiveSupport::TestCase
     assert_equal "Test Activity", params[:name]
     assert_equal "Test description", params[:description]
     assert_equal "flexible", params[:schedule_type]
-    assert_equal [6, 7, 8], params[:suggested_months]
+    assert_equal [ 6, 7, 8 ], params[:suggested_months]
   end
 
   test "build_activity_params merges user edits" do
@@ -176,7 +176,7 @@ class AiActivityServiceTest < ActiveSupport::TestCase
       .to_return(
         status: 200,
         body: {
-          content: [{ text: response_data.to_json }],
+          content: [ { text: response_data.to_json } ],
           model: "claude-3-5-sonnet-20241022",
           usage: { input_tokens: 100, output_tokens: 150 }
         }.to_json,

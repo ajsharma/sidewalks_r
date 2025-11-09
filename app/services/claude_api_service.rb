@@ -1,6 +1,11 @@
+# Service for interacting with Anthropic's Claude API to generate activity scheduling suggestions.
+# Handles API authentication, request formatting, response parsing, and error handling.
 class ClaudeApiService
+  # Generic API error for network or service failures
   class ApiError < StandardError; end
+  # Raised when API rate limits are exceeded
   class RateLimitError < ApiError; end
+  # Raised when API response structure is invalid or unexpected
   class InvalidResponseError < ApiError; end
 
   SYSTEM_PROMPT = <<~PROMPT.freeze
@@ -47,8 +52,8 @@ class ClaudeApiService
   PROMPT
 
   def initialize
-    @api_key = ENV.fetch('ANTHROPIC_API_KEY') { raise ApiError, 'ANTHROPIC_API_KEY not configured' }
-    @model = 'claude-3-5-sonnet-20241022'
+    @api_key = ENV.fetch("ANTHROPIC_API_KEY") { raise ApiError, "ANTHROPIC_API_KEY not configured" }
+    @model = "claude-3-5-sonnet-20241022"
   end
 
   # Extract activity from natural language text
@@ -81,7 +86,7 @@ class ClaudeApiService
   private
 
   def call_claude_api(user_message)
-    uri = URI('https://api.anthropic.com/v1/messages')
+    uri = URI("https://api.anthropic.com/v1/messages")
     request = build_request(uri, user_message)
 
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 30) do |http|
@@ -99,9 +104,9 @@ class ClaudeApiService
 
   def build_request(uri, user_message)
     request = Net::HTTP::Post.new(uri)
-    request['Content-Type'] = 'application/json'
-    request['x-api-key'] = @api_key
-    request['anthropic-version'] = '2023-06-01'
+    request["Content-Type"] = "application/json"
+    request["x-api-key"] = @api_key
+    request["anthropic-version"] = "2023-06-01"
 
     request.body = {
       model: @model,
@@ -109,7 +114,7 @@ class ClaudeApiService
       system: SYSTEM_PROMPT,
       messages: [
         {
-          role: 'user',
+          role: "user",
           content: user_message
         }
       ]
@@ -124,12 +129,12 @@ class ClaudeApiService
       body = JSON.parse(response.body)
       extract_content(body)
     when 429
-      raise RateLimitError, 'API rate limit exceeded'
+      raise RateLimitError, "API rate limit exceeded"
     when 400..499
-      error_message = JSON.parse(response.body).dig('error', 'message') rescue 'Unknown error'
+      error_message = JSON.parse(response.body).dig("error", "message") rescue "Unknown error"
       raise ApiError, "API client error: #{error_message}"
     when 500..599
-      raise ApiError, 'API server error'
+      raise ApiError, "API server error"
     else
       raise ApiError, "Unexpected response code: #{response.code}"
     end
@@ -138,13 +143,13 @@ class ClaudeApiService
   end
 
   def extract_content(response_body)
-    content = response_body.dig('content', 0, 'text')
-    raise InvalidResponseError, 'No content in API response' unless content
+    content = response_body.dig("content", 0, "text")
+    raise InvalidResponseError, "No content in API response" unless content
 
     {
       content: content,
-      usage: response_body['usage'],
-      model: response_body['model']
+      usage: response_body["usage"],
+      model: response_body["model"]
     }
   end
 
@@ -160,7 +165,7 @@ class ClaudeApiService
     parsed = JSON.parse(json_str)
 
     # Add API metadata
-    parsed['api_metadata'] = {
+    parsed["api_metadata"] = {
       model: api_response[:model],
       usage: api_response[:usage]
     }
@@ -179,11 +184,11 @@ class ClaudeApiService
       raise InvalidResponseError, "Missing required fields: #{missing_fields.join(', ')}"
     end
 
-    unless %w[flexible strict deadline].include?(data['schedule_type'])
+    unless %w[flexible strict deadline].include?(data["schedule_type"])
       raise InvalidResponseError, "Invalid schedule_type: #{data['schedule_type']}"
     end
 
-    score = data['confidence_score']
+    score = data["confidence_score"]
     unless score.is_a?(Numeric) && score >= 0 && score <= 100
       raise InvalidResponseError, "Invalid confidence_score: #{score}"
     end
