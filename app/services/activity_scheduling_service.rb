@@ -236,7 +236,10 @@ class ActivitySchedulingService
     occurrence_count = 0
 
     while current_date <= date_range.end
-      next if skip_weekend?(current_date)
+      if skip_weekend?(current_date)
+        current_date += 1.day
+        next
+      end
 
       time_offset_minutes = calculate_time_offset(base_offset, occurrence_count)
       suggested_time = calculate_flexible_activity_time(activity, current_date, time_offset_minutes)
