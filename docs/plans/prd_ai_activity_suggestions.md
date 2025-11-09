@@ -62,10 +62,13 @@ The system will automatically:
 - I want to provide feedback to improve future suggestions
 
 ### As a Power User
-- I want to use natural language shortcuts (e.g., "Add 'coffee with Sarah' every Tuesday morning")
-- I want the AI to learn from my past scheduling patterns
-- I want to override AI suggestions when I have specific preferences
-- I want bulk activity creation via natural language lists
+**Note**: Advanced power user features are detailed in a separate PRD: `prd_power_user_features.md` (Phase 2)
+
+Summary of power features (see separate PRD for details):
+- Natural language shortcuts and command palette
+- AI learning from user patterns
+- Bulk activity creation
+- Custom templates and preferences
 
 ---
 
