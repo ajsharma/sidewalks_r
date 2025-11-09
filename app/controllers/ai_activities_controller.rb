@@ -6,6 +6,7 @@ class AiActivitiesController < ApplicationController
   # GET /ai_activities
   def index
     @suggestions = current_user.ai_suggestions
+                              .includes(:final_activity)
                               .recent
                               .limit(50)
   end
