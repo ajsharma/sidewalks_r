@@ -44,6 +44,7 @@ VCR.configure do |config|
   config.filter_sensitive_data("<GOOGLE_REFRESH_TOKEN>") { ENV["GOOGLE_REFRESH_TOKEN"] }
   config.filter_sensitive_data("<GOOGLE_CLIENT_ID>") { ENV["GOOGLE_CLIENT_ID"] }
   config.filter_sensitive_data("<GOOGLE_CLIENT_SECRET>") { ENV["GOOGLE_CLIENT_SECRET"] }
+  config.filter_sensitive_data("<ANTHROPIC_API_KEY>") { ENV["ANTHROPIC_API_KEY"] }
 
   # Allow localhost connections for Rails
   config.ignore_localhost = true
