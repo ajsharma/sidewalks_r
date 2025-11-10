@@ -17,6 +17,10 @@ class AiActivityServiceTest < ActiveSupport::TestCase
   end
 
   test "checks rate limits before processing" do
+    # Temporarily set lower rate limits for testing
+    original_hourly = AiConfig.instance.rate_limit_per_hour
+    AiConfig.instance.rate_limit_per_hour = 20
+
     # Create 20 suggestions in the last hour
     20.times do
       @user.ai_suggestions.create!(
@@ -33,9 +37,15 @@ class AiActivityServiceTest < ActiveSupport::TestCase
     end
 
     assert_match(/20 requests per hour/, error.message)
+  ensure
+    AiConfig.instance.rate_limit_per_hour = original_hourly
   end
 
   test "checks daily rate limits" do
+    # Temporarily set lower rate limits for testing
+    original_daily = AiConfig.instance.rate_limit_per_day
+    AiConfig.instance.rate_limit_per_day = 100
+
     # Create 100 suggestions in the last day
     100.times do |i|
       @user.ai_suggestions.create!(
@@ -52,6 +62,8 @@ class AiActivityServiceTest < ActiveSupport::TestCase
     end
 
     assert_match(/100 requests per day/, error.message)
+  ensure
+    AiConfig.instance.rate_limit_per_day = original_daily
   end
 
   test "generate_suggestion creates pending suggestion for text" do

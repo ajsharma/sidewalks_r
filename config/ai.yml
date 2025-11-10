@@ -1,0 +1,36 @@
+# AI Configuration
+# This file provides default configuration for AI features across environments.
+# Priority: ENV variables > Rails credentials > this file
+
+# Development defaults
+development:
+  # Placeholder API key for development (override with real key in credentials or ENV)
+  anthropic_api_key: "ABC_123"
+
+  # Feature flag - set to true to enable AI features in development
+  feature_enabled: true
+
+  # Rate limiting
+  rate_limit_per_hour: 20
+  rate_limit_per_day: 100
+
+  # Model configuration
+  default_model: "claude-3-5-sonnet-20241022"
+
+# Test environment uses development settings
+test:
+  anthropic_api_key: "test-key"
+  feature_enabled: true
+  rate_limit_per_hour: 100  # Higher limit for tests
+  rate_limit_per_day: 1000
+  default_model: "claude-3-5-sonnet-20241022"
+
+# Production - all sensitive values should come from encrypted credentials or ENV
+production:
+  # DO NOT set anthropic_api_key here - use credentials or ENV
+  # anthropic_api_key: <%= Rails.application.credentials.dig(:ai, :anthropic_api_key) %>
+
+  feature_enabled: false  # Enable via ENV or credentials
+  rate_limit_per_hour: 20
+  rate_limit_per_day: 100
+  default_model: "claude-3-5-sonnet-20241022"

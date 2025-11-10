@@ -4,12 +4,7 @@ class AiSuggestionsTest < ApplicationSystemTestCase
   setup do
     @user = users(:one)
     sign_in @user
-    ENV["AI_FEATURE_ENABLED"] = "true"
-    ENV["ANTHROPIC_API_KEY"] = "test-key"
-  end
-
-  teardown do
-    ENV["AI_FEATURE_ENABLED"] = nil
+    # AI config is loaded from config/ai.yml test environment
   end
 
   test "visiting the AI suggestions index" do

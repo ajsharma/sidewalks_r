@@ -162,7 +162,6 @@ class AiActivitiesController < ApplicationController
   end
 
   def ai_feature_enabled?
-    # Check if AI feature is enabled via ENV var or feature flag
-    ENV.fetch("AI_FEATURE_ENABLED", "false") == "true"
+    AiConfig.instance.feature_enabled?
   end
 end

@@ -4,14 +4,12 @@ class AiActivityService
   # Raised when user exceeds per-hour or per-day rate limits
   class RateLimitExceededError < StandardError; end
 
-  RATE_LIMIT_PER_HOUR = 20
-  RATE_LIMIT_PER_DAY = 100
-
   def initialize(user:, input:)
     @user = user
     @input = input.strip
     @input_type = detect_input_type
     @suggestion = nil
+    @config = AiConfig.instance
   end
 
   # Main entry point for generating suggestions
@@ -72,16 +70,16 @@ class AiActivityService
                         .where("created_at > ?", 1.hour.ago)
                         .count
 
-    if hourly_count >= RATE_LIMIT_PER_HOUR
-      raise RateLimitExceededError, "Rate limit exceeded: #{RATE_LIMIT_PER_HOUR} requests per hour"
+    if hourly_count >= @config.rate_limit_per_hour
+      raise RateLimitExceededError, "Rate limit exceeded: #{@config.rate_limit_per_hour} requests per hour"
     end
 
     daily_count = @user.ai_suggestions
                        .where("created_at > ?", 1.day.ago)
                        .count
 
-    if daily_count >= RATE_LIMIT_PER_DAY
-      raise RateLimitExceededError, "Rate limit exceeded: #{RATE_LIMIT_PER_DAY} requests per day"
+    if daily_count >= @config.rate_limit_per_day
+      raise RateLimitExceededError, "Rate limit exceeded: #{@config.rate_limit_per_day} requests per day"
     end
   end
 

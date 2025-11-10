@@ -52,8 +52,11 @@ class ClaudeApiService
   PROMPT
 
   def initialize
-    @api_key = ENV.fetch("ANTHROPIC_API_KEY") { raise ApiError, "ANTHROPIC_API_KEY not configured" }
-    @model = "claude-3-5-sonnet-20241022"
+    config = AiConfig.instance
+    @api_key = config.anthropic_api_key
+    raise ApiError, "ANTHROPIC_API_KEY not configured" if @api_key.blank?
+
+    @model = config.default_model
   end
 
   # Extract activity from natural language text

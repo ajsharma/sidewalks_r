@@ -4,12 +4,7 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
   def setup
     @user = users(:one)
     sign_in @user
-    ENV["AI_FEATURE_ENABLED"] = "true"
-    ENV["ANTHROPIC_API_KEY"] = "test-key"
-  end
-
-  def teardown
-    ENV["AI_FEATURE_ENABLED"] = nil
+    # AI config is loaded from config/ai.yml test environment
   end
 
   test "index requires authentication" do
@@ -31,10 +26,15 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index checks AI feature enabled" do
-    ENV["AI_FEATURE_ENABLED"] = "false"
+    # Temporarily disable the feature
+    original_value = AiConfig.instance.feature_enabled
+    AiConfig.instance.feature_enabled = false
+
     get ai_activities_path
     assert_redirected_to root_path
     assert_equal "AI suggestions are not currently available", flash[:alert]
+  ensure
+    AiConfig.instance.feature_enabled = original_value
   end
 
   test "generate queues background job" do

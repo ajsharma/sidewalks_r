@@ -2,23 +2,22 @@ require "test_helper"
 
 class ClaudeApiServiceTest < ActiveSupport::TestCase
   def setup
-    @original_api_key = ENV["ANTHROPIC_API_KEY"]
-    ENV["ANTHROPIC_API_KEY"] = "test-api-key"
+    # AI config is loaded from config/ai.yml test environment
     @service = ClaudeApiService.new
   end
 
-  def teardown
-    ENV["ANTHROPIC_API_KEY"] = @original_api_key
-  end
-
   test "raises error when ANTHROPIC_API_KEY is not set" do
-    ENV["ANTHROPIC_API_KEY"] = nil
+    # Temporarily override config to test error handling
+    original_key = AiConfig.instance.anthropic_api_key
+    AiConfig.instance.anthropic_api_key = nil
 
     error = assert_raises(ClaudeApiService::ApiError) do
       ClaudeApiService.new
     end
 
     assert_equal "ANTHROPIC_API_KEY not configured", error.message
+  ensure
+    AiConfig.instance.anthropic_api_key = original_key
   end
 
   test "extract_activity_from_text returns structured data" do
