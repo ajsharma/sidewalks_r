@@ -119,7 +119,10 @@ class UrlExtractorService
       @uri.port,
       use_ssl: @uri.scheme == "https",
       open_timeout: TIMEOUT_SECONDS,
-      read_timeout: TIMEOUT_SECONDS
+      read_timeout: TIMEOUT_SECONDS,
+      # SSL configuration for macOS
+      verify_mode: OpenSSL::SSL::VERIFY_PEER,
+      ca_file: ENV["SSL_CERT_FILE"] || OpenSSL::X509::DEFAULT_CERT_FILE
     ) do |http|
       request = Net::HTTP::Get.new(@uri.request_uri)
       request["User-Agent"] = "SidewalksBot/1.0 (Activity Planning Assistant)"
