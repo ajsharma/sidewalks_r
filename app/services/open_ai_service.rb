@@ -57,7 +57,14 @@ class OpenAiService
     raise ApiError, "OPENAI_API_KEY not configured" if @api_key.blank?
 
     @model = config.openai_model
-    @client = OpenAI::Client.new(access_token: @api_key)
+
+    # Ensure SSL certificates are configured for OpenAI API
+    ensure_ssl_configured
+
+    @client = OpenAI::Client.new(
+      access_token: @api_key,
+      request_timeout: 30
+    )
   end
 
   # Extract activity from natural language text
@@ -88,6 +95,13 @@ class OpenAiService
   end
 
   private
+
+  def ensure_ssl_configured
+    # Set SSL environment variables to help Ruby find CA certificates
+    # This fixes "certificate verify failed" errors on macOS
+    cert_file = OpenSSL::X509::DEFAULT_CERT_FILE
+    ENV["SSL_CERT_FILE"] ||= cert_file if File.exist?(cert_file)
+  end
 
   def call_openai_api(user_message)
     response = @client.chat(
