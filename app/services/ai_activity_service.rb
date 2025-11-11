@@ -1,5 +1,6 @@
 # Orchestration service for generating AI-powered activity suggestions.
-# Coordinates URL extraction, Claude API calls, rate limiting, and suggestion persistence.
+# Coordinates URL extraction, AI API calls, rate limiting, and suggestion persistence.
+# Supports multiple AI providers (Anthropic Claude, OpenAI ChatGPT) via AiConfig.
 class AiActivityService
   # Raised when user exceeds per-hour or per-day rate limits
   class RateLimitExceededError < StandardError; end
@@ -95,8 +96,8 @@ class AiActivityService
   def generate_from_text
     start_time = Time.current
 
-    claude_service = ClaudeApiService.new
-    ai_response = claude_service.extract_activity_from_text(@input)
+    ai_service = get_ai_service
+    ai_response = ai_service.extract_activity_from_text(@input)
 
     processing_time = ((Time.current - start_time) * 1000).to_i
 
@@ -125,16 +126,16 @@ class AiActivityService
     )
 
     # Step 2: Call AI to parse/enhance the data
-    claude_service = ClaudeApiService.new
+    ai_service = get_ai_service
     ai_response = if url_data[:needs_ai_parsing]
-                    claude_service.extract_activity_from_url(
+                    ai_service.extract_activity_from_url(
                       url: @input,
                       html_content: url_data[:html_content],
                       structured_data: url_data[:structured_data]
                     )
     else
                     # Use structured data directly, but still run through AI for categorization
-                    claude_service.extract_activity_from_url(
+                    ai_service.extract_activity_from_url(
                       url: @input,
                       html_content: nil,
                       structured_data: url_data[:structured_data]
@@ -158,6 +159,17 @@ class AiActivityService
     suggestion_data[:price] = url_data.dig(:structured_data, :price) if url_data.dig(:structured_data, :price)
 
     suggestion_data
+  end
+
+  def get_ai_service
+    case @config.provider
+    when "anthropic"
+      ClaudeApiService.new
+    when "openai"
+      OpenAiService.new
+    else
+      raise "Unknown AI provider: #{@config.provider}"
+    end
   end
 
   def extract_suggestion_data(ai_response)

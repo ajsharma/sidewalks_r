@@ -1,6 +1,6 @@
-# Service for interacting with Anthropic's Claude API to generate activity scheduling suggestions.
+# Service for interacting with OpenAI's ChatGPT API to generate activity scheduling suggestions.
 # Handles API authentication, request formatting, response parsing, and error handling.
-class ClaudeApiService
+class OpenAiService
   # Generic API error for network or service failures
   class ApiError < StandardError; end
   # Raised when API rate limits are exceeded
@@ -53,10 +53,11 @@ class ClaudeApiService
 
   def initialize
     config = AiConfig.instance
-    @api_key = config.anthropic_api_key
-    raise ApiError, "ANTHROPIC_API_KEY not configured" if @api_key.blank?
+    @api_key = config.openai_api_key
+    raise ApiError, "OPENAI_API_KEY not configured" if @api_key.blank?
 
-    @model = config.anthropic_model
+    @model = config.openai_model
+    @client = OpenAI::Client.new(access_token: @api_key)
   end
 
   # Extract activity from natural language text
@@ -71,7 +72,7 @@ class ClaudeApiService
       Return only the JSON object, no other text.
     TEXT
 
-    response = call_claude_api(prompt)
+    response = call_openai_api(prompt)
     parse_json_response(response)
   end
 
@@ -82,77 +83,43 @@ class ClaudeApiService
   # @return [Hash] structured activity data
   def extract_activity_from_url(url:, html_content: nil, structured_data: {})
     prompt = build_url_extraction_prompt(url, html_content, structured_data)
-    response = call_claude_api(prompt)
+    response = call_openai_api(prompt)
     parse_json_response(response)
   end
 
   private
 
-  def call_claude_api(user_message)
-    uri = URI("https://api.anthropic.com/v1/messages")
-    request = build_request(uri, user_message)
+  def call_openai_api(user_message)
+    response = @client.chat(
+      parameters: {
+        model: @model,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: user_message }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
+      }
+    )
 
-    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true, read_timeout: 30) do |http|
-      http.request(request)
-    end
-
-    handle_response(response)
-  rescue Net::ReadTimeout => e
-    raise ApiError, "API request timed out: #{e.message}"
-  rescue RateLimitError, InvalidResponseError
-    raise
-  rescue StandardError => e
+    extract_content(response)
+  rescue Faraday::TooManyRequestsError => e
+    raise RateLimitError, "API rate limit exceeded: #{e.message}"
+  rescue Faraday::Error => e
     raise ApiError, "API request failed: #{e.message}"
+  rescue StandardError => e
+    raise ApiError, "Unexpected error: #{e.message}"
   end
 
-  def build_request(uri, user_message)
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request["x-api-key"] = @api_key
-    request["anthropic-version"] = "2023-06-01"
-
-    request.body = {
-      model: @model,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: user_message
-        }
-      ]
-    }.to_json
-
-    request
-  end
-
-  def handle_response(response)
-    case response.code.to_i
-    when 200
-      body = JSON.parse(response.body)
-      extract_content(body)
-    when 429
-      raise RateLimitError, "API rate limit exceeded"
-    when 400..499
-      error_message = JSON.parse(response.body).dig("error", "message") rescue "Unknown error"
-      raise ApiError, "API client error: #{error_message}"
-    when 500..599
-      raise ApiError, "API server error"
-    else
-      raise ApiError, "Unexpected response code: #{response.code}"
-    end
-  rescue JSON::ParserError => e
-    raise ApiError, "Failed to parse API response: #{e.message}"
-  end
-
-  def extract_content(response_body)
-    content = response_body.dig("content", 0, "text")
+  def extract_content(response)
+    # OpenAI response structure: response.dig("choices", 0, "message", "content")
+    content = response.dig("choices", 0, "message", "content")
     raise InvalidResponseError, "No content in API response" unless content
 
     {
       content: content,
-      usage: response_body["usage"],
-      model: response_body["model"]
+      usage: response["usage"],
+      model: response["model"]
     }
   end
 

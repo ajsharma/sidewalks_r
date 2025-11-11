@@ -25,6 +25,7 @@ detectors:
       - GoogleCalendarService # Service classes legitimately work with data objects passed as parameters
       - AiActivityService # Service classes legitimately work with domain objects passed as parameters
       - ClaudeApiService # Service classes legitimately work with data objects passed as parameters
+      - OpenAiService # Service classes legitimately work with data objects passed as parameters
       - UrlExtractorService # Service classes legitimately work with data objects passed as parameters
       - AiActivitySuggestion # Model methods work with data hashes passed as parameters
 
@@ -42,6 +43,7 @@ detectors:
       - GoogleCalendarHealth # Health monitoring models may need repeated timing calculations
       - AiActivityService # Complex service with legitimate repeated method calls for clarity
       - ClaudeApiService # Complex service with legitimate repeated method calls for clarity
+      - OpenAiService # Complex service with legitimate repeated method calls for clarity
       - UrlExtractorService # Complex service with legitimate repeated method calls for clarity
       - AiActivitiesController # Controller respond_to blocks have legitimate duplicate calls
       - AiSuggestionGeneratorJob # Background jobs have legitimate duplicate logging calls
@@ -78,6 +80,7 @@ detectors:
     exclude:
       - AgendaProposedEvent # Domain objects may have repeated conditionals
       - HealthController # Health monitoring may check same conditions multiple times
+      - AiConfig # Config classes use repeated conditionals for provider switching
 
   ManualDispatch:
     exclude:

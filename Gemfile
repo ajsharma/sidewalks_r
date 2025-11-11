@@ -53,6 +53,9 @@ gem "strong_migrations"
 # Configuration management with multiple sources [https://github.com/palkan/anyway_config]
 gem "anyway_config", "~> 2.0"
 
+# AI service integrations
+gem "ruby-openai", "~> 7.0"  # OpenAI/ChatGPT API client
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 

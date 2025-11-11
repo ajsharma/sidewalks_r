@@ -3,7 +3,14 @@ require "test_helper"
 class ClaudeApiServiceTest < ActiveSupport::TestCase
   def setup
     # AI config is loaded from config/ai.yml test environment
+    # Set provider to anthropic for these tests
+    @original_provider = AiConfig.instance.provider
+    AiConfig.instance.provider = "anthropic"
     @service = ClaudeApiService.new
+  end
+
+  def teardown
+    AiConfig.instance.provider = @original_provider
   end
 
   test "raises error when ANTHROPIC_API_KEY is not set" do

@@ -3,7 +3,13 @@ require "test_helper"
 class AiActivityServiceTest < ActiveSupport::TestCase
   def setup
     @user = users(:one)
-    ENV["ANTHROPIC_API_KEY"] = "test-key"
+    # Use Anthropic provider for these tests since they stub Claude API
+    @original_provider = AiConfig.instance.provider
+    AiConfig.instance.provider = "anthropic"
+  end
+
+  def teardown
+    AiConfig.instance.provider = @original_provider
   end
 
   test "detects text input type" do
