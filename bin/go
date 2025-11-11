@@ -23,6 +23,14 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Running gem security audit =="
   system! "bundle exec bundle-audit --update"
 
+  puts "\n== Scanning for leaked secrets =="
+  if system("which gitleaks > /dev/null 2>&1")
+    system! "gitleaks detect --verbose --no-git"
+  else
+    puts "⚠️  Gitleaks not installed. Install with: brew install gitleaks"
+    puts "Skipping secret scanning..."
+  end
+
   # puts "\n== Regenerating swagger =="
   # system! "bundle exec rake rswag:specs:swaggerize"
 

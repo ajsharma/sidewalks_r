@@ -12,7 +12,16 @@ FileUtils.chdir APP_ROOT do
   # This script is idempotent, so that you can run it at any time and get an expectable outcome.
   # Add necessary setup steps to this file.
 
-  puts "== Installing dependencies =="
+  puts "== Installing system dependencies =="
+  if system("which brew > /dev/null 2>&1")
+    puts "Installing Homebrew dependencies from Brewfile..."
+    system! "brew bundle check || brew bundle install"
+  else
+    puts "⚠️  Homebrew not found. Install from https://brew.sh"
+    puts "Some tools (gitleaks, etc.) may not be available."
+  end
+
+  puts "\n== Installing Ruby dependencies =="
   system("bundle check") || system!("bundle install")
 
   # xcode-select --install
