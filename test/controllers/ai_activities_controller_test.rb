@@ -86,6 +86,14 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[type='submit'][value='Accept & Create Activity']"
   end
 
+  test "show renders HTML view with nil api_response" do
+    suggestion = ai_activity_suggestions(:completed_with_nil_api_response)
+    get ai_activity_path(suggestion)
+    assert_response :success
+    assert_select "h1", text: suggestion.suggested_activity_name
+    assert_select "input[name='name']"
+  end
+
   test "show returns 404 for other user's suggestion" do
     other_user_suggestion = ai_activity_suggestions(:accepted_suggestion)
     get ai_activity_path(other_user_suggestion), as: :json
