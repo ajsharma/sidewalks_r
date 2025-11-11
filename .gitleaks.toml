@@ -1,0 +1,57 @@
+# Gitleaks configuration for detecting leaked secrets
+# Documentation: https://github.com/gitleaks/gitleaks
+
+title = "Gitleaks Configuration for Sidewalks"
+
+# Extend the default gitleaks config
+[extend]
+useDefault = true
+
+# Custom rules for AI API keys
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-proj-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}'''
+tags = ["key", "openai"]
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API Key"
+regex = '''sk-ant-api03-[a-zA-Z0-9_-]{95}'''
+tags = ["key", "anthropic"]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api[_-]?key|apikey|api[_-]?token)['\"]?\s*[:=]\s*['\"](sk-[a-zA-Z0-9_-]{20,})'''
+tags = ["key", "api"]
+
+# Allowlist - paths to exclude from scanning
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+  '''^\.env\.local\.example$''',         # Example env file with placeholders
+  '''^config/credentials\.example\.yml$''', # Example credentials with placeholders
+  '''^\.gitleaks\.toml$''',               # This config file
+  '''^tmp/''',                            # Temporary files and caches
+  '''^log/''',                            # Log files
+  '''^coverage/''',                       # Test coverage reports
+  '''^node_modules/''',                   # Node dependencies
+  '''^vendor/''',                         # Ruby dependencies
+  '''^\.bundle/''',                       # Bundler cache
+]
+
+# Allowlist specific patterns that are safe
+regexes = [
+  '''ABC_123''',                         # Development placeholder
+  '''test-key''',                        # Test placeholder
+  '''sk-your-openai-key-here''',         # Example placeholder
+  '''sk-ant-your-anthropic-key-here''',  # Example placeholder
+  '''your-actual-api-key-here''',        # Example placeholder
+]
+
+# Allowlist commits (if you need to ignore specific commits)
+# commits = ["commit-sha-here"]
+
+# Allowlist specific strings by their hash (for false positives)
+# stopwords = ["hash-of-false-positive"]

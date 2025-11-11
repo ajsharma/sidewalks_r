@@ -1,0 +1,206 @@
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to ai_activities_path, class: "inline-flex items-center text-sm text-gray-500 hover:text-gray-700" do %>
+      <svg class="mr-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Back to suggestions
+    <% end %>
+  </div>
+
+  <div class="bg-white shadow-sm rounded-lg border border-gray-200">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h1 class="text-2xl font-bold text-gray-900"><%= @suggestion.suggested_activity_name %></h1>
+      <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+        <span><%= @suggestion.input_type.titleize %> input</span>
+        <span>•</span>
+        <span>Created <%= time_ago_in_words(@suggestion.created_at) %> ago</span>
+        <% if @suggestion.confidence_score.present? %>
+          <span>•</span>
+          <span class="<%= @suggestion.confidence_score >= 66 ? 'text-green-600 font-medium' : @suggestion.confidence_score >= 31 ? 'text-yellow-600' : 'text-gray-500' %>">
+            <%= @suggestion.confidence_label %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Original Input -->
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <h2 class="text-sm font-medium text-gray-700 mb-2">Original Input</h2>
+      <% if @suggestion.text? %>
+        <p class="text-sm text-gray-900"><%= @suggestion.input_text %></p>
+      <% elsif @suggestion.url? %>
+        <a href="<%= @suggestion.source_url %>" target="_blank" class="text-sm text-indigo-600 hover:text-indigo-900 flex items-center">
+          <%= @suggestion.source_url %>
+          <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      <% end %>
+    </div>
+
+    <!-- Edit Form -->
+    <% unless @suggestion.accepted? %>
+      <div class="px-6 py-6">
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Review & Edit</h2>
+
+        <%= form_with url: accept_ai_activity_path(@suggestion), method: :post, class: "space-y-6" do |form| %>
+          <% suggested_data = @suggestion.suggested_data.with_indifferent_access %>
+
+          <div>
+            <%= form.label :name, "Activity Name", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_field :name,
+                  value: suggested_data[:name],
+                  class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
+                  required: true %>
+          </div>
+
+          <div>
+            <%= form.label :description, "Description", class: "block text-sm font-medium text-gray-700" %>
+            <%= form.text_area :description,
+                  value: suggested_data[:description],
+                  rows: 3,
+                  class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <%= form.label :schedule_type, "Schedule Type", class: "block text-sm font-medium text-gray-700" %>
+              <%= form.select :schedule_type,
+                    options_for_select([
+                      ['Flexible - Can happen anytime', 'flexible'],
+                      ['Strict - Specific date/time', 'strict'],
+                      ['Deadline - Must complete by date', 'deadline']
+                    ], suggested_data[:schedule_type]),
+                    {},
+                    class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+            </div>
+
+            <div>
+              <%= form.label :suggested_time_of_day, "Preferred Time", class: "block text-sm font-medium text-gray-700" %>
+              <%= form.select :suggested_time_of_day,
+                    options_for_select([
+                      ['Flexible', ''],
+                      ['Morning (6am-12pm)', 'morning'],
+                      ['Afternoon (12pm-5pm)', 'afternoon'],
+                      ['Evening (5pm-9pm)', 'evening'],
+                      ['Night (9pm-late)', 'night']
+                    ], suggested_data[:suggested_time_of_day]),
+                    {},
+                    class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Suggested Months</label>
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              <% Date::MONTHNAMES.compact.each_with_index do |month, index| %>
+                <% month_value = index + 1 %>
+                <label class="relative flex items-start">
+                  <div class="flex items-center h-5">
+                    <%= check_box_tag "suggested_months[]",
+                          month_value,
+                          suggested_data[:suggested_months]&.include?(month_value),
+                          class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4",
+                          id: "month_#{month_value}" %>
+                  </div>
+                  <div class="ml-2 text-sm">
+                    <label for="month_<%= month_value %>" class="font-medium text-gray-700 cursor-pointer">
+                      <%= month[0..2] %>
+                    </label>
+                  </div>
+                </label>
+              <% end %>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Leave unchecked if activity is suitable year-round</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Suggested Days of Week</label>
+            <div class="grid grid-cols-7 gap-2">
+              <% Date::DAYNAMES.each_with_index do |day, index| %>
+                <label class="relative flex items-start">
+                  <div class="flex flex-col items-center">
+                    <%= check_box_tag "suggested_days_of_week[]",
+                          index,
+                          suggested_data[:suggested_days_of_week]&.include?(index),
+                          class: "rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4",
+                          id: "day_#{index}" %>
+                    <label for="day_<%= index %>" class="mt-1 text-xs font-medium text-gray-700 cursor-pointer">
+                      <%= day[0..2] %>
+                    </label>
+                  </div>
+                </label>
+              <% end %>
+            </div>
+            <p class="mt-2 text-xs text-gray-500">Leave unchecked if activity can happen any day</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Category Tags</label>
+            <%= form.text_field :category_tags,
+                  value: suggested_data[:category_tags]&.join(', '),
+                  placeholder: "outdoor, social, exercise, etc.",
+                  class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
+            <p class="mt-2 text-xs text-gray-500">Comma-separated tags for organization</p>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+            <%= form.submit "Accept & Create Activity",
+                  class: "inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+
+            <div class="flex gap-2">
+              <%= link_to "Cancel", ai_activities_path,
+                    class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+
+              <%= link_to reject_ai_activity_path(@suggestion),
+                    method: :post,
+                    data: { turbo_method: :post, turbo_confirm: "Are you sure you want to dismiss this suggestion?" },
+                    class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200" do %>
+                Dismiss
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="px-6 py-6">
+        <div class="rounded-md bg-green-50 p-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-green-800">
+                This suggestion has been accepted and converted to an activity.
+              </p>
+              <% if @suggestion.final_activity %>
+                <div class="mt-2">
+                  <%= link_to "View Activity →", activity_path(@suggestion.final_activity), class: "text-sm font-medium text-green-700 hover:text-green-600" %>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Processing Details (for debugging) -->
+  <% if @suggestion.completed? && ENV['RAILS_ENV'] == 'development' %>
+    <details class="mt-4 bg-white shadow-sm rounded-lg border border-gray-200 p-4">
+      <summary class="text-sm font-medium text-gray-700 cursor-pointer">Processing Details (Development)</summary>
+      <div class="mt-4 space-y-2 text-xs">
+        <div><strong>Model:</strong> <%= @suggestion.model_used %></div>
+        <div><strong>Processing Time:</strong> <%= @suggestion.processing_time_ms %>ms</div>
+        <div><strong>Cost:</strong> $<%= number_with_precision(@suggestion.processing_cost, precision: 6) %></div>
+        <% if @suggestion.api_response['usage'] %>
+          <div><strong>Tokens:</strong> <%= @suggestion.api_response['usage']['input_tokens'] %> in, <%= @suggestion.api_response['usage']['output_tokens'] %> out</div>
+        <% end %>
+      </div>
+    </details>
+  <% end %>
+</div>

@@ -1,0 +1,46 @@
+# AI Configuration
+# This file provides default configuration for AI features across environments.
+# Priority: ENV variables > Rails credentials > this file
+
+# Development defaults
+development:
+  # AI Provider: "anthropic" or "openai"
+  provider: "openai"
+
+  # Placeholder API keys for development (override with real keys in credentials or ENV)
+  anthropic_api_key: "ABC_123"
+  openai_api_key: "ABC_123"
+
+  # Feature flag - set to true to enable AI features in development
+  feature_enabled: true
+
+  # Rate limiting
+  rate_limit_per_hour: 20
+  rate_limit_per_day: 100
+
+  # Model configuration
+  anthropic_model: "claude-3-5-sonnet-20241022"
+  openai_model: "gpt-4o"
+
+# Test environment
+test:
+  provider: "openai"
+  anthropic_api_key: "test-key"
+  openai_api_key: "test-key"
+  feature_enabled: true
+  rate_limit_per_hour: 100  # Higher limit for tests
+  rate_limit_per_day: 1000
+  anthropic_model: "claude-3-5-sonnet-20241022"
+  openai_model: "gpt-4o"
+
+# Production - all sensitive values should come from encrypted credentials or ENV
+production:
+  # DO NOT set API keys here - use credentials or ENV
+  # Provider can be overridden via ENV
+  provider: "openai"
+
+  feature_enabled: false  # Enable via ENV or credentials
+  rate_limit_per_hour: 20
+  rate_limit_per_day: 100
+  anthropic_model: "claude-3-5-sonnet-20241022"
+  openai_model: "gpt-4o"

@@ -1,0 +1,96 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+text_pending:
+  user: one
+  input_type: text
+  input_text: "Go hiking on a weekend"
+  source_url:
+  model_used:
+  processing_time_ms:
+  confidence_score:
+  extracted_metadata: {}
+  api_request: {}
+  api_response: {}
+  suggested_data: {}
+  user_edits: {}
+  final_activity:
+  accepted: false
+  accepted_at:
+  status: pending
+  error_message:
+
+text_completed:
+  user: one
+  input_type: text
+  input_text: "Visit farmers market"
+  source_url:
+  model_used: claude-3-5-sonnet-20241022
+  processing_time_ms: 1500
+  confidence_score: 85.5
+  extracted_metadata: {}
+  api_request: { "input": "Visit farmers market" }
+  api_response: { "usage": { "input_tokens": 150, "output_tokens": 200 } }
+  suggested_data: { "name": "Farmers Market Visit", "description": "Visit local farmers market", "schedule_type": "flexible", "suggested_months": [5, 6, 7, 8, 9], "suggested_days_of_week": [0, 6], "suggested_time_of_day": "morning", "category_tags": ["outdoor", "food", "social"], "confidence_score": 85.5, "reasoning": "Farmers markets are seasonal and typically open on weekend mornings" }
+  user_edits: {}
+  final_activity:
+  accepted: false
+  accepted_at:
+  status: completed
+  error_message:
+
+url_completed:
+  user: one
+  input_type: url
+  input_text:
+  source_url: https://example.com/event
+  model_used: claude-3-5-sonnet-20241022
+  processing_time_ms: 2500
+  confidence_score: 92.0
+  extracted_metadata: { "name": "Summer Concert", "description": "Outdoor music festival", "image_url": "https://example.com/image.jpg", "organizer": "Music Events Inc" }
+  api_request: { "url": "https://example.com/event", "needs_ai_parsing": false }
+  api_response: { "usage": { "input_tokens": 200, "output_tokens": 180 } }
+  suggested_data: { "name": "Summer Concert", "description": "Outdoor music festival", "schedule_type": "strict", "suggested_months": [6, 7, 8], "suggested_days_of_week": [5, 6], "suggested_time_of_day": "evening", "category_tags": ["music", "outdoor", "social", "entertainment"], "confidence_score": 92.0, "reasoning": "Concert events are typically scheduled for weekend evenings in summer" }
+  user_edits: {}
+  final_activity:
+  accepted: false
+  accepted_at:
+  status: completed
+  error_message:
+
+accepted_suggestion:
+  user: two
+  input_type: text
+  input_text: "Weekly coffee with friends"
+  source_url:
+  model_used: claude-3-5-sonnet-20241022
+  processing_time_ms: 1200
+  confidence_score: 78.0
+  extracted_metadata: {}
+  api_request: { "input": "Weekly coffee with friends" }
+  api_response: { "usage": { "input_tokens": 120, "output_tokens": 150 } }
+  suggested_data: { "name": "Coffee with Friends", "description": "Weekly meetup for coffee", "schedule_type": "flexible", "suggested_months": [], "suggested_days_of_week": [6, 0], "suggested_time_of_day": "morning", "category_tags": ["social", "food"], "confidence_score": 78.0 }
+  user_edits: { "name": { "original": "Coffee with Friends", "edited": "Sunday Coffee Catchup" } }
+  final_activity:
+  accepted: true
+  accepted_at: <%= 1.day.ago %>
+  status: completed
+  error_message:
+
+failed_suggestion:
+  user: one
+  input_type: url
+  input_text:
+  source_url: https://invalid-url-that-fails.com
+  model_used:
+  processing_time_ms:
+  confidence_score:
+  extracted_metadata: {}
+  api_request: {}
+  api_response: {}
+  suggested_data: {}
+  user_edits: {}
+  final_activity:
+  accepted: false
+  accepted_at:
+  status: failed
+  error_message: "Failed to fetch URL: Could not resolve host"

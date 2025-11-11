@@ -77,6 +77,8 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
+    anyway_config (2.7.2)
+      ruby-next-core (~> 1.0)
     ast (2.4.3)
     axe-core-api (4.11.0)
       dumb_delegator
@@ -158,6 +160,9 @@ GEM
       warden (~> 1.2.3)
     docile (1.4.1)
     dotenv (3.1.8)
+    dotenv-rails (3.1.8)
+      dotenv (= 3.1.8)
+      railties (>= 6.1)
     drb (2.2.3)
     dry-configurable (1.3.0)
       dry-core (~> 1.1)
@@ -195,12 +200,15 @@ GEM
     erubis (2.7.0)
     et-orbi (1.4.0)
       tzinfo
+    event_stream_parser (1.0.0)
     faraday (2.14.0)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
     faraday-follow_redirects (0.4.0)
       faraday (>= 1, < 3)
+    faraday-multipart (1.1.1)
+      multipart-post (~> 2.0)
     faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     ffi (1.17.2-aarch64-linux-gnu)
@@ -295,6 +303,7 @@ GEM
     multi_json (1.17.0)
     multi_xml (0.7.2)
       bigdecimal (~> 3.1)
+    multipart-post (2.4.1)
     mutex_m (0.3.0)
     net-http (0.7.0)
       uri
@@ -483,6 +492,11 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
+    ruby-next-core (1.1.2)
+    ruby-openai (7.4.0)
+      event_stream_parser (>= 0.3.0, < 2.0.0)
+      faraday (>= 1)
+      faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
     ruby-statistics (4.1.0)
     ruby2_keywords (0.0.5)
@@ -607,6 +621,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  anyway_config (~> 2.0)
   axe-core-capybara
   bootsnap
   brakeman
@@ -616,6 +631,7 @@ DEPENDENCIES
   debug
   derailed_benchmarks
   devise
+  dotenv-rails
   google-apis-calendar_v3
   importmap-rails
   jbuilder
@@ -629,6 +645,7 @@ DEPENDENCIES
   rails_best_practices
   reek
   rubocop-rails-omakase
+  ruby-openai (~> 7.0)
   selenium-webdriver
   simplecov
   solid_cable

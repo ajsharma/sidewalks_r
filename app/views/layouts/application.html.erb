@@ -42,6 +42,8 @@
               <div class="hidden md:flex items-center space-x-8 ml-10">
                 <%= link_to "Activities", activities_path,
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(activities_path) || params[:controller] == 'activities'}" %>
+                <%= link_to "AI Suggestions", ai_activities_path,
+                    class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(ai_activities_path) || params[:controller] == 'ai_activities'}" %>
                 <%= link_to "Playlists", playlists_path,
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(playlists_path) || params[:controller] == 'playlists'}" %>
                 <%= link_to "Schedule", schedule_path,

@@ -11,6 +11,17 @@ Rails.application.routes.draw do
   resources :activities
   resources :playlists
 
+  # AI Activity Suggestions
+  resources :ai_activities, path: "ai-suggestions" do
+    collection do
+      post :generate
+    end
+    member do
+      post :accept
+      post :reject
+    end
+  end
+
   # Activity scheduling
   resource :schedule, only: [ :show ], controller: "activity_scheduling" do
     post "events", to: "activity_scheduling#create", as: :events

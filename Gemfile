@@ -50,12 +50,21 @@ gem "thruster", require: false
 # Catch unsafe migrations in development [https://github.com/ankane/strong_migrations]
 gem "strong_migrations"
 
+# Configuration management with multiple sources [https://github.com/palkan/anyway_config]
+gem "anyway_config", "~> 2.0"
+
+# AI service integrations
+gem "ruby-openai", "~> 7.0"  # OpenAI/ChatGPT API client
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+
+  # Load environment variables from .env files [https://github.com/bkeepers/dotenv]
+  gem "dotenv-rails"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
