@@ -54,7 +54,7 @@ gem "strong_migrations"
 gem "anyway_config", "~> 2.0"
 
 # AI service integrations
-gem "ruby-openai", "~> 7.0"  # OpenAI/ChatGPT API client
+gem "ruby-openai", "~> 8.3"  # OpenAI/ChatGPT API client
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
