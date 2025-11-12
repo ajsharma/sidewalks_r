@@ -197,7 +197,7 @@
         <div><strong>Model:</strong> <%= @suggestion.model_used %></div>
         <div><strong>Processing Time:</strong> <%= @suggestion.processing_time_ms %>ms</div>
         <div><strong>Cost:</strong> $<%= number_with_precision(@suggestion.processing_cost, precision: 6) %></div>
-        <% if @suggestion.api_response['usage'] %>
+        <% if @suggestion.api_response&.dig('usage') %>
           <div><strong>Tokens:</strong> <%= @suggestion.api_response['usage']['input_tokens'] %> in, <%= @suggestion.api_response['usage']['output_tokens'] %> out</div>
         <% end %>
       </div>
