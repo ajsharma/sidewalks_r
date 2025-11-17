@@ -94,3 +94,22 @@ failed_suggestion:
   accepted_at:
   status: failed
   error_message: "Failed to fetch URL: Could not resolve host"
+
+completed_with_nil_api_response:
+  user: one
+  input_type: text
+  input_text: "Test activity"
+  source_url:
+  model_used: claude-3-5-sonnet-20241022
+  processing_time_ms: 1000
+  confidence_score: 75.0
+  extracted_metadata: {}
+  api_request: { "input": "Test activity" }
+  api_response:
+  suggested_data: { "name": "Test Activity", "description": "A test activity", "schedule_type": "flexible", "suggested_months": [], "suggested_days_of_week": [], "suggested_time_of_day": "", "category_tags": ["test"], "confidence_score": 75.0 }
+  user_edits: {}
+  final_activity:
+  accepted: false
+  accepted_at:
+  status: completed
+  error_message:
