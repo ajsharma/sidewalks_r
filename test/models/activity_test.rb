@@ -235,4 +235,65 @@ class ActivityTest < ActiveSupport::TestCase
 
     assert_equal suggestion, activity.originating_suggestion
   end
+
+  # Phase 1: Recurring events and duration fields
+  test "should allow recurring_strict schedule type" do
+    @activity.schedule_type = "recurring_strict"
+    @activity.recurrence_rule = { "freq" => "WEEKLY", "interval" => 1, "byday" => [ "MO" ] }
+    @activity.recurrence_start_date = Date.current
+    @activity.occurrence_time_start = Time.parse("18:00")
+    @activity.occurrence_time_end = Time.parse("19:00")
+
+    assert @activity.valid?, "recurring_strict should be valid. Errors: #{@activity.errors.full_messages}"
+  end
+
+  test "should store recurrence_rule as jsonb" do
+    recurrence_rule = { "freq" => "MONTHLY", "interval" => 1, "byday" => [ "SU" ], "bysetpos" => [ 1 ] }
+    @activity.recurrence_rule = recurrence_rule
+    @activity.save!
+
+    @activity.reload
+    assert_equal recurrence_rule, @activity.recurrence_rule
+  end
+
+  test "should store recurrence dates" do
+    start_date = Date.current
+    end_date = 3.months.from_now.to_date
+
+    @activity.recurrence_start_date = start_date
+    @activity.recurrence_end_date = end_date
+    @activity.save!
+
+    @activity.reload
+    assert_equal start_date, @activity.recurrence_start_date
+    assert_equal end_date, @activity.recurrence_end_date
+  end
+
+  test "should store occurrence times" do
+    # Use Time.zone.parse to get times in the application's timezone
+    start_time = Time.zone.parse("09:00")
+    end_time = Time.zone.parse("12:00")
+
+    @activity.occurrence_time_start = start_time
+    @activity.occurrence_time_end = end_time
+    @activity.save!
+
+    @activity.reload
+    # Compare just the time component (hour, minute, second)
+    assert_equal "09:00:00", @activity.occurrence_time_start.strftime("%H:%M:%S")
+    assert_equal "12:00:00", @activity.occurrence_time_end.strftime("%H:%M:%S")
+  end
+
+  test "should store duration_minutes" do
+    @activity.duration_minutes = 120
+    @activity.save!
+
+    @activity.reload
+    assert_equal 120, @activity.duration_minutes
+  end
+
+  test "should allow nil duration_minutes" do
+    @activity.duration_minutes = nil
+    assert @activity.valid?
+  end
 end

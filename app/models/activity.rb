@@ -7,8 +7,8 @@ class Activity < ApplicationRecord
   has_many :ai_suggestions, class_name: "AiActivitySuggestion", foreign_key: :final_activity_id, dependent: :nullify
 
   # Valid schedule types for activities
-  # @return [Array<String>] frozen array of valid schedule types: strict, flexible, deadline
-  SCHEDULE_TYPES = %w[strict flexible deadline].freeze
+  # @return [Array<String>] frozen array of valid schedule types: strict, flexible, deadline, recurring_strict
+  SCHEDULE_TYPES = %w[strict flexible deadline recurring_strict].freeze
 
   MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
 
