@@ -78,10 +78,15 @@ class AiActivitiesController < ApplicationController
   # POST /ai_activities/:id/accept
   # Accepts the suggestion and creates an Activity
   def accept
-    user_edits = params.permit(:name, :description, :schedule_type, suggested_months: [], suggested_days_of_week: [], category_tags: [])
-                      .to_h
-                      .compact
-                      .reject { |_, v| v.blank? }
+    user_edits = params.permit(
+      :name, :description, :schedule_type, :duration_minutes,
+      :recurrence_start_date, :recurrence_end_date,
+      :occurrence_time_start, :occurrence_time_end,
+      suggested_months: [], suggested_days_of_week: [], category_tags: [],
+      recurrence_rule: {}
+    ).to_h
+     .compact
+     .reject { |_, v| v.blank? }
 
     @activity = AiActivityService.accept_suggestion(@suggestion, user_edits: user_edits)
 
