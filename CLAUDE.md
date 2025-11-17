@@ -209,9 +209,9 @@ Activities support four schedule types:
 - **flexible** - Can happen anytime (uses suggested days/times)
 - **strict** - One-time event with specific start/end times
 - **deadline** - Task with a due date
-- **recurring_strict** - Recurring events with specific times (Phase 1: Schema complete, Phase 2: Logic in progress)
+- **recurring_strict** - Recurring events with specific times (Phase 1 & 2: Complete)
 
-### Recurring Events (Phase 1: Database Schema)
+### Recurring Events (Phase 1 & 2: Database Schema + Model Logic)
 
 The Activity model now supports recurring events through these fields:
 
@@ -230,6 +230,26 @@ The Activity model now supports recurring events through these fields:
   - For recurring_strict: User's attendance duration (may be less than event duration)
   - Example: Event runs 9am-12pm (3 hours), user attends for 2 hours (duration_minutes: 120)
 
+### Recurrence Helper Methods (Phase 2)
+
+The Activity model provides methods to work with recurring events:
+
+**Pattern Matching:**
+- `recurring_strict?` - Check if activity is recurring
+- `matches_recurrence_pattern?(date)` - Check if a specific date matches the recurrence pattern
+- Supports DAILY, WEEKLY, MONTHLY (by date and by position), YEARLY patterns
+
+**Occurrence Calculation:**
+- `next_occurrence(from_date = Date.current)` - Find the next occurrence after a given date
+- `occurrences_in_range(start_date, end_date)` - Generate all occurrences within a date range
+
+**Duration Helpers:**
+- `effective_duration_minutes` - Get duration with smart defaults (duration_minutes, or calculated from times, or 60)
+- `occurrence_duration_minutes` - Calculate duration from occurrence times (for recurring events)
+- `calculated_duration_minutes` - Calculate duration from start/end times (for strict events)
+- `time_windowed?` - Check if user attends less than full event duration
+- `time_window` - Get event window details (start, end, duration, attendance_duration)
+
 ### Example Usage
 
 ```ruby
@@ -245,6 +265,15 @@ activity = Activity.create!(
   duration_minutes: 60
 )
 
+# Find next occurrence
+next_class = activity.next_occurrence # => DateTime for next Monday at 6pm
+
+# Get all occurrences this month
+start_of_month = Date.current.beginning_of_month
+end_of_month = Date.current.end_of_month
+occurrences = activity.occurrences_in_range(start_of_month, end_of_month)
+# => [{start_time: ..., end_time: ..., date: ...}, ...]
+
 # Create recurring event with attendance duration
 # Event: Alameda Point Antiques Faire (1st Sunday, 9am-12pm)
 # Attendance: 2 hours within that window
@@ -258,4 +287,9 @@ activity = Activity.create!(
   occurrence_time_end: "12:00",
   duration_minutes: 120  # Attend for 2 hours within the 3-hour event window
 )
+
+# Check if time-windowed (user attends less than full event)
+activity.time_windowed? # => true (2 hours < 3 hours)
+activity.time_window
+# => {start: 09:00, end: 12:00, duration: 180, attendance_duration: 120}
 ```
