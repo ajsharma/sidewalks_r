@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_17_152156) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_22_220338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -27,13 +27,13 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_17_152156) do
     t.text "links"
     t.integer "max_frequency_days"
     t.string "name", null: false
-    t.time "occurrence_time_end"
-    t.time "occurrence_time_start"
+    t.time "occurrence_time_end", comment: "Time of day when each occurrence ends (for recurring_strict schedule type)"
+    t.time "occurrence_time_start", comment: "Time of day when each occurrence starts (for recurring_strict schedule type)"
     t.string "organizer"
     t.decimal "price", precision: 10, scale: 2
-    t.date "recurrence_end_date"
-    t.jsonb "recurrence_rule"
-    t.date "recurrence_start_date"
+    t.date "recurrence_end_date", comment: "Optional last date for recurrence (null for indefinite recurrence)"
+    t.jsonb "recurrence_rule", comment: "iCalendar RRULE format (RFC 5545) defining recurrence pattern (DAILY, WEEKLY, MONTHLY, YEARLY) with interval, byday, bymonthday, bysetpos"
+    t.date "recurrence_start_date", comment: "First date when the recurring event begins"
     t.string "schedule_type", default: "flexible"
     t.string "slug", null: false
     t.text "source_url"
