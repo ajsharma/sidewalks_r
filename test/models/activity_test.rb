@@ -482,7 +482,7 @@ class ActivityTest < ActiveSupport::TestCase
   end
 
   test "time_window returns details for strict time-windowed activity" do
-    start = Time.current
+    start = Time.current.change(usec: 0)
     finish = start + 3.hours
     @activity.schedule_type = "strict"
     @activity.start_time = start
