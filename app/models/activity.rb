@@ -194,8 +194,15 @@ class Activity < ApplicationRecord
     return false unless strict_schedule? || recurring_strict?
     return false unless duration_minutes.present?
 
-    event_duration = recurring_strict? ? occurrence_duration_minutes : calculated_duration_minutes
+    event_duration = event_duration_minutes
     event_duration && duration_minutes < event_duration
+  end
+
+  # Get the full event duration (may differ from attendance duration)
+  # @return [Integer, nil] event duration in minutes
+  def event_duration_minutes
+    return occurrence_duration_minutes if recurring_strict?
+    calculated_duration_minutes
   end
 
   # For time-windowed events, get the window details
@@ -281,25 +288,17 @@ class Activity < ApplicationRecord
   # @return [Boolean] true if date matches the pattern
   def matches_recurrence_pattern?(date)
     return false unless recurring_strict?
-    return false if date < recurrence_start_date
-    return false if recurrence_end_date && date > recurrence_end_date
 
-    rule = recurrence_rule.with_indifferent_access
-    freq = rule[:freq]
-    interval = rule[:interval] || 1
+    pattern_matcher.matches?(date, recurrence_rule)
+  end
 
-    case freq
-    when "DAILY"
-      matches_daily_pattern?(date, interval)
-    when "WEEKLY"
-      matches_weekly_pattern?(date, interval, rule[:byday])
-    when "MONTHLY"
-      matches_monthly_pattern?(date, interval, rule)
-    when "YEARLY"
-      matches_yearly_pattern?(date, interval, rule)
-    else
-      false
-    end
+  # Get pattern matcher for this activity
+  # @return [RecurrencePatternMatcher] pattern matcher instance
+  def pattern_matcher
+    @pattern_matcher ||= RecurrencePatternMatcher.new(
+      recurrence_start_date,
+      recurrence_end_date
+    )
   end
 
   private
@@ -405,75 +404,6 @@ class Activity < ApplicationRecord
     if duration_minutes > 720 # 12 hours
       errors.add(:duration_minutes, "cannot exceed 720 minutes (12 hours)")
     end
-  end
-
-  # Recurrence pattern matching helpers
-
-  def matches_daily_pattern?(date, interval)
-    days_since_start = (date - recurrence_start_date).to_i
-    (days_since_start % interval).zero?
-  end
-
-  def matches_weekly_pattern?(date, interval, byday)
-    # Check if correct interval of weeks
-    weeks_since_start = ((date - recurrence_start_date).to_i / 7)
-    return false unless (weeks_since_start % interval).zero?
-
-    # Check if correct day of week
-    return true if byday.blank? # No day restriction
-
-    day_abbr = date.strftime("%^a")[0..1] # SU, MO, TU, etc
-    byday.map(&:to_s).include?(day_abbr)
-  end
-
-  def matches_monthly_pattern?(date, interval, rule)
-    # Check if correct interval of months
-    date_year = date.year
-    date_month = date.month
-    date_day = date.day
-
-    months_since_start = (date_year - recurrence_start_date.year) * 12 +
-                         (date_month - recurrence_start_date.month)
-    return false unless (months_since_start % interval).zero?
-
-    # Check by month day (e.g., 15th of every month)
-    bymonthday = rule[:bymonthday]
-    return bymonthday.map(&:to_i).include?(date_day) if bymonthday.present?
-
-    # Check by position (e.g., 1st Sunday, last Friday)
-    byday = rule[:byday]
-    bysetpos = rule[:bysetpos]
-
-    if byday.present? && bysetpos.present?
-      day_abbr = date.strftime("%^a")[0..1]
-      return false unless byday.map(&:to_s).include?(day_abbr)
-
-      # Calculate which occurrence this is in the month
-      occurrence_in_month = ((date_day - 1) / 7) + 1
-
-      # Calculate from end of month for negative positions
-      days_in_month = Date.civil(date_year, date_month, -1).day
-      occurrence_from_end = -(((days_in_month - date_day) / 7) + 1)
-
-      bysetpos.map(&:to_i).each do |pos|
-        return true if pos.positive? && pos == occurrence_in_month
-        return true if pos.negative? && pos == occurrence_from_end
-      end
-
-      return false
-    end
-
-    true # No day restriction
-  end
-
-  def matches_yearly_pattern?(date, interval, _rule)
-    date_year = date.year
-    years_since_start = date_year - recurrence_start_date.year
-    return false unless (years_since_start % interval).zero?
-
-    # Check if same month and day
-    date.month == recurrence_start_date.month &&
-    date.day == recurrence_start_date.day
   end
 
   def combine_date_and_time(date, time)
