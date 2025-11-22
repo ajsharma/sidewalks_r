@@ -120,7 +120,7 @@
                 </svg>
                 <span class="text-gray-700">
                   <strong>Starts:</strong> <%= @activity.recurrence_start_date.strftime("%B %d, %Y") %>
-                  <% if @activity.recurrence_end_date.present? %>
+                  <% if @activity.recurrence_end_date? %>
                     <strong class="ml-4">Ends:</strong> <%= @activity.recurrence_end_date.strftime("%B %d, %Y") %>
                   <% end %>
                 </span>

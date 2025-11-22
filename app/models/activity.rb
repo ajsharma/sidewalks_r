@@ -428,30 +428,36 @@ class Activity < ApplicationRecord
 
   def matches_monthly_pattern?(date, interval, rule)
     # Check if correct interval of months
-    months_since_start = (date.year - recurrence_start_date.year) * 12 +
-                         (date.month - recurrence_start_date.month)
+    date_year = date.year
+    date_month = date.month
+    date_day = date.day
+
+    months_since_start = (date_year - recurrence_start_date.year) * 12 +
+                         (date_month - recurrence_start_date.month)
     return false unless (months_since_start % interval).zero?
 
     # Check by month day (e.g., 15th of every month)
-    if rule[:bymonthday].present?
-      return rule[:bymonthday].map(&:to_i).include?(date.day)
-    end
+    bymonthday = rule[:bymonthday]
+    return bymonthday.map(&:to_i).include?(date_day) if bymonthday.present?
 
     # Check by position (e.g., 1st Sunday, last Friday)
-    if rule[:byday].present? && rule[:bysetpos].present?
+    byday = rule[:byday]
+    bysetpos = rule[:bysetpos]
+
+    if byday.present? && bysetpos.present?
       day_abbr = date.strftime("%^a")[0..1]
-      return false unless rule[:byday].map(&:to_s).include?(day_abbr)
+      return false unless byday.map(&:to_s).include?(day_abbr)
 
       # Calculate which occurrence this is in the month
-      occurrence_in_month = ((date.day - 1) / 7) + 1
+      occurrence_in_month = ((date_day - 1) / 7) + 1
 
       # Calculate from end of month for negative positions
-      days_in_month = Date.civil(date.year, date.month, -1).day
-      occurrence_from_end = -(((days_in_month - date.day) / 7) + 1)
+      days_in_month = Date.civil(date_year, date_month, -1).day
+      occurrence_from_end = -(((days_in_month - date_day) / 7) + 1)
 
-      rule[:bysetpos].map(&:to_i).each do |pos|
-        return true if pos > 0 && pos == occurrence_in_month
-        return true if pos < 0 && pos == occurrence_from_end
+      bysetpos.map(&:to_i).each do |pos|
+        return true if pos.positive? && pos == occurrence_in_month
+        return true if pos.negative? && pos == occurrence_from_end
       end
 
       return false
@@ -460,8 +466,9 @@ class Activity < ApplicationRecord
     true # No day restriction
   end
 
-  def matches_yearly_pattern?(date, interval, rule)
-    years_since_start = date.year - recurrence_start_date.year
+  def matches_yearly_pattern?(date, interval, _rule)
+    date_year = date.year
+    years_since_start = date_year - recurrence_start_date.year
     return false unless (years_since_start % interval).zero?
 
     # Check if same month and day
