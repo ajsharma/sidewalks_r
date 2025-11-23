@@ -3,7 +3,7 @@
 class AiActivitiesController < ApplicationController
   before_action :authenticate_user!
   before_action :check_ai_feature_enabled
-  before_action :set_suggestion, only: [ :show, :accept, :reject, :destroy ]
+  before_action :set_suggestion, only: [ :show, :accept, :reject, :destroy, :retry ]
 
   # GET /ai_activities
   def index
@@ -143,6 +143,84 @@ class AiActivitiesController < ApplicationController
       format.html do
         redirect_to ai_activities_path, notice: "Suggestion deleted"
       end
+    end
+  end
+
+  # POST /ai_activities/:id/retry
+  # Retries a failed or completed suggestion to get a new AI response
+  def retry
+    # Can only retry failed or completed (non-accepted) suggestions
+    unless @suggestion.failed? || (@suggestion.completed? && !@suggestion.accepted?)
+      return respond_to do |format|
+        format.json { render json: { error: "Cannot retry accepted suggestions" }, status: :unprocessable_entity }
+        format.html { redirect_to ai_activity_path(@suggestion), alert: "Cannot retry accepted suggestions" }
+      end
+    end
+
+    # Get the original input
+    input = @suggestion.text? ? @suggestion.input_text : @suggestion.source_url
+
+    # For failed suggestions: reuse the same record
+    # For completed suggestions: create a new record (keep the old one for comparison)
+    if @suggestion.failed?
+      # Mark as processing and clear error
+      @suggestion.retry!
+      suggestion_id_for_job = @suggestion.id
+      target_suggestion = @suggestion
+    else
+      # Create a new pending suggestion
+      target_suggestion = current_user.ai_suggestions.create!(
+        input_type: @suggestion.input_type,
+        input_text: @suggestion.input_text,
+        source_url: @suggestion.source_url,
+        status: "pending"
+      )
+      suggestion_id_for_job = nil # Let the job create/update as normal
+    end
+
+    # Queue new background job
+    request_id = SecureRandom.uuid
+    AiSuggestionGeneratorJob.perform_later(
+      current_user.id,
+      input,
+      request_id: request_id,
+      suggestion_id: suggestion_id_for_job
+    )
+
+    respond_to do |format|
+      format.json do
+        render json: {
+          request_id: request_id,
+          status: "processing",
+          message: "AI is generating a new suggestion...",
+          new_suggestion_id: target_suggestion.id
+        }
+      end
+      format.turbo_stream do
+        if @suggestion.failed?
+          # Replace the failed suggestion with updated processing state
+          render turbo_stream: turbo_stream.replace(
+            "suggestion_#{@suggestion.id}",
+            partial: "ai_activities/suggestion_card",
+            locals: { suggestion: @suggestion.reload }
+          )
+        else
+          # Prepend a new suggestion card for completed retries
+          render turbo_stream: turbo_stream.prepend(
+            "ai-suggestions-list",
+            partial: "ai_activities/processing_placeholder",
+            locals: { request_id: request_id }
+          )
+        end
+      end
+      format.html do
+        redirect_to ai_activities_path, notice: "Generating new AI suggestion..."
+      end
+    end
+  rescue AiActivityService::RateLimitExceededError => e
+    respond_to do |format|
+      format.json { render json: { error: e.message }, status: :too_many_requests }
+      format.html { redirect_to ai_activity_path(@suggestion), alert: e.message }
     end
   end
 

@@ -14,12 +14,13 @@ class AiSuggestionGeneratorJob < ApplicationJob
   # @param user_id [Integer] the user ID
   # @param input [String] the user's input (text or URL)
   # @param request_id [String] optional request ID for tracking
-  def perform(user_id, input, request_id: nil)
+  # @param suggestion_id [Integer] optional existing suggestion ID for retries
+  def perform(user_id, input, request_id: nil, suggestion_id: nil)
     user = User.find(user_id)
 
-    Rails.logger.info("AI suggestion job started: user=#{user_id}, request_id=#{request_id}")
+    Rails.logger.info("AI suggestion job started: user=#{user_id}, request_id=#{request_id}, suggestion_id=#{suggestion_id}")
 
-    service = AiActivityService.new(user: user, input: input)
+    service = AiActivityService.new(user: user, input: input, suggestion_id: suggestion_id)
     suggestion = service.generate_suggestion
 
     Rails.logger.info("AI suggestion completed: suggestion_id=#{suggestion.id}, request_id=#{request_id}")

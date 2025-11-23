@@ -5,11 +5,11 @@ class AiActivityService
   # Raised when user exceeds per-hour or per-day rate limits
   class RateLimitExceededError < StandardError; end
 
-  def initialize(user:, input:)
+  def initialize(user:, input:, suggestion_id: nil)
     @user = user
     @input = input.strip
     @input_type = detect_input_type
-    @suggestion = nil
+    @suggestion = suggestion_id ? @user.ai_suggestions.find(suggestion_id) : nil
     @config = AiConfig.instance
   end
 
@@ -85,6 +85,10 @@ class AiActivityService
   end
 
   def create_pending_suggestion
+    # If we already have a suggestion (retry case), use it
+    return @suggestion if @suggestion
+
+    # Otherwise create a new one
     @user.ai_suggestions.create!(
       input_type: @input_type,
       input_text: @input_type == :text ? @input : nil,

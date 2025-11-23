@@ -150,4 +150,89 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :no_content
   end
+
+  test "retry queues background job for failed suggestion" do
+    suggestion = ai_activity_suggestions(:failed_suggestion)
+
+    assert_enqueued_with(job: AiSuggestionGeneratorJob) do
+      post retry_ai_activity_path(suggestion), as: :json
+    end
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal "processing", json["status"]
+    assert_not_nil json["request_id"]
+
+    suggestion.reload
+    assert_equal "processing", suggestion.status
+    assert_nil suggestion.error_message
+  end
+
+  test "retry returns error for accepted suggestion" do
+    suggestion = ai_activity_suggestions(:accepted_suggestion)
+    sign_out @user
+    sign_in users(:two)
+
+    post retry_ai_activity_path(suggestion), as: :json
+
+    assert_response :unprocessable_entity
+    json = JSON.parse(response.body)
+    assert_match(/Cannot retry accepted suggestions/, json["error"])
+  end
+
+  test "retry creates new suggestion for completed suggestion" do
+    suggestion = ai_activity_suggestions(:text_completed)
+
+    assert_difference "AiActivitySuggestion.count", 1 do
+      assert_enqueued_with(job: AiSuggestionGeneratorJob) do
+        post retry_ai_activity_path(suggestion), as: :json
+      end
+    end
+
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal "processing", json["status"]
+    assert_not_nil json["request_id"]
+    assert_not_nil json["new_suggestion_id"]
+
+    # Original suggestion should be unchanged
+    suggestion.reload
+    assert_equal "completed", suggestion.status
+
+    # New suggestion should be created
+    new_suggestion = AiActivitySuggestion.find(json["new_suggestion_id"])
+    assert_equal "pending", new_suggestion.status
+    assert_equal suggestion.input_text, new_suggestion.input_text
+    assert_equal suggestion.input_type, new_suggestion.input_type
+  end
+
+  test "retry renders HTML for failed suggestion" do
+    suggestion = ai_activity_suggestions(:failed_suggestion)
+
+    assert_enqueued_with(job: AiSuggestionGeneratorJob) do
+      post retry_ai_activity_path(suggestion)
+    end
+
+    assert_redirected_to ai_activities_path
+    assert_equal "Generating new AI suggestion...", flash[:notice]
+  end
+
+  test "retry renders HTML for completed suggestion" do
+    suggestion = ai_activity_suggestions(:text_completed)
+
+    assert_difference "AiActivitySuggestion.count", 1 do
+      assert_enqueued_with(job: AiSuggestionGeneratorJob) do
+        post retry_ai_activity_path(suggestion)
+      end
+    end
+
+    assert_redirected_to ai_activities_path
+    assert_equal "Generating new AI suggestion...", flash[:notice]
+  end
+
+  test "retry returns 404 for other user's suggestion" do
+    other_user_suggestion = ai_activity_suggestions(:accepted_suggestion)
+    post retry_ai_activity_path(other_user_suggestion), as: :json
+    assert_response :not_found
+  end
 end
