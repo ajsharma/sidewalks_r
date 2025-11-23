@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_09_181330) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_22_220338) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,13 +21,19 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_09_181330) do
     t.datetime "created_at", null: false
     t.datetime "deadline"
     t.text "description"
+    t.integer "duration_minutes"
     t.datetime "end_time"
     t.text "image_url"
     t.text "links"
     t.integer "max_frequency_days"
     t.string "name", null: false
+    t.time "occurrence_time_end", comment: "Time of day when each occurrence ends (for recurring_strict schedule type)"
+    t.time "occurrence_time_start", comment: "Time of day when each occurrence starts (for recurring_strict schedule type)"
     t.string "organizer"
     t.decimal "price", precision: 10, scale: 2
+    t.date "recurrence_end_date", comment: "Optional last date for recurrence (null for indefinite recurrence)"
+    t.jsonb "recurrence_rule", comment: "iCalendar RRULE format (RFC 5545) defining recurrence pattern (DAILY, WEEKLY, MONTHLY, YEARLY) with interval, byday, bymonthday, bysetpos"
+    t.date "recurrence_start_date", comment: "First date when the recurring event begins"
     t.string "schedule_type", default: "flexible"
     t.string "slug", null: false
     t.text "source_url"
@@ -41,6 +47,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_09_181330) do
     t.index ["category_tags"], name: "index_activities_on_category_tags", using: :gin
     t.index ["deadline"], name: "index_activities_on_deadline_not_null", where: "(deadline IS NOT NULL)", comment: "Optimize deadline-based activity queries"
     t.index ["max_frequency_days"], name: "index_activities_on_max_frequency", where: "(max_frequency_days IS NOT NULL)", comment: "Optimize frequency-based activity filtering"
+    t.index ["recurrence_end_date"], name: "index_activities_on_recurrence_end_date"
+    t.index ["recurrence_rule"], name: "index_activities_on_recurrence_rule", using: :gin
+    t.index ["recurrence_start_date"], name: "index_activities_on_recurrence_start_date"
     t.index ["schedule_type"], name: "index_activities_on_schedule_type"
     t.index ["slug"], name: "index_activities_on_slug", unique: true
     t.index ["suggested_months"], name: "index_activities_on_suggested_months", using: :gin

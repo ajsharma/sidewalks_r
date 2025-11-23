@@ -76,7 +76,10 @@ class ActivitiesController < ApplicationController
   def activity_params
     params.require(:activity).permit(
       :name, :description, :schedule_type, :start_time, :end_time,
-      :deadline, :max_frequency_days, links: []
+      :deadline, :max_frequency_days, :duration_minutes,
+      :recurrence_start_date, :recurrence_end_date,
+      :occurrence_time_start, :occurrence_time_end,
+      links: [], recurrence_rule: {}
     )
   end
 end

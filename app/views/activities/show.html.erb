@@ -11,8 +11,9 @@
                   when 'strict' then 'bg-red-100 text-red-800'
                   when 'flexible' then 'bg-green-100 text-green-800'
                   when 'deadline' then 'bg-yellow-100 text-yellow-800'
+                  when 'recurring_strict' then 'bg-purple-100 text-purple-800'
                   end %>">
-              <%= @activity.schedule_type.capitalize %> Schedule
+              <%= @activity.schedule_type == 'recurring_strict' ? 'Recurring' : @activity.schedule_type.capitalize %> Schedule
             </span>
             <span class="text-sm text-gray-500">
               Created <%= @activity.created_at.strftime("%B %d, %Y") %>
@@ -79,6 +80,72 @@
                 </span>
               </div>
             <% end %>
+          <% elsif @activity.recurring_strict? %>
+            <div class="space-y-3">
+              <% if @activity.recurrence_rule.present? %>
+                <div class="flex items-start">
+                  <svg class="w-5 h-5 text-gray-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  <div>
+                    <strong class="text-gray-700">Repeats:</strong>
+                    <span class="text-gray-700">
+                      <%= @activity.recurrence_rule['freq'].capitalize %>
+                      <% if @activity.recurrence_rule['interval'].present? && @activity.recurrence_rule['interval'] > 1 %>
+                        (every <%= @activity.recurrence_rule['interval'] %>)
+                      <% end %>
+                      <% if @activity.recurrence_rule['byday'].present? %>
+                        on <%= @activity.recurrence_rule['byday'].map { |day|
+                          {'SU' => 'Sun', 'MO' => 'Mon', 'TU' => 'Tue', 'WE' => 'Wed', 'TH' => 'Thu', 'FR' => 'Fri', 'SA' => 'Sat'}[day]
+                        }.join(', ') %>
+                      <% end %>
+                      <% if @activity.recurrence_rule['bymonthday'].present? %>
+                        on day <%= @activity.recurrence_rule['bymonthday'].join(', ') %>
+                      <% end %>
+                      <% if @activity.recurrence_rule['bysetpos'].present? && @activity.recurrence_rule['byday'].present? %>
+                        (
+                        <%= {'1' => '1st', '2' => '2nd', '3' => '3rd', '4' => '4th', '-1' => 'last'}[@activity.recurrence_rule['bysetpos'].first.to_s] %>
+                        <%= @activity.recurrence_rule['byday'].map { |day|
+                          {'SU' => 'Sunday', 'MO' => 'Monday', 'TU' => 'Tuesday', 'WE' => 'Wednesday', 'TH' => 'Thursday', 'FR' => 'Friday', 'SA' => 'Saturday'}[day]
+                        }.first %>
+                        )
+                      <% end %>
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="text-gray-700">
+                  <strong>Starts:</strong> <%= @activity.recurrence_start_date.strftime("%B %d, %Y") %>
+                  <% if @activity.recurrence_end_date? %>
+                    <strong class="ml-4">Ends:</strong> <%= @activity.recurrence_end_date.strftime("%B %d, %Y") %>
+                  <% end %>
+                </span>
+              </div>
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="text-gray-700">
+                  <strong>Time:</strong>
+                  <%= @activity.occurrence_time_start.strftime("%I:%M %p") %> -
+                  <%= @activity.occurrence_time_end.strftime("%I:%M %p") %>
+                  <% if @activity.time_windowed? %>
+                    <span class="ml-2 text-sm text-gray-600">(attending for <%= @activity.duration_minutes %> min)</span>
+                  <% end %>
+                </span>
+              </div>
+              <% if @activity.next_occurrence.present? %>
+                <div class="mt-3 px-3 py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                  <span class="text-sm font-medium text-purple-900">
+                    Next occurrence: <%= @activity.next_occurrence.strftime("%A, %B %d, %Y at %I:%M %p") %>
+                  </span>
+                </div>
+              <% end %>
+            </div>
           <% else %>
             <div class="flex items-center">
               <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
