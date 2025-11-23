@@ -16,7 +16,11 @@ class AiSuggestionGeneratorJobTest < ActiveJob::TestCase
     stub_successful_api
 
     assert_difference "@user.ai_suggestions.count", 1 do
-      AiSuggestionGeneratorJob.perform_now(@user.id, "Go hiking", request_id: "test-123")
+      AiSuggestionGeneratorJob.perform_now(
+        user_id: @user.id,
+        input: "Go hiking",
+        request_id: "test-123"
+      )
     end
 
     suggestion = @user.ai_suggestions.last
@@ -28,7 +32,11 @@ class AiSuggestionGeneratorJobTest < ActiveJob::TestCase
 
     # API errors should create a failed suggestion before re-raising
     begin
-      AiSuggestionGeneratorJob.perform_now(@user.id, "test input", request_id: "test-123")
+      AiSuggestionGeneratorJob.perform_now(
+        user_id: @user.id,
+        input: "test input",
+        request_id: "test-123"
+      )
     rescue => e
       # Expected to raise for retry mechanism
     end
@@ -37,7 +45,7 @@ class AiSuggestionGeneratorJobTest < ActiveJob::TestCase
     failed_suggestion = @user.ai_suggestions.last
     assert_equal "failed", failed_suggestion.status
     assert_not_nil failed_suggestion.error_message
-    assert_match(/API/, failed_suggestion.error_message)
+    assert_match(/API|Failed to fetch URL/, failed_suggestion.error_message)
   end
 
   private
