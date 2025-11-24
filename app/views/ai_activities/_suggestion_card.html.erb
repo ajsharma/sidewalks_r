@@ -63,7 +63,7 @@
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
             </svg>
           </div>
-          <div class="ml-3">
+          <div class="ml-3 flex-1">
             <h3 class="text-sm font-medium text-red-800">Processing failed</h3>
             <p class="mt-1 text-sm text-red-700"><%= suggestion.error_message %></p>
           </div>
@@ -141,10 +141,31 @@
   </div>
 
   <!-- Card Footer (Actions) -->
-  <% unless suggestion.accepted? || suggestion.failed? || suggestion.processing? %>
+  <% if suggestion.failed? %>
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-      <%= form_with url: accept_ai_activity_path(suggestion), method: :post, class: "flex items-center justify-between gap-4" do |form| %>
+      <div class="flex items-center justify-between gap-4">
         <div class="flex-1 flex gap-2">
+          <%= link_to retry_ai_activity_path(suggestion), method: :post, data: { turbo_method: :post }, class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Retry
+          <% end %>
+
+          <%= link_to ai_activity_path(suggestion), data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+            Delete
+          <% end %>
+        </div>
+
+        <%= link_to ai_activity_path(suggestion), class: "text-sm text-indigo-600 hover:text-indigo-900" do %>
+          View Details →
+        <% end %>
+      </div>
+    </div>
+  <% elsif !suggestion.accepted? && !suggestion.processing? %>
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <div class="flex items-center justify-between gap-4">
+        <%= form_with url: accept_ai_activity_path(suggestion), method: :post, class: "flex-1 flex gap-2" do |form| %>
           <%= button_tag type: "submit", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
             <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -152,15 +173,22 @@
             Accept & Create Activity
           <% end %>
 
+          <%= link_to retry_ai_activity_path(suggestion), method: :post, data: { turbo_method: :post }, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500", title: "Get a different suggestion" do %>
+            <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Retry
+          <% end %>
+
           <%= link_to reject_ai_activity_path(suggestion), method: :post, data: { turbo_method: :post, turbo_confirm: "Are you sure?" }, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
             Dismiss
           <% end %>
-        </div>
+        <% end %>
 
         <%= link_to ai_activity_path(suggestion), class: "text-sm text-indigo-600 hover:text-indigo-900" do %>
           View Details →
         <% end %>
-      <% end %>
+      </div>
     </div>
   <% end %>
 </div>

@@ -18,7 +18,7 @@ NeedlessDeepNestingCheck: { nested_count: 2 }
 NotRescueExceptionCheck: { }
 NotUseDefaultRouteCheck: { }
 #NotUseTimeAgoInWordsCheck: { }  # time_ago_in_words is a standard Rails helper
-OveruseRouteCustomizationsCheck: { customize_count: 3 }
+OveruseRouteCustomizationsCheck: { customize_count: 4 }  # AI suggestions resource has accept/reject/retry member actions
 ProtectMassAssignmentCheck: { }
 RemoveEmptyHelpersCheck: { }
 #RemoveTabCheck: { }

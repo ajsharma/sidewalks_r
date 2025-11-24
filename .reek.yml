@@ -29,6 +29,7 @@ detectors:
       - UrlExtractorService # Service classes legitimately work with data objects passed as parameters
       - AiActivitySuggestion # Model methods work with data hashes passed as parameters
       - RecurrencePatternMatcher # Pattern matching utility class works with date/rule parameters by design
+      - AiSuggestionGeneratorJob # Background jobs extract parameters from hash arguments
 
   TooManyStatements:
     max_statements: 15 # Allow slightly more statements for migrations

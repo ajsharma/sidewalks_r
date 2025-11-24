@@ -106,6 +106,13 @@ class AiActivitySuggestion < ApplicationRecord
     )
   end
 
+  def retry!
+    update!(
+      status: "processing",
+      error_message: nil
+    )
+  end
+
   def processing_cost
     # Estimate cost based on Claude 3.5 Sonnet pricing
     # Input: $3/MTok, Output: $15/MTok
