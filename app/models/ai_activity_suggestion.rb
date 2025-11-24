@@ -1,5 +1,45 @@
 # Model for tracking AI-generated activity suggestions.
 # Stores user input, AI responses, lifecycle status, and relationship to created activities.
+# == Schema Information
+#
+# Table name: ai_activity_suggestions
+#
+#  id                 :bigint           not null, primary key
+#  accepted           :boolean          default(FALSE)
+#  accepted_at        :datetime
+#  api_request        :jsonb
+#  api_response       :jsonb
+#  confidence_score   :decimal(5, 2)
+#  error_message      :text
+#  extracted_metadata :jsonb
+#  input_text         :text
+#  input_type         :string           default("text"), not null
+#  model_used         :string
+#  processing_time_ms :integer
+#  source_url         :text
+#  status             :string           default("pending")
+#  suggested_data     :jsonb
+#  user_edits         :jsonb
+#  created_at         :datetime         not null
+#  updated_at         :datetime         not null
+#  final_activity_id  :bigint
+#  user_id            :bigint           not null
+#
+# Indexes
+#
+#  index_ai_activity_suggestions_on_accepted                (accepted)
+#  index_ai_activity_suggestions_on_created_at              (created_at)
+#  index_ai_activity_suggestions_on_final_activity_id       (final_activity_id)
+#  index_ai_activity_suggestions_on_input_type              (input_type)
+#  index_ai_activity_suggestions_on_status                  (status)
+#  index_ai_activity_suggestions_on_user_id                 (user_id)
+#  index_ai_activity_suggestions_on_user_id_and_created_at  (user_id,created_at)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (final_activity_id => activities.id)
+#  fk_rails_...  (user_id => users.id)
+#
 class AiActivitySuggestion < ApplicationRecord
   # Associations
   belongs_to :user

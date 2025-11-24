@@ -1,5 +1,28 @@
 # Model representing a collection of activities organized by users.
 # Handles activity ordering, management, and archiving functionality.
+# == Schema Information
+#
+# Table name: playlists
+#
+#  id          :bigint           not null, primary key
+#  archived_at :datetime
+#  description :text
+#  name        :string           not null
+#  slug        :string           not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#  user_id     :bigint           not null
+#
+# Indexes
+#
+#  index_playlists_on_slug                     (slug) UNIQUE
+#  index_playlists_on_user_id                  (user_id)
+#  index_playlists_on_user_id_and_archived_at  (user_id,archived_at)
+#
+# Foreign Keys
+#
+#  fk_rails_...  (user_id => users.id)
+#
 class Playlist < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
