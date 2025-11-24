@@ -65,6 +65,14 @@ jobs:
       - name: Check YARD documentation
         run: bundle exec yardoc --no-output --no-cache --fail-on-warning
 
+      - name: Check model annotations are up to date
+        run: |
+          bundle exec annotaterb models
+          if ! git diff --exit-code; then
+            echo "❌ Model annotations are out of date. Run 'bundle exec annotaterb models' locally and commit the changes."
+            exit 1
+          fi
+
   test:
     runs-on: ubuntu-latest
 

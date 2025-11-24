@@ -46,5 +46,8 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Running YARD documentation checks =="
   system! "bundle exec yardoc --no-output --no-cache --fail-on-warning"
 
+  puts "\n== Updating model annotations =="
+  system! "bundle exec annotaterb models"
+
   puts "\n== All checks passed! =="
 end
