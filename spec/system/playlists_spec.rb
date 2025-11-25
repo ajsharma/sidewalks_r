@@ -1,0 +1,44 @@
+require "rails_helper"
+
+RSpec.describe "Playlists", type: :system do
+  before do
+    @user = users(:one)
+    sign_in @user
+    @playlist = playlists(:one)
+  end
+
+  it "visiting the index" do
+    visit playlists_url
+    expect(page).to have_content "Playlists"
+  end
+
+  it "visiting new playlist page" do
+    visit new_playlist_url
+    expect(page).to have_field "Name"
+    expect(page).to have_field "Description"
+  end
+
+  it "visiting edit playlist page" do
+    visit edit_playlist_url(@playlist)
+    expect(page).to have_field "Name"
+    expect(page).to have_field "Description"
+  end
+
+  it "showing a playlist" do
+    visit playlist_url(@playlist)
+    expect(page).to have_content @playlist.name
+  end
+
+  private
+
+  def sign_in(user)
+    visit new_user_session_path
+    fill_in "Email", with: user.email
+    fill_in "Password", with: "password"
+    click_button "Sign in"
+    # Wait for successful authentication by checking for the user's name in the navigation
+    expect(page).to have_content user.name
+    # Ensure we're redirected away from the sign-in page
+    expect(page).to have_current_path root_path
+  end
+end

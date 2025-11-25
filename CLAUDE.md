@@ -48,8 +48,11 @@ bin/rails db:schema:load    # Load schema into database
 
 ### Testing
 ```bash
-bin/rails test             # Run all tests
-bin/rails test test/models/specific_test.rb  # Run specific test file
+bundle exec rspec                              # Run all tests
+bundle exec rspec spec/models/activity_spec.rb # Run specific test file
+bundle exec rspec spec/models                  # Run all model tests
+bundle exec rspec spec/requests                # Run all request tests
+bundle exec rspec spec/system                  # Run all system tests
 ```
 
 ### Code Quality and Linting
@@ -95,6 +98,10 @@ bin/rails routes           # Show all routes
 - **Solid Cable** - Database-backed Action Cable adapter
 
 ### Development and Testing
+- **RSpec Rails** - BDD testing framework for Ruby on Rails
+- **Factory Bot** - Test data generation
+- **Faker** - Fake data generation for tests
+- **Shoulda Matchers** - Additional RSpec matchers for common Rails functionality
 - **Rubocop Rails Omakase** - Ruby styling and linting
 - **Brakeman** - Security vulnerability scanner
 - **Bundler Audit** - Ruby gem security vulnerability scanner
@@ -105,6 +112,7 @@ bin/rails routes           # Show all routes
 - **SimpleCov** - Code coverage analysis
 - **Axe Core Capybara** - Accessibility testing
 - **Capybara + Selenium** - System testing
+- **VCR + WebMock** - HTTP request mocking for external API testing
 - **Debug gem** - Debugging tools
 
 ### Deployment
@@ -135,11 +143,17 @@ db/
 ├── migrate/             # Database migrations
 └── schema.rb           # Current database schema
 
-test/                    # Test suite
-├── controllers/         # Controller tests
-├── models/             # Model tests
-├── system/             # System/integration tests
-└── fixtures/           # Test data
+spec/                    # RSpec test suite
+├── models/             # Model specs
+├── requests/           # Request/controller specs
+├── system/             # System/feature specs
+├── helpers/            # Helper specs
+├── jobs/               # Job specs
+├── services/           # Service specs
+└── support/            # Test support files
+
+test/
+└── fixtures/           # Test data fixtures (shared with RSpec)
 ```
 
 ## Development Workflow
@@ -150,7 +164,7 @@ test/                    # Test suite
 3. Add routes in `config/routes.rb`
 4. Use Stimulus for JavaScript interactions
 5. Style with Tailwind CSS classes
-6. Write tests in appropriate test/ subdirectories
+6. Write specs in appropriate spec/ subdirectories (models, requests, system, etc.)
 
 ### Database Changes
 - Always use migrations for schema changes
