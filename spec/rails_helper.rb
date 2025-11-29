@@ -143,8 +143,8 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   # Include Devise test helpers
-  config.include Devise::Test::IntegrationHelpers, type: :request
   config.include Devise::Test::ControllerHelpers, type: :controller
+  config.include Devise::Test::IntegrationHelpers, type: :request
   config.include Devise::Test::IntegrationHelpers, type: :system
 
   # Include ActiveSupport time helpers (for travel_to, etc.)
