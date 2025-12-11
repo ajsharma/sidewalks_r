@@ -4,35 +4,35 @@
 #
 # Table name: activities
 #
-#  id                                                                                                                                                         :bigint           not null, primary key
-#  ai_generated                                                                                                                                               :boolean          default(FALSE)
-#  archived_at                                                                                                                                                :datetime
-#  category_tags                                                                                                                                              :string           default([]), is an Array
-#  deadline                                                                                                                                                   :datetime
-#  description                                                                                                                                                :text
-#  duration_minutes                                                                                                                                           :integer
-#  end_time                                                                                                                                                   :datetime
-#  image_url                                                                                                                                                  :text
-#  links                                                                                                                                                      :text
-#  max_frequency_days                                                                                                                                         :integer
-#  name                                                                                                                                                       :string           not null
-#  occurrence_time_end(Time of day when each occurrence ends (for recurring_strict schedule type))                                                            :time
-#  occurrence_time_start(Time of day when each occurrence starts (for recurring_strict schedule type))                                                        :time
-#  organizer                                                                                                                                                  :string
-#  price                                                                                                                                                      :decimal(10, 2)
-#  recurrence_end_date(Optional last date for recurrence (null for indefinite recurrence))                                                                    :date
-#  recurrence_rule(iCalendar RRULE format (RFC 5545) defining recurrence pattern (DAILY, WEEKLY, MONTHLY, YEARLY) with interval, byday, bymonthday, bysetpos) :jsonb
-#  recurrence_start_date(First date when the recurring event begins)                                                                                          :date
-#  schedule_type                                                                                                                                              :string           default("flexible")
-#  slug                                                                                                                                                       :string           not null
-#  source_url                                                                                                                                                 :text
-#  start_time                                                                                                                                                 :datetime
-#  suggested_days_of_week                                                                                                                                     :integer          default([]), is an Array
-#  suggested_months                                                                                                                                           :integer          default([]), is an Array
-#  suggested_time_of_day                                                                                                                                      :string
-#  created_at                                                                                                                                                 :datetime         not null
-#  updated_at                                                                                                                                                 :datetime         not null
-#  user_id                                                                                                                                                    :bigint           not null
+#  id                                                                                                  :bigint           not null, primary key
+#  ai_generated                                                                                        :boolean          default(FALSE)
+#  archived_at                                                                                         :datetime
+#  category_tags                                                                                       :string           default([]), is an Array
+#  deadline                                                                                            :datetime
+#  description                                                                                         :text
+#  duration_minutes                                                                                    :integer
+#  end_time                                                                                            :datetime
+#  image_url                                                                                           :text
+#  links                                                                                               :text
+#  max_frequency_days                                                                                  :integer
+#  name                                                                                                :string           not null
+#  occurrence_time_end(Time of day when each occurrence ends (for recurring_strict schedule type))     :time
+#  occurrence_time_start(Time of day when each occurrence starts (for recurring_strict schedule type)) :time
+#  organizer                                                                                           :string
+#  price                                                                                               :decimal(10, 2)
+#  recurrence_end_date(Optional last date for recurrence (null for indefinite recurrence))             :date
+#  recurrence_rule(iCalendar RRULE pattern (RFC 5545))                                                 :jsonb
+#  recurrence_start_date(First date when the recurring event begins)                                   :date
+#  schedule_type                                                                                       :string           default("flexible")
+#  slug                                                                                                :string           not null
+#  source_url                                                                                          :text
+#  start_time                                                                                          :datetime
+#  suggested_days_of_week                                                                              :integer          default([]), is an Array
+#  suggested_months                                                                                    :integer          default([]), is an Array
+#  suggested_time_of_day                                                                               :string
+#  created_at                                                                                          :datetime         not null
+#  updated_at                                                                                          :datetime         not null
+#  user_id                                                                                             :bigint           not null
 #
 # Indexes
 #

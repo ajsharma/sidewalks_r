@@ -247,5 +247,4 @@ RSpec.describe "ActivitySchedulingIntegration", type: :request do
     # Test page renders
     expect(response).to have_http_status(:success)
   end
-
 end

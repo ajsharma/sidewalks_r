@@ -1,9 +1,10 @@
 require "rails_helper"
 
 RSpec.describe "AiSuggestions", type: :system do
+  let(:user) { create(:user) }
+
   before do
-    @user = users(:one)
-    sign_in @user
+    sign_in user
     # AI config is loaded from config/ai.yml test environment
   end
 
@@ -16,7 +17,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "index shows existing suggestions" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activities_path
 
@@ -43,7 +44,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "viewing a suggestion detail page" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activity_path(suggestion)
 
@@ -54,7 +55,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "accepting a suggestion creates an activity" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activity_path(suggestion)
 
@@ -67,7 +68,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "dismissing a suggestion from index" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activities_path
 
@@ -92,7 +93,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "shows empty state when no suggestions" do
-    @user.ai_suggestions.destroy_all
+    user.ai_suggestions.destroy_all
 
     visit ai_activities_path
 
@@ -101,7 +102,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "displays failed suggestion with error message" do
-    failed = ai_activity_suggestions(:failed_suggestion)
+    failed = create(:ai_activity_suggestion, user: user, status: "failed", error_message: "API error occurred")
 
     visit ai_activities_path
 
@@ -112,7 +113,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "editing suggestion fields before accepting" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activity_path(suggestion)
 
@@ -143,7 +144,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "shows confidence score with appropriate styling" do
-    high_confidence = ai_activity_suggestions(:url_completed)  # 92% confidence
+    high_confidence = create(:ai_activity_suggestion, user: user, status: "completed", confidence_score: 92)
 
     visit ai_activities_path
 
@@ -154,7 +155,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "displays category tags" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activities_path
 
@@ -166,7 +167,7 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "shows AI reasoning in collapsible section" do
-    suggestion = ai_activity_suggestions(:text_completed)
+    suggestion = create(:ai_activity_suggestion, user: user, status: "completed")
 
     visit ai_activities_path
 

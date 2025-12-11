@@ -1,10 +1,11 @@
 require "rails_helper"
 
 RSpec.describe "Activities", type: :system do
+  let(:user) { create(:user) }
+  let(:activity) { create(:activity, user: user) }
+
   before do
-    @user = users(:one)
-    sign_in @user
-    @activity = activities(:one)
+    sign_in user
   end
 
   it "visiting the index" do
@@ -19,26 +20,13 @@ RSpec.describe "Activities", type: :system do
   end
 
   it "visiting edit activity page" do
-    visit edit_activity_url(@activity)
+    visit edit_activity_url(activity)
     expect(page).to have_field "Name"
     expect(page).to have_field "Description"
   end
 
   it "showing an activity" do
-    visit activity_url(@activity)
-    expect(page).to have_content @activity.name
-  end
-
-  private
-
-  def sign_in(user)
-    visit new_user_session_path
-    fill_in "Email", with: user.email
-    fill_in "Password", with: "password"
-    click_button "Sign in"
-    # Wait for successful authentication by checking for the user's name in the navigation
-    expect(page).to have_content user.name
-    # Ensure we're redirected away from the sign-in page
-    expect(page).to have_current_path root_path
+    visit activity_url(activity)
+    expect(page).to have_content activity.name
   end
 end

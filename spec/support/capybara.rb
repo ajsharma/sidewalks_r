@@ -14,6 +14,12 @@ Capybara.register_driver :headless_chrome do |app|
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
+# Configure Capybara timeouts
+Capybara.default_max_wait_time = 5
+Capybara.server_host = "localhost"
+Capybara.server_port = 3001
+Capybara.app_host = "http://localhost:3001"
+
 RSpec.configure do |config|
   config.before(:each, type: :system) do
     driven_by :headless_chrome
