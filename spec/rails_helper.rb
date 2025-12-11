@@ -3,8 +3,9 @@
 # SimpleCov configuration - must be loaded before anything else
 require "simplecov"
 SimpleCov.start "rails" do
-  # Use only line coverage for better performance (not branch coverage)
-  enable_coverage :line
+  # This is typically useful for ERB. Set ERB#filename= to
+  # make it possible for SimpleCov to trace the original .erb source file.
+  enable_coverage_for_eval
 
   # Basic filters
   add_filter "/test/"
@@ -12,7 +13,6 @@ SimpleCov.start "rails" do
   add_filter "/config/"
   add_filter "/vendor/"
   add_filter "/db/"
-  add_filter "/bin/"
 
   # Skip complex external service integrations that require extensive infrastructure
   add_filter "/app/controllers/users/"  # Devise-generated OAuth controllers
@@ -28,11 +28,7 @@ SimpleCov.start "rails" do
   # Coverage requirement for all tests
   minimum_coverage 80
 
-  # Only track app files (more efficient than enabling coverage for eval)
-  track_files "{app}/**/*.rb"
-
-  # Use simple HTML formatter for faster report generation
-  formatter SimpleCov::Formatter::HTMLFormatter
+  track_files "app/**/*.rb"
 end
 
 require 'spec_helper'

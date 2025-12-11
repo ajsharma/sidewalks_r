@@ -13,8 +13,6 @@ AllCops:
     - 'node_modules/**/*'
     - 'tmp/**/*'
     - 'db/schema.rb'
-    - 'db/migrate/**/*'
-    - 'bin/**/*'
     - 'log/**/*'
     - 'public/**/*'
     - 'storage/**/*'
