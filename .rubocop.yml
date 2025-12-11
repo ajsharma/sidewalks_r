@@ -6,3 +6,28 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
+
+# RSpec-specific rules to prevent slow tests
+RSpec/ExampleLength:
+  Max: 25  # Warn if tests get too long (often a sign of doing too much)
+
+RSpec/MultipleExpectations:
+  Max: 10  # System tests can have more expectations than unit tests
+
+RSpec/NestedGroups:
+  Max: 5  # Deep nesting makes tests harder to understand
+
+# Performance and best practices
+RSpec/FactoryBot/CreateList:
+  Enabled: true  # Prefer create_list over Array.new { create(...) }
+
+RSpec/FactoryBot/FactoryAssociationWithStrategy:
+  Enabled: true  # Ensure consistent factory strategies
+
+# Prevent common pitfalls
+Style/GlobalVars:
+  Enabled: true  # Avoid global variables in tests
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'  # Allow long blocks in specs

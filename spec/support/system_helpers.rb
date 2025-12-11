@@ -1,13 +1,16 @@
 module SystemHelpers
-  def sign_in(user)
+  # Sign in a user for system tests
+  # With rack_test driver, this is fast enough going through the UI
+  def sign_in(user, password: 'password')
     visit new_user_session_path
     fill_in "Email", with: user.email
-    fill_in "Password", with: "password"
+    fill_in "Password", with: password
     click_button "Sign in"
-    # Wait for successful authentication by checking for the user's name in the navigation
-    expect(page).to have_content user.name
-    # Ensure we're redirected away from the sign-in page
-    expect(page).to have_current_path root_path
+  end
+
+  # Sign out a user in system tests
+  def sign_out
+    visit destroy_user_session_path
   end
 end
 

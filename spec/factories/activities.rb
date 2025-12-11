@@ -9,7 +9,7 @@ FactoryBot.define do
     start_time { nil }
     end_time { nil }
     deadline { nil }
-    max_frequency_days { 7 }
+    max_frequency_days { 30 }  # Must be one of: 1, 30, 60, 90, 180, 365, or nil
     archived_at { nil }
     ai_generated { false }
     source_url { nil }

@@ -109,6 +109,7 @@ RSpec.configure do |config|
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
+  # Note: We disable this for system tests below
   config.use_transactional_fixtures = true
 
   # Make fixtures available in all examples
@@ -145,10 +146,26 @@ RSpec.configure do |config|
   # Include Devise test helpers
   config.include Devise::Test::ControllerHelpers, type: :controller
   config.include Devise::Test::IntegrationHelpers, type: :request
-  config.include Devise::Test::IntegrationHelpers, type: :system
+  # Note: Don't include Devise::Test::IntegrationHelpers for system tests
+  # System tests use SystemHelpers module instead (see spec/support/system_helpers.rb)
 
   # Include ActiveSupport time helpers (for travel_to, etc.)
   config.include ActiveSupport::Testing::TimeHelpers
+
+  # System tests need special handling because they run in a separate server thread
+  # Transactional fixtures don't work because the test code and server don't share a connection
+  config.before(:each, type: :system) do
+    self.use_transactional_tests = false
+  end
+
+  config.after(:each, type: :system) do
+    # Clean up data created in system tests
+    # Use TRUNCATE with CASCADE to handle foreign key constraints
+    tables = ActiveRecord::Base.connection.tables - ['ar_internal_metadata', 'schema_migrations']
+    tables.each do |table|
+      ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table} RESTART IDENTITY CASCADE")
+    end
+  end
 end
 
 # Shoulda Matchers configuration
@@ -158,18 +175,3 @@ Shoulda::Matchers.configure do |config|
     with.library :rails
   end
 end
-
-# Capybara configuration for system specs
-Capybara.register_driver :headless_chrome do |app|
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.add_argument("--headless")
-  options.add_argument("--disable-gpu")
-  options.add_argument("--no-sandbox")
-  options.add_argument("--disable-dev-shm-usage")
-  options.add_argument("--window-size=1400,1400")
-
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
-end
-
-Capybara.default_driver = :headless_chrome
-Capybara.javascript_driver = :headless_chrome

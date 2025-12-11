@@ -10,7 +10,7 @@ RSpec.describe "Home", type: :system do
     user = create(:user)
     sign_in user
     visit root_url
-    click_link "Activities"
+    click_link "Activities", match: :first
     # Wait for page to load by checking for the Activities page heading
     expect(page).to have_selector "h1", text: "My Activities"
   end
