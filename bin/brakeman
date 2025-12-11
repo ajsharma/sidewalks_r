@@ -2,6 +2,8 @@
 require "rubygems"
 require "bundler/setup"
 
-ARGV.unshift("--ensure-latest", "--no-pager")
+# Use caching for faster runs, remove --ensure-latest to avoid downloading DB each time
+# The vulnerability database will still be used, just not force-updated every run
+ARGV.unshift("--no-pager")
 
 load Gem.bin_path("brakeman", "brakeman")

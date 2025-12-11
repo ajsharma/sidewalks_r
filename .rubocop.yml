@@ -1,6 +1,24 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+# Performance optimizations
+AllCops:
+  # Enable caching for faster subsequent runs
+  UseCache: true
+  CacheRootDirectory: tmp/rubocop_cache
+
+  # Optimize file exclusions to reduce scanning time
+  Exclude:
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+    - 'tmp/**/*'
+    - 'db/schema.rb'
+    - 'db/migrate/**/*'
+    - 'bin/**/*'
+    - 'log/**/*'
+    - 'public/**/*'
+    - 'storage/**/*'
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

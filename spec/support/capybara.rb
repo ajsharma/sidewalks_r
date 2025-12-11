@@ -9,13 +9,17 @@ Capybara.register_driver :headless_chrome do |app|
   options.add_argument("--no-sandbox")
   options.add_argument("--disable-dev-shm-usage")
   options.add_argument("--disable-gpu")
-  options.add_argument("--window-size=1400,1400")
+  options.add_argument("--window-size=1024,768")  # Reduced from 1400x1400 for faster rendering
+  options.add_argument("--disable-extensions")    # Disable extensions for faster startup
+  options.add_argument("--disable-plugins")       # Disable plugins for faster startup
+  options.add_argument("--disable-software-rasterizer")  # Use hardware rendering when possible
+  options.add_argument("--single-process")        # Run in single process mode (test environment only)
 
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
 
 # Configure Capybara timeouts
-Capybara.default_max_wait_time = 5
+Capybara.default_max_wait_time = 3  # Reduced from 5 seconds for faster test execution
 Capybara.server_host = "localhost"
 Capybara.server_port = 3001
 Capybara.app_host = "http://localhost:3001"

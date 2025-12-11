@@ -6,48 +6,130 @@ APP_ROOT = File.expand_path("..", __dir__)
 # Set environment variables for the script
 # ENV["BULLET_RAISE"] = "false"
 
+# Track timing for each task
+@timings = []
+@failed_tasks = []
+
 def system!(*args)
   system(*args, exception: true)
 end
 
-FileUtils.chdir APP_ROOT do
-  puts "== Running setup =="
-  system! "bin/setup --skip-server"
+def run_timed(description, &block)
+  start_time = Time.now
+  puts "\n#{"=" * 60}"
+  puts "#{description}"
+  puts "=" * 60
 
-  puts "\n== Running tests =="
-  system! "bundle exec rspec"
+  begin
+    yield
+    elapsed = Time.now - start_time
+    @timings << { task: description, time: elapsed, status: :success }
+    puts "\n✓ Completed in #{elapsed.round(1)}s"
+  rescue => e
+    elapsed = Time.now - start_time
+    @timings << { task: description, time: elapsed, status: :failed }
+    @failed_tasks << { task: description, error: e.message }
+    puts "\n✗ Failed after #{elapsed.round(1)}s: #{e.message}"
+    # Continue running other tasks instead of failing fast
+  end
+end
 
-  puts "\n== Running security tests =="
-  system! "bin/brakeman"
+def print_summary
+  puts "\n#{"=" * 60}"
+  puts "EXECUTION SUMMARY"
+  puts "=" * 60
 
-  puts "\n== Running gem security audit =="
-  system! "bundle exec bundle-audit --update"
+  total_time = @timings.sum { |t| t[:time] }
 
-  puts "\n== Scanning for leaked secrets =="
-  if system("which gitleaks > /dev/null 2>&1")
-    system! "gitleaks detect --verbose --no-git"
+  puts "\nTask Performance:"
+  puts "-" * 60
+
+  # Sort by time (slowest first)
+  @timings.sort_by { |t| -t[:time] }.each do |timing|
+    status_symbol = timing[:status] == :success ? "✓" : "✗"
+    percentage = (timing[:time] / total_time * 100).round(1)
+    puts sprintf("  %s %-45s %6.1fs (%5.1f%%)",
+                 status_symbol,
+                 timing[:task],
+                 timing[:time],
+                 percentage)
+  end
+
+  puts "-" * 60
+  puts sprintf("  %-47s %6.1fs", "TOTAL TIME", total_time)
+  puts "=" * 60
+
+  if @failed_tasks.any?
+    puts "\nFailed Tasks:"
+    @failed_tasks.each do |failure|
+      puts "  ✗ #{failure[:task]}"
+      puts "    Error: #{failure[:error]}"
+    end
+    puts "\n#{@failed_tasks.size} task(s) failed, #{@timings.size - @failed_tasks.size} passed"
+    exit 1
   else
-    puts "⚠️  Gitleaks not installed. Install with: brew install gitleaks"
-    puts "Skipping secret scanning..."
+    puts "\n✓ All #{@timings.size} tasks completed successfully!"
+  end
+end
+
+FileUtils.chdir APP_ROOT do
+  run_timed("Running setup") do
+    system! "bin/setup --skip-server"
+  end
+
+  run_timed("Running tests") do
+    system! "bundle exec rspec"
+  end
+
+  run_timed("Running security tests (Brakeman)") do
+    system! "bin/brakeman"
+  end
+
+  run_timed("Running gem security audit") do
+    # Smart caching: only update vulnerability DB if cache is stale (> 24 hours)
+    cache_file = File.expand_path("~/.bundle-audit/ruby-advisory-db/.git/FETCH_HEAD")
+    cache_fresh = File.exist?(cache_file) && File.mtime(cache_file) > Time.now - 86400
+
+    if cache_fresh
+      puts "Using cached vulnerability database (updated #{((Time.now - File.mtime(cache_file)) / 3600).round(1)} hours ago)"
+      system! "bundle exec bundle-audit"
+    else
+      puts "Updating vulnerability database..."
+      system! "bundle exec bundle-audit --update"
+    end
+  end
+
+  run_timed("Scanning for leaked secrets") do
+    if system("which gitleaks > /dev/null 2>&1")
+      system! "gitleaks detect --verbose --no-git"
+    else
+      puts "⚠️  Gitleaks not installed. Install with: brew install gitleaks"
+      puts "Skipping secret scanning..."
+    end
   end
 
   # puts "\n== Regenerating swagger =="
   # system! "bundle exec rake rswag:specs:swaggerize"
 
-  puts "\n== Running code quality analysis =="
-  system! "bundle exec reek ."
+  run_timed("Running code quality analysis (Reek)") do
+    system! "bundle exec reek ."
+  end
 
-  puts "\n== Running Rails best practices =="
-  system! "bundle exec rails_best_practices ."
+  run_timed("Running Rails best practices") do
+    system! "bundle exec rails_best_practices ."
+  end
 
-  puts "\n== Running lints =="
-  system! "bundle exec rubocop -A"
+  run_timed("Running lints (RuboCop)") do
+    system! "bundle exec rubocop -A"
+  end
 
-  puts "\n== Running YARD documentation checks =="
-  system! "bundle exec yardoc --no-output --no-cache --fail-on-warning"
+  run_timed("Running YARD documentation checks") do
+    system! "bundle exec yardoc --no-output --no-cache --fail-on-warning"
+  end
 
-  puts "\n== Updating model annotations =="
-  system! "bundle exec annotaterb models"
+  run_timed("Updating model annotations") do
+    system! "bundle exec annotaterb models"
+  end
 
-  puts "\n== All checks passed! =="
+  print_summary
 end

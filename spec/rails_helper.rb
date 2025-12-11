@@ -3,9 +3,8 @@
 # SimpleCov configuration - must be loaded before anything else
 require "simplecov"
 SimpleCov.start "rails" do
-  # This is typically useful for ERB. Set ERB#filename= to
-  # make it possible for SimpleCov to trace the original .erb source file.
-  enable_coverage_for_eval
+  # Use only line coverage for better performance (not branch coverage)
+  enable_coverage :line
 
   # Basic filters
   add_filter "/test/"
@@ -13,6 +12,7 @@ SimpleCov.start "rails" do
   add_filter "/config/"
   add_filter "/vendor/"
   add_filter "/db/"
+  add_filter "/bin/"
 
   # Skip complex external service integrations that require extensive infrastructure
   add_filter "/app/controllers/users/"  # Devise-generated OAuth controllers
@@ -28,7 +28,11 @@ SimpleCov.start "rails" do
   # Coverage requirement for all tests
   minimum_coverage 80
 
-  track_files "app/**/*.rb"
+  # Only track app files (more efficient than enabling coverage for eval)
+  track_files "{app}/**/*.rb"
+
+  # Use simple HTML formatter for faster report generation
+  formatter SimpleCov::Formatter::HTMLFormatter
 end
 
 require 'spec_helper'
@@ -159,17 +163,4 @@ Shoulda::Matchers.configure do |config|
   end
 end
 
-# Capybara configuration for system specs
-Capybara.register_driver :headless_chrome do |app|
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.add_argument("--headless")
-  options.add_argument("--disable-gpu")
-  options.add_argument("--no-sandbox")
-  options.add_argument("--disable-dev-shm-usage")
-  options.add_argument("--window-size=1400,1400")
-
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
-end
-
-Capybara.default_driver = :headless_chrome
-Capybara.javascript_driver = :headless_chrome
+# Capybara configuration is in spec/support/capybara.rb
