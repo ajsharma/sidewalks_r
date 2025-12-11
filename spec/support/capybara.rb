@@ -18,7 +18,7 @@ Capybara.register_driver :headless_chrome do |app|
 end
 
 # Configure Capybara timeouts
-Capybara.default_max_wait_time = 3  # Reduced from 5 seconds for faster test execution
+Capybara.default_max_wait_time = 5  # Keep at 5 seconds for test stability
 Capybara.server_host = "localhost"
 Capybara.server_port = 3001
 Capybara.app_host = "http://localhost:3001"
