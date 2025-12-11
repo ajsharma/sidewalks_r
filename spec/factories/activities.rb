@@ -34,10 +34,10 @@ FactoryBot.define do
 
     trait :ai_generated do
       ai_generated { true }
-      suggested_months { [5, 6, 7, 8, 9] }
-      suggested_days_of_week { [0, 6] }
+      suggested_months { [ 5, 6, 7, 8, 9 ] }
+      suggested_days_of_week { [ 0, 6 ] }
       suggested_time_of_day { "morning" }
-      category_tags { ["outdoor", "food", "social"] }
+      category_tags { [ "outdoor", "food", "social" ] }
     end
   end
 end

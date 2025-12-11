@@ -13,7 +13,6 @@ Capybara.register_driver :headless_chrome do |app|
   options.add_argument("--disable-extensions")    # Disable extensions for faster startup
   options.add_argument("--disable-plugins")       # Disable plugins for faster startup
   options.add_argument("--disable-software-rasterizer")  # Use hardware rendering when possible
-  options.add_argument("--single-process")        # Run in single process mode (test environment only)
 
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
 end
