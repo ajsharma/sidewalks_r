@@ -2,35 +2,34 @@ require "rails_helper"
 
 RSpec.describe "ActivitySchedulingIntegration", type: :request do
   before do
-    @user = users(:one)
-    @user.activities.destroy_all
-    @user.playlists.destroy_all
+    @user = create(:user)
 
     # Create some activities for testing
-    @strict_activity = @user.activities.create!(
+    @strict_activity = create(:activity, :strict,
+      user: @user,
       name: "Morning Meeting",
       description: "Daily standup",
-      schedule_type: "strict",
       start_time: 1.day.from_now.beginning_of_day + 9.hours,
       end_time: 1.day.from_now.beginning_of_day + 10.hours
     )
 
-    @flexible_activity = @user.activities.create!(
+    @flexible_activity = create(:activity,
+      user: @user,
       name: "Exercise",
       description: "Daily workout",
       schedule_type: "flexible",
       max_frequency_days: 1
     )
 
-    @deadline_activity = @user.activities.create!(
+    @deadline_activity = create(:activity, :deadline_based,
+      user: @user,
       name: "Project Submission",
       description: "Submit quarterly report",
-      schedule_type: "deadline",
       deadline: 2.days.from_now
     )
 
     # Create a Google account for testing calendar integration
-    @google_account = GoogleAccount.create!(
+    @google_account = create(:google_account,
       user: @user,
       email: "test@example.com",
       google_id: "123456789",
@@ -246,5 +245,16 @@ RSpec.describe "ActivitySchedulingIntegration", type: :request do
 
     # Test page renders
     expect(response).to have_http_status(:success)
+  end
+
+  private
+
+  def sign_in(user)
+    post user_session_path, params: {
+      user: {
+        email: user.email,
+        password: "password"
+      }
+    }
   end
 end
