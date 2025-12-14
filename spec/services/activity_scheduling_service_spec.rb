@@ -26,7 +26,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
   # ============================================================================
 
   it "initializes with user and loads active activities by default" do
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
 
     expect(service.user).to eq @user
     expect(service.activities).to eq @user.activities.active
@@ -37,7 +37,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     custom_activities = [ @activity_strict ]
     custom_options = { work_hours_start: 8, exclude_weekends: true }
 
-    service = ActivitySchedulingService.new(@user, custom_activities, custom_options)
+    service = described_class.new(@user, custom_activities, custom_options)
 
     expect(service.activities).to eq custom_activities
     expect(service.options[:work_hours_start]).to eq 8
@@ -47,7 +47,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
 
   it "raises error when user is blank" do
     expect {
-      ActivitySchedulingService.new(nil)
+      described_class.new(nil)
     }.to raise_error(ArgumentError, /Blank use/)
   end
 
@@ -55,7 +55,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @user.update!(timezone: nil)
 
     expect {
-      ActivitySchedulingService.new(@user)
+      described_class.new(@user)
     }.to raise_error(ArgumentError, /time zone/)
   end
 
@@ -65,7 +65,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
 
   it "generate_agenda returns AgendaProposal with suggestions" do
     with_mocked_google_calendar([]) do
-      agenda = ActivitySchedulingService.new(@user).generate_agenda(@date_range)
+      agenda = described_class.new(@user).generate_agenda(@date_range)
 
       expect(agenda).to be_a AgendaProposal
       expect(agenda.suggestions).to be_a Array
@@ -77,7 +77,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 1)
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       agenda = service.generate_agenda
 
       expect(agenda).to be_a AgendaProposal
@@ -98,7 +98,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_strict ])
+      service = described_class.new(@user, [ @activity_strict ])
       agenda = service.generate_agenda(@date_range)
 
       strict_suggestion = agenda.suggestions.find { |s| s.activity == @activity_strict }
@@ -118,7 +118,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       agenda = service.generate_agenda(@date_range)
 
       flexible_suggestions = agenda.suggestions.select { |s| s.activity == @activity_flexible }
@@ -134,7 +134,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
 
   it "generate_agenda includes deadline activities before their deadline" do
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_deadline ])
+      service = described_class.new(@user, [ @activity_deadline ])
       agenda = service.generate_agenda(@date_range)
 
       deadline_suggestion = agenda.suggestions.find { |s| s.activity == @activity_deadline }
@@ -155,7 +155,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(
+      service = described_class.new(
         @user,
         [ @activity_flexible ],
         { work_hours_start: 9, work_hours_end: 17 }
@@ -175,7 +175,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(
+      service = described_class.new(
         @user,
         [ @activity_flexible ],
         { exclude_weekends: true }
@@ -201,7 +201,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     with_mocked_google_calendar([]) do
       # Simulate it being 9:18 AM
       travel_to Time.zone.parse("2025-10-26 09:18:00") do
-        service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+        service = described_class.new(@user, [ @activity_flexible ])
         date_range = Date.current..(Date.current + 1.day)
         agenda = service.generate_agenda(date_range)
 
@@ -247,7 +247,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar(events) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       agenda = service.generate_agenda(@date_range)
 
       # Verify no suggestions overlap with the existing meeting
@@ -279,7 +279,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar(events) do
-      service = ActivitySchedulingService.new(@user, [ @activity_strict ])
+      service = described_class.new(@user, [ @activity_strict ])
       agenda = service.generate_agenda(@date_range)
 
       strict_suggestion = agenda.suggestions.find { |s| s.activity == @activity_strict }
@@ -308,7 +308,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar(events) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       agenda = service.generate_agenda(@date_range)
 
       # Should reschedule to avoid the 7 PM conflict
@@ -328,7 +328,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @user.google_accounts.destroy_all
     @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
 
-    service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+    service = described_class.new(@user, [ @activity_flexible ])
     agenda = service.generate_agenda(@date_range)
 
     expect(agenda).to be_a AgendaProposal
@@ -362,7 +362,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ activity1, activity2, activity3 ])
+      service = described_class.new(@user, [ activity1, activity2, activity3 ])
       agenda = service.generate_agenda(@date_range)
 
       # Get suggestions for the first day only
@@ -424,7 +424,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     )
 
     with_mocked_google_calendar(events) do
-      service = ActivitySchedulingService.new(@user, [ activity1, activity2, activity3 ])
+      service = described_class.new(@user, [ activity1, activity2, activity3 ])
       agenda = service.generate_agenda(@date_range)
 
       # Get suggestions for the conflict day
@@ -458,7 +458,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
   it "create_calendar_events returns DryRunResults in dry run mode" do
     suggestions = build_test_suggestions([ @activity_flexible ])
 
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
     results = service.create_calendar_events(suggestions, dry_run: true)
 
     expect(results).to be_a ActivitySchedulingService::DryRunResults
@@ -470,14 +470,14 @@ RSpec.describe ActivitySchedulingService, type: :service do
   it "create_calendar_events defaults to dry run mode" do
     suggestions = build_test_suggestions([ @activity_flexible ])
 
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
     results = service.create_calendar_events(suggestions)
 
     expect(results).to be_a ActivitySchedulingService::DryRunResults
   end
 
   it "create_calendar_events handles empty suggestions gracefully" do
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
     results = service.create_calendar_events([])
 
     expect(results).to be_a ActivitySchedulingService::DryRunResults
@@ -488,7 +488,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
   it "create_calendar_events includes timeline with activity details" do
     suggestions = build_test_suggestions([ @activity_flexible, @activity_deadline ])
 
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
     results = service.create_calendar_events(suggestions, dry_run: true)
 
     expect(results.timeline.count).to eq 2
@@ -510,7 +510,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
 
     suggestions = build_test_suggestions([ @activity_flexible, @activity_deadline ])
 
-    service = ActivitySchedulingService.new(@user)
+    service = described_class.new(@user)
     results = service.create_calendar_events(suggestions, dry_run: true)
 
     expect(results.suggestions_by_type["flexible"]).to eq 1
@@ -529,10 +529,10 @@ RSpec.describe ActivitySchedulingService, type: :service do
     ]
 
     with_mocked_google_calendar(events) do
-      agenda = ActivitySchedulingService.new(@user, [ @activity_flexible ]).generate_agenda(@date_range)
+      agenda = described_class.new(@user, [ @activity_flexible ]).generate_agenda(@date_range)
 
       # Agenda includes both existing events and suggestions
-      results = ActivitySchedulingService.new(@user).create_calendar_events(
+      results = described_class.new(@user).create_calendar_events(
         agenda.all_events,
         dry_run: true
       )
@@ -550,7 +550,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       results = service.schedule_activities(@date_range, dry_run: true)
 
       expect(results).to be_a ActivitySchedulingService::DryRunResults
@@ -562,7 +562,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     @activity_flexible.update!(schedule_type: "flexible", max_frequency_days: 30)
 
     with_mocked_google_calendar([]) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       results = service.schedule_activities
 
       expect(results).to be_a ActivitySchedulingService::DryRunResults
@@ -582,7 +582,7 @@ RSpec.describe ActivitySchedulingService, type: :service do
     ]
 
     with_mocked_google_calendar(events) do
-      service = ActivitySchedulingService.new(@user, [ @activity_flexible ])
+      service = described_class.new(@user, [ @activity_flexible ])
       results = service.schedule_activities(@date_range, dry_run: true)
 
       expect(results).to be_a ActivitySchedulingService::DryRunResults

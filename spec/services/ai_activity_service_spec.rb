@@ -13,12 +13,12 @@ RSpec.describe AiActivityService, type: :service do
   end
 
   it "detects text input type" do
-    service = AiActivityService.new(user: @user, input: "Go for a run")
+    service = described_class.new(user: @user, input: "Go for a run")
     expect(service.instance_variable_get(:@input_type)).to eq :text
   end
 
   it "detects url input type" do
-    service = AiActivityService.new(user: @user, input: "https://example.com/event")
+    service = described_class.new(user: @user, input: "https://example.com/event")
     expect(service.instance_variable_get(:@input_type)).to eq :url
   end
 
@@ -36,7 +36,7 @@ RSpec.describe AiActivityService, type: :service do
       )
     end
 
-    service = AiActivityService.new(user: @user, input: "test")
+    service = described_class.new(user: @user, input: "test")
 
     expect {
       service.generate_suggestion
@@ -59,7 +59,7 @@ RSpec.describe AiActivityService, type: :service do
       )
     end
 
-    service = AiActivityService.new(user: @user, input: "test")
+    service = described_class.new(user: @user, input: "test")
 
     expect {
       service.generate_suggestion
@@ -71,7 +71,7 @@ RSpec.describe AiActivityService, type: :service do
   it "generate_suggestion creates pending suggestion for text" do
     stub_successful_claude_api
 
-    service = AiActivityService.new(user: @user, input: "Weekly team meeting")
+    service = described_class.new(user: @user, input: "Weekly team meeting")
 
     expect {
       suggestion = service.generate_suggestion
@@ -86,7 +86,7 @@ RSpec.describe AiActivityService, type: :service do
   it "generate_suggestion marks failed on error" do
     stub_failing_claude_api
 
-    service = AiActivityService.new(user: @user, input: "test")
+    service = described_class.new(user: @user, input: "test")
 
     expect {
       service.generate_suggestion
@@ -101,13 +101,13 @@ RSpec.describe AiActivityService, type: :service do
     suggestion = ai_activity_suggestions(:text_completed)
 
     expect {
-      activity = AiActivityService.accept_suggestion(suggestion)
+      activity = described_class.accept_suggestion(suggestion)
 
       expect(activity.persisted?).to be true
       expect(activity.ai_generated?).to be true
       expect(activity.name).to eq "Farmers Market Visit"
       expect(activity.user).to eq suggestion.user
-    }.to change { Activity.count }.by(1)
+    }.to change(Activity, :count).by(1)
   end
 
   it "accept_suggestion with user edits applies changes" do
@@ -117,7 +117,7 @@ RSpec.describe AiActivityService, type: :service do
       description: "Custom description"
     }
 
-    activity = AiActivityService.accept_suggestion(suggestion, user_edits: user_edits)
+    activity = described_class.accept_suggestion(suggestion, user_edits: user_edits)
 
     expect(activity.name).to eq "My Custom Market Visit"
     expect(activity.description).to eq "Custom description"
@@ -129,7 +129,7 @@ RSpec.describe AiActivityService, type: :service do
       name: "Edited Name"
     }
 
-    AiActivityService.accept_suggestion(suggestion, user_edits: user_edits)
+    described_class.accept_suggestion(suggestion, user_edits: user_edits)
 
     suggestion.reload
     expect(suggestion.user_edits).not_to be_empty
@@ -140,7 +140,7 @@ RSpec.describe AiActivityService, type: :service do
   it "accept_suggestion marks suggestion as accepted" do
     suggestion = ai_activity_suggestions(:text_completed)
 
-    activity = AiActivityService.accept_suggestion(suggestion)
+    activity = described_class.accept_suggestion(suggestion)
 
     suggestion.reload
     expect(suggestion.accepted).to be true
@@ -159,7 +159,7 @@ RSpec.describe AiActivityService, type: :service do
       "category_tags" => [ "outdoor" ]
     }
 
-    params = AiActivityService.build_activity_params(suggested_data, {})
+    params = described_class.build_activity_params(suggested_data, {})
 
     expect(params[:name]).to eq "Test Activity"
     expect(params[:description]).to eq "Test description"
@@ -171,7 +171,7 @@ RSpec.describe AiActivityService, type: :service do
     suggested_data = { "name" => "Original", "description" => "Original desc" }
     user_edits = { "name" => "Edited" }
 
-    params = AiActivityService.build_activity_params(suggested_data, user_edits)
+    params = described_class.build_activity_params(suggested_data, user_edits)
 
     expect(params[:name]).to eq "Edited"
     expect(params[:description]).to eq "Original desc"

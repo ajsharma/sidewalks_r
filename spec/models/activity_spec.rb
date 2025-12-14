@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Activity, type: :model do
   before do
     @user = users(:one)
-    @activity = Activity.new(
+    @activity = described_class.new(
       user: @user,
       name: "Test Activity",
       description: "Test description",
@@ -11,29 +11,29 @@ RSpec.describe Activity, type: :model do
     )
   end
 
-  it "should be valid" do
+  it "is valid" do
     expect(@activity).to be_valid
   end
 
-  it "should require user" do
+  it "requires user" do
     @activity.user = nil
     expect(@activity).not_to be_valid
     expect(@activity.errors[:user]).to include("must exist")
   end
 
-  it "should require name" do
+  it "requires name" do
     @activity.name = ""
     expect(@activity).not_to be_valid
     expect(@activity.errors[:name]).to include("can't be blank")
   end
 
-  it "should require valid schedule_type" do
+  it "requires valid schedule_type" do
     @activity.schedule_type = "invalid"
     expect(@activity).not_to be_valid
     expect(@activity.errors[:schedule_type]).to include("is not included in the list")
   end
 
-  it "should allow valid schedule_types" do
+  it "allows valid schedule_types" do
     Activity::SCHEDULE_TYPES.each do |type|
       @activity.schedule_type = type
 
@@ -55,27 +55,27 @@ RSpec.describe Activity, type: :model do
     end
   end
 
-  it "should validate max_frequency_days inclusion" do
+  it "validates max_frequency_days inclusion" do
     @activity.max_frequency_days = 999
     expect(@activity).not_to be_valid
     expect(@activity.errors[:max_frequency_days]).to include("is not included in the list")
   end
 
-  it "should allow valid max_frequency_days" do
+  it "allows valid max_frequency_days" do
     Activity::MAX_FREQUENCY_OPTIONS.each do |option|
       @activity.max_frequency_days = option
       expect(@activity).to be_valid, "#{option} should be valid"
     end
   end
 
-  it "should generate slug from name" do
+  it "generates slug from name" do
     @activity.save!
     expect(@activity.slug).to eq("test-activity")
   end
 
-  it "should generate unique slug when name conflicts" do
+  it "generates unique slug when name conflicts" do
     @activity.save!
-    activity2 = Activity.create!(
+    activity2 = described_class.create!(
       user: @user,
       name: "Test Activity",
       schedule_type: "flexible"
@@ -83,18 +83,18 @@ RSpec.describe Activity, type: :model do
     expect(activity2.slug).to eq("test-activity-1")
   end
 
-  it "should use to_param as slug" do
+  it "uses to_param as slug" do
     @activity.save!
     expect(@activity.to_param).to eq(@activity.slug)
   end
 
   it "archived? should return false when not archived" do
-    expect(@activity.archived?).to be_falsey
+    expect(@activity).not_to be_archived
   end
 
   it "archived? should return true when archived" do
     @activity.archived_at = Time.current
-    expect(@activity.archived?).to be_truthy
+    expect(@activity).to be_archived
   end
 
   it "archive! should set archived_at" do
@@ -106,42 +106,42 @@ RSpec.describe Activity, type: :model do
 
   it "strict_schedule? should return true for strict activities" do
     @activity.schedule_type = "strict"
-    expect(@activity.strict_schedule?).to be_truthy
+    expect(@activity).to be_strict_schedule
   end
 
   it "flexible_schedule? should return true for flexible activities" do
     @activity.schedule_type = "flexible"
-    expect(@activity.flexible_schedule?).to be_truthy
+    expect(@activity).to be_flexible_schedule
   end
 
   it "deadline_based? should return true for deadline activities" do
     @activity.schedule_type = "deadline"
-    expect(@activity.deadline_based?).to be_truthy
+    expect(@activity).to be_deadline_based
   end
 
   it "has_deadline? should return true when deadline is set" do
     @activity.deadline = Time.current + 1.day
-    expect(@activity.has_deadline?).to be_truthy
+    expect(@activity).to have_deadline
   end
 
   it "has_deadline? should return false when deadline is nil" do
     @activity.deadline = nil
-    expect(@activity.has_deadline?).to be_falsey
+    expect(@activity).not_to have_deadline
   end
 
   it "expired? should return true when deadline has passed" do
     @activity.deadline = Time.current - 1.day
-    expect(@activity.expired?).to be_truthy
+    expect(@activity).to be_expired
   end
 
   it "expired? should return false when deadline is in future" do
     @activity.deadline = Time.current + 1.day
-    expect(@activity.expired?).to be_falsey
+    expect(@activity).not_to be_expired
   end
 
   it "expired? should return false when no deadline" do
     @activity.deadline = nil
-    expect(@activity.expired?).to be_falsey
+    expect(@activity).not_to be_expired
   end
 
   it "activity_links should parse JSON links" do
@@ -187,12 +187,12 @@ RSpec.describe Activity, type: :model do
   # AI-related tests
   it "ai_generated? should return true when ai_generated is true" do
     activity = activities(:ai_generated)
-    expect(activity.ai_generated?).to be_truthy
+    expect(activity).to be_ai_generated
   end
 
   it "ai_generated? should return false when ai_generated is false" do
     activity = activities(:one)
-    expect(activity.ai_generated?).to be_falsey
+    expect(activity).not_to be_ai_generated
   end
 
   it "formatted_suggested_months should return month names" do
@@ -242,7 +242,7 @@ RSpec.describe Activity, type: :model do
   end
 
   # Phase 1: Recurring events and duration fields
-  it "should allow recurring_strict schedule type" do
+  it "allows recurring_strict schedule type" do
     @activity.schedule_type = "recurring_strict"
     @activity.recurrence_rule = { "freq" => "WEEKLY", "interval" => 1, "byday" => [ "MO" ] }
     @activity.recurrence_start_date = Date.current
@@ -252,7 +252,7 @@ RSpec.describe Activity, type: :model do
     expect(@activity).to be_valid, "recurring_strict should be valid. Errors: #{@activity.errors.full_messages}"
   end
 
-  it "should store recurrence_rule as jsonb" do
+  it "stores recurrence_rule as jsonb" do
     recurrence_rule = { "freq" => "MONTHLY", "interval" => 1, "byday" => [ "SU" ], "bysetpos" => [ 1 ] }
     @activity.recurrence_rule = recurrence_rule
     @activity.save!
@@ -261,7 +261,7 @@ RSpec.describe Activity, type: :model do
     expect(@activity.recurrence_rule).to eq(recurrence_rule)
   end
 
-  it "should store recurrence dates" do
+  it "stores recurrence dates" do
     start_date = Date.current
     end_date = 3.months.from_now.to_date
 
@@ -274,7 +274,7 @@ RSpec.describe Activity, type: :model do
     expect(@activity.recurrence_end_date).to eq(end_date)
   end
 
-  it "should store occurrence times" do
+  it "stores occurrence times" do
     # Use Time.zone.parse to get times in the application's timezone
     start_time = Time.zone.parse("09:00")
     end_time = Time.zone.parse("12:00")
@@ -289,7 +289,7 @@ RSpec.describe Activity, type: :model do
     expect(@activity.occurrence_time_end.strftime("%H:%M:%S")).to eq("12:00:00")
   end
 
-  it "should store duration_minutes" do
+  it "stores duration_minutes" do
     @activity.duration_minutes = 120
     @activity.save!
 
@@ -297,7 +297,7 @@ RSpec.describe Activity, type: :model do
     expect(@activity.duration_minutes).to eq(120)
   end
 
-  it "should allow nil duration_minutes" do
+  it "allows nil duration_minutes" do
     @activity.duration_minutes = nil
     expect(@activity).to be_valid
   end
@@ -453,7 +453,7 @@ RSpec.describe Activity, type: :model do
     @activity.end_time = Time.current + 3.hours
     @activity.duration_minutes = 120
 
-    expect(@activity.time_windowed?).to be_truthy
+    expect(@activity).to be_time_windowed
   end
 
   it "time_windowed? returns false for strict activity with matching duration" do
@@ -462,7 +462,7 @@ RSpec.describe Activity, type: :model do
     @activity.end_time = Time.current + 2.hours
     @activity.duration_minutes = 120
 
-    expect(@activity.time_windowed?).to be_falsey
+    expect(@activity).not_to be_time_windowed
   end
 
   it "time_windowed? returns true for recurring_strict with shorter duration" do
@@ -471,14 +471,14 @@ RSpec.describe Activity, type: :model do
     @activity.occurrence_time_end = Time.zone.parse("12:00")
     @activity.duration_minutes = 120
 
-    expect(@activity.time_windowed?).to be_truthy
+    expect(@activity).to be_time_windowed
   end
 
   it "time_windowed? returns false for flexible activity" do
     @activity.schedule_type = "flexible"
     @activity.duration_minutes = 60
 
-    expect(@activity.time_windowed?).to be_falsey
+    expect(@activity).not_to be_time_windowed
   end
 
   it "time_window returns details for strict time-windowed activity" do
@@ -523,17 +523,17 @@ RSpec.describe Activity, type: :model do
 
   it "recurring_strict? returns true for recurring_strict activities" do
     @activity.schedule_type = "recurring_strict"
-    expect(@activity.recurring_strict?).to be_truthy
+    expect(@activity).to be_recurring_strict
   end
 
   it "recurring_strict? returns false for other schedule types" do
     @activity.schedule_type = "flexible"
-    expect(@activity.recurring_strict?).to be_falsey
+    expect(@activity).not_to be_recurring_strict
   end
 
   it "matches_recurrence_pattern? returns false for non-recurring activities" do
     @activity.schedule_type = "flexible"
-    expect(@activity.matches_recurrence_pattern?(Date.current)).to be_falsey
+    expect(@activity).not_to be_matches_recurrence_pattern(Date.current)
   end
 
   it "matches_recurrence_pattern? matches daily pattern" do
@@ -541,9 +541,9 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "DAILY", "interval" => 1 }
     @activity.recurrence_start_date = Date.current
 
-    expect(@activity.matches_recurrence_pattern?(Date.current)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.current + 1.day)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.current + 2.days)).to be_truthy
+    expect(@activity).to be_matches_recurrence_pattern(Date.current)
+    expect(@activity).to be_matches_recurrence_pattern(Date.current + 1.day)
+    expect(@activity).to be_matches_recurrence_pattern(Date.current + 2.days)
   end
 
   it "matches_recurrence_pattern? matches daily pattern with interval" do
@@ -551,9 +551,9 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "DAILY", "interval" => 2 }
     @activity.recurrence_start_date = Date.current
 
-    expect(@activity.matches_recurrence_pattern?(Date.current)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.current + 1.day)).to be_falsey
-    expect(@activity.matches_recurrence_pattern?(Date.current + 2.days)).to be_truthy
+    expect(@activity).to be_matches_recurrence_pattern(Date.current)
+    expect(@activity).not_to be_matches_recurrence_pattern(Date.current + 1.day)
+    expect(@activity).to be_matches_recurrence_pattern(Date.current + 2.days)
   end
 
   it "matches_recurrence_pattern? matches weekly pattern" do
@@ -563,9 +563,9 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "WEEKLY", "interval" => 1, "byday" => [ "MO" ] }
     @activity.recurrence_start_date = monday
 
-    expect(@activity.matches_recurrence_pattern?(monday)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(monday + 1.week)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(monday + 1.day)).to be_falsey
+    expect(@activity).to be_matches_recurrence_pattern(monday)
+    expect(@activity).to be_matches_recurrence_pattern(monday + 1.week)
+    expect(@activity).not_to be_matches_recurrence_pattern(monday + 1.day)
   end
 
   it "matches_recurrence_pattern? matches weekly pattern with multiple days" do
@@ -574,11 +574,11 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "WEEKLY", "interval" => 1, "byday" => [ "MO", "WE", "FR" ] }
     @activity.recurrence_start_date = monday
 
-    expect(@activity.matches_recurrence_pattern?(monday)).to be_truthy # Monday
-    expect(@activity.matches_recurrence_pattern?(monday + 1.day)).to be_falsey # Tuesday
-    expect(@activity.matches_recurrence_pattern?(monday + 2.days)).to be_truthy # Wednesday
-    expect(@activity.matches_recurrence_pattern?(monday + 3.days)).to be_falsey # Thursday
-    expect(@activity.matches_recurrence_pattern?(monday + 4.days)).to be_truthy # Friday
+    expect(@activity).to be_matches_recurrence_pattern(monday) # Monday
+    expect(@activity).not_to be_matches_recurrence_pattern(monday + 1.day) # Tuesday
+    expect(@activity).to be_matches_recurrence_pattern(monday + 2.days) # Wednesday
+    expect(@activity).not_to be_matches_recurrence_pattern(monday + 3.days) # Thursday
+    expect(@activity).to be_matches_recurrence_pattern(monday + 4.days) # Friday
   end
 
   it "matches_recurrence_pattern? matches monthly pattern by monthday" do
@@ -587,9 +587,9 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "MONTHLY", "interval" => 1, "bymonthday" => [ 15 ] }
     @activity.recurrence_start_date = first_of_month
 
-    expect(@activity.matches_recurrence_pattern?(first_of_month + 14.days)).to be_truthy # 15th
-    expect(@activity.matches_recurrence_pattern?(first_of_month + 13.days)).to be_falsey # 14th
-    expect(@activity.matches_recurrence_pattern?(first_of_month + 15.days)).to be_falsey # 16th
+    expect(@activity).to be_matches_recurrence_pattern(first_of_month + 14.days) # 15th
+    expect(@activity).not_to be_matches_recurrence_pattern(first_of_month + 13.days) # 14th
+    expect(@activity).not_to be_matches_recurrence_pattern(first_of_month + 15.days) # 16th
   end
 
   it "matches_recurrence_pattern? matches monthly pattern by position - first Sunday" do
@@ -602,11 +602,11 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "MONTHLY", "interval" => 1, "byday" => [ "SU" ], "bysetpos" => [ 1 ] }
     @activity.recurrence_start_date = first_of_month
 
-    expect(@activity.matches_recurrence_pattern?(first_sunday)).to be_truthy
+    expect(@activity).to be_matches_recurrence_pattern(first_sunday)
 
     # Second Sunday should not match
     second_sunday = first_sunday + 1.week
-    expect(@activity.matches_recurrence_pattern?(second_sunday)).to be_falsey
+    expect(@activity).not_to be_matches_recurrence_pattern(second_sunday)
   end
 
   it "matches_recurrence_pattern? matches yearly pattern" do
@@ -614,10 +614,10 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_rule = { "freq" => "YEARLY", "interval" => 1 }
     @activity.recurrence_start_date = Date.new(2025, 6, 15)
 
-    expect(@activity.matches_recurrence_pattern?(Date.new(2025, 6, 15))).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.new(2026, 6, 15))).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.new(2025, 6, 16))).to be_falsey
-    expect(@activity.matches_recurrence_pattern?(Date.new(2026, 7, 15))).to be_falsey
+    expect(@activity).to be_matches_recurrence_pattern(Date.new(2025, 6, 15))
+    expect(@activity).to be_matches_recurrence_pattern(Date.new(2026, 6, 15))
+    expect(@activity).not_to be_matches_recurrence_pattern(Date.new(2025, 6, 16))
+    expect(@activity).not_to be_matches_recurrence_pattern(Date.new(2026, 7, 15))
   end
 
   it "matches_recurrence_pattern? respects recurrence_end_date" do
@@ -626,8 +626,8 @@ RSpec.describe Activity, type: :model do
     @activity.recurrence_start_date = Date.current
     @activity.recurrence_end_date = Date.current + 5.days
 
-    expect(@activity.matches_recurrence_pattern?(Date.current + 3.days)).to be_truthy
-    expect(@activity.matches_recurrence_pattern?(Date.current + 10.days)).to be_falsey
+    expect(@activity).to be_matches_recurrence_pattern(Date.current + 3.days)
+    expect(@activity).not_to be_matches_recurrence_pattern(Date.current + 10.days)
   end
 
   it "next_occurrence returns nil for non-recurring activities" do
@@ -659,7 +659,7 @@ RSpec.describe Activity, type: :model do
 
     next_occ = @activity.next_occurrence(monday)
     expect(next_occ).not_to be_nil
-    expect(next_occ.monday?).to be_truthy
+    expect(next_occ).to be_monday
   end
 
   it "next_occurrence returns nil if no occurrence within 366 days" do
@@ -706,7 +706,7 @@ RSpec.describe Activity, type: :model do
     occurrences = @activity.occurrences_in_range(monday, monday + 2.weeks)
     # 2 weeks + partial = should have 4-6 occurrences (2 per week)
     expect(occurrences.length).to be >= 4
-    expect(occurrences.all? { |occ| occ[:start_time].monday? || occ[:start_time].wednesday? }).to be_truthy
+    expect(occurrences).to be_all { |occ| occ[:start_time].monday? || occ[:start_time].wednesday? }
   end
 
   it "occurrences_in_range respects recurrence_end_date" do

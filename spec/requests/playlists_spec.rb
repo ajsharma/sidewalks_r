@@ -7,45 +7,45 @@ RSpec.describe "Playlists", type: :request do
     sign_in @user
   end
 
-  it "should get index" do
+  it "gets index" do
     get playlists_url
     expect(response).to have_http_status(:success)
   end
 
-  it "should get show" do
+  it "gets show" do
     get playlist_url(@playlist)
     expect(response).to have_http_status(:success)
   end
 
-  it "should get new" do
+  it "gets new" do
     get new_playlist_url
     expect(response).to have_http_status(:success)
   end
 
-  it "should create playlist" do
+  it "creates playlist" do
     expect {
       post playlists_url, params: { playlist: { name: "Test Playlist", description: "Test" } }
-    }.to change { Playlist.count }.by(1)
+    }.to change(Playlist, :count).by(1)
     expect(response).to redirect_to(playlist_url(Playlist.last))
   end
 
-  it "should get edit" do
+  it "gets edit" do
     get edit_playlist_url(@playlist)
     expect(response).to have_http_status(:success)
   end
 
-  it "should update playlist" do
+  it "updates playlist" do
     patch playlist_url(@playlist), params: { playlist: { name: "Updated Playlist" } }
     expect(response).to redirect_to(playlist_url(@playlist))
   end
 
-  it "should archive playlist on destroy" do
+  it "archives playlist on destroy" do
     expect {
       delete playlist_url(@playlist)
-    }.not_to change { Playlist.count }
+    }.not_to change(Playlist, :count)
     expect(response).to redirect_to(playlists_path)
     @playlist.reload
-    expect(@playlist.archived?).to be_truthy
+    expect(@playlist).to be_archived
   end
 
   it "index should include activities count to prevent N+1 queries" do

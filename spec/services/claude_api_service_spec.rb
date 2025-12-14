@@ -6,7 +6,7 @@ RSpec.describe ClaudeApiService, type: :service do
     # Set provider to anthropic for these tests
     @original_provider = AiConfig.instance.provider
     AiConfig.instance.provider = "anthropic"
-    @service = ClaudeApiService.new
+    @service = described_class.new
   end
 
   after do
@@ -19,7 +19,7 @@ RSpec.describe ClaudeApiService, type: :service do
     AiConfig.instance.anthropic_api_key = nil
 
     expect {
-      ClaudeApiService.new
+      described_class.new
     }.to raise_error(ClaudeApiService::ApiError, "ANTHROPIC_API_KEY not configured")
   ensure
     AiConfig.instance.anthropic_api_key = original_key

@@ -3,48 +3,48 @@ require "rails_helper"
 RSpec.describe UrlExtractorService, type: :service do
   it "raises InvalidUrlError for missing protocol" do
     expect {
-      UrlExtractorService.new("example.com")
+      described_class.new("example.com")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /must use HTTP or HTTPS/)
   end
 
   it "raises InvalidUrlError for localhost" do
     expect {
-      UrlExtractorService.new("http://localhost/event")
+      described_class.new("http://localhost/event")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /private\/internal network/)
   end
 
   it "raises InvalidUrlError for 127.0.0.1" do
     expect {
-      UrlExtractorService.new("http://127.0.0.1/event")
+      described_class.new("http://127.0.0.1/event")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /private\/internal network/)
   end
 
   it "raises InvalidUrlError for private IP 192.168.x.x" do
     expect {
-      UrlExtractorService.new("http://192.168.1.1/event")
+      described_class.new("http://192.168.1.1/event")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /private\/internal network/)
   end
 
   it "raises InvalidUrlError for private IP 10.x.x.x" do
     expect {
-      UrlExtractorService.new("http://10.0.0.1/event")
+      described_class.new("http://10.0.0.1/event")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /private\/internal network/)
   end
 
   it "raises InvalidUrlError for direct IP addresses" do
     expect {
-      UrlExtractorService.new("http://8.8.8.8/event")
+      described_class.new("http://8.8.8.8/event")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /Direct IP addresses are not allowed/)
   end
 
   it "raises InvalidUrlError for cloud metadata endpoint" do
     expect {
-      UrlExtractorService.new("http://metadata.google.internal/computeMetadata/v1/")
+      described_class.new("http://metadata.google.internal/computeMetadata/v1/")
     }.to raise_error(UrlExtractorService::InvalidUrlError, /private\/internal network/)
   end
 
   it "accepts valid https URL" do
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     expect(service).not_to be_nil
   end
 
@@ -78,7 +78,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     expect(result[:structured_data][:name]).to eq "Summer Concert"
@@ -105,7 +105,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     expect(result[:structured_data][:name]).to eq "Tech Conference 2025"
@@ -127,7 +127,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     expect(result[:structured_data][:name]).to eq "Workshop Event"
@@ -149,7 +149,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     expect(result[:structured_data][:name]).to eq "Basic Event Page"
@@ -169,7 +169,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     expect(result[:needs_ai_parsing]).to be true
@@ -183,7 +183,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: "<html><head><title>Event</title></head></html>")
 
-    service = UrlExtractorService.new("http://example.com/event")
+    service = described_class.new("http://example.com/event")
     result = service.extract
 
     expect(result).not_to be_nil
@@ -201,7 +201,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event5")
       .to_return(status: 301, headers: { "Location" => "https://example.com/event6" })
 
-    service = UrlExtractorService.new("https://example.com/event1")
+    service = described_class.new("https://example.com/event1")
 
     expect {
       service.extract
@@ -212,7 +212,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 404)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
 
     expect {
       service.extract
@@ -223,7 +223,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_timeout
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
 
     expect {
       service.extract
@@ -238,7 +238,7 @@ RSpec.describe UrlExtractorService, type: :service do
         body: ""
       )
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
 
     expect {
       service.extract
@@ -249,7 +249,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 301, headers: { "Location" => "http://192.168.1.1/admin" })
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
 
     expect {
       service.extract
@@ -271,7 +271,7 @@ RSpec.describe UrlExtractorService, type: :service do
     stub_request(:get, "https://example.com/event")
       .to_return(status: 200, body: html)
 
-    service = UrlExtractorService.new("https://example.com/event")
+    service = described_class.new("https://example.com/event")
     result = service.extract
 
     # Should not crash, should fall back to other metadata

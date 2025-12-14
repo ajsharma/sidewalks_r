@@ -13,34 +13,34 @@ RSpec.describe "Activities", type: :request do
     sign_in @user
   end
 
-  it "should get index" do
+  it "gets index" do
     get activities_url
     expect(response).to have_http_status(:success)
   end
 
-  it "should get show" do
+  it "gets show" do
     get activity_url(@activity)
     expect(response).to have_http_status(:success)
   end
 
-  it "should get new" do
+  it "gets new" do
     get new_activity_url
     expect(response).to have_http_status(:success)
   end
 
-  it "should create activity" do
+  it "creates activity" do
     expect {
       post activities_url, params: { activity: { name: "Test Activity", description: "Test" } }
-    }.to change { Activity.count }.by(1)
+    }.to change(Activity, :count).by(1)
     expect(response).to redirect_to(activity_url(Activity.last))
   end
 
-  it "should get edit" do
+  it "gets edit" do
     get edit_activity_url(@activity)
     expect(response).to have_http_status(:success)
   end
 
-  it "should update activity" do
+  it "updates activity" do
     patch activity_url(@activity), params: {
       activity: {
         name: "Updated Activity",

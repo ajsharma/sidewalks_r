@@ -8,14 +8,14 @@ RSpec.describe GoogleCalendarService, type: :service do
     @google_account = create_test_google_account(@user)
   end
 
-  it "should initialize with google account" do
-    service = GoogleCalendarService.new(@google_account)
+  it "initializes with google account" do
+    service = described_class.new(@google_account)
     # Test that service initializes properly
     expect(service).not_to be_nil
     expect(service.instance_variable_get(:@google_account)).to eq @google_account
   end
 
-  it "should detect expired tokens" do
+  it "detects expired tokens" do
     @google_account.update!(expires_at: 1.hour.ago)
 
     # Test that the account is properly marked as expired
@@ -28,13 +28,13 @@ RSpec.describe GoogleCalendarService, type: :service do
       stub_google_oauth_token_refresh
 
       # Service initialization may trigger refresh - that's expected behavior
-      service = GoogleCalendarService.new(@google_account)
+      service = described_class.new(@google_account)
       expect(service).not_to be_nil
     end
   end
 
   # VCR test for real API calls (when recording)
-  it "should fetch calendar list with VCR" do
+  it "fetches calendar list with VCR" do
     VCR.use_cassette("google_calendar_list") do
       skip "Enable when recording real API interactions"
 
@@ -48,8 +48,8 @@ RSpec.describe GoogleCalendarService, type: :service do
   end
 
   # Test without external API calls
-  it "should handle API errors gracefully" do
-    service = GoogleCalendarService.new(@google_account)
+  it "handles API errors gracefully" do
+    service = described_class.new(@google_account)
 
     # Test that service responds to expected methods
     expect(service).to respond_to :fetch_calendars
@@ -57,7 +57,7 @@ RSpec.describe GoogleCalendarService, type: :service do
   end
 
   # Test calendar event creation logic
-  it "should format event data correctly" do
+  it "formats event data correctly" do
     VCR.use_cassette("google_create_event") do
       skip "Enable when recording real API interactions"
 

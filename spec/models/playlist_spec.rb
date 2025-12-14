@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Playlist, type: :model do
   before do
     @user = users(:one)
-    @playlist = Playlist.new(
+    @playlist = described_class.new(
       user: @user,
       name: "Test Playlist",
       description: "Test description"
@@ -11,39 +11,39 @@ RSpec.describe Playlist, type: :model do
     @activity = activities(:one)
   end
 
-  it "should be valid" do
+  it "is valid" do
     expect(@playlist).to be_valid
   end
 
-  it "should require user" do
+  it "requires user" do
     @playlist.user = nil
     expect(@playlist).not_to be_valid
     expect(@playlist.errors[:user]).to include("must exist")
   end
 
-  it "should require name" do
+  it "requires name" do
     @playlist.name = ""
     expect(@playlist).not_to be_valid
     expect(@playlist.errors[:name]).to include("can't be blank")
   end
 
-  it "should generate slug from name" do
+  it "generates slug from name" do
     @playlist.save!
     expect(@playlist.slug).to eq("test-playlist")
   end
 
-  it "should generate unique slug when name conflicts" do
+  it "generates unique slug when name conflicts" do
     @playlist.save!
-    playlist2 = Playlist.create!(
+    playlist2 = described_class.create!(
       user: @user,
       name: "Test Playlist"
     )
     expect(playlist2.slug).to eq("test-playlist-1")
   end
 
-  it "should require unique slug" do
+  it "requires unique slug" do
     @playlist.save!
-    playlist2 = Playlist.new(
+    playlist2 = described_class.new(
       user: @user,
       name: "Different Playlist",
       slug: "test-playlist"
@@ -52,18 +52,18 @@ RSpec.describe Playlist, type: :model do
     expect(playlist2.errors[:slug]).to include("has already been taken")
   end
 
-  it "should use to_param as slug" do
+  it "uses to_param as slug" do
     @playlist.save!
     expect(@playlist.to_param).to eq(@playlist.slug)
   end
 
   it "archived? should return false when not archived" do
-    expect(@playlist.archived?).to be_falsey
+    expect(@playlist).not_to be_archived
   end
 
   it "archived? should return true when archived" do
     @playlist.archived_at = Time.current
-    expect(@playlist.archived?).to be_truthy
+    expect(@playlist).to be_archived
   end
 
   it "archive! should set archived_at" do
@@ -73,7 +73,7 @@ RSpec.describe Playlist, type: :model do
     expect(@playlist.archived_at).not_to be_nil
   end
 
-  it "should have many playlist_activities" do
+  it "has many playlist_activities" do
     @playlist.save!
     playlist_activity = @playlist.playlist_activities.create!(
       activity: @activity,
@@ -82,7 +82,7 @@ RSpec.describe Playlist, type: :model do
     expect(@playlist.playlist_activities).to include(playlist_activity)
   end
 
-  it "should have many activities through playlist_activities" do
+  it "has many activities through playlist_activities" do
     @playlist.save!
     @playlist.playlist_activities.create!(
       activity: @activity,
@@ -93,13 +93,13 @@ RSpec.describe Playlist, type: :model do
 
   it "active scope should exclude archived playlists" do
     active_playlist = playlists(:one)
-    archived_playlist = Playlist.create!(
+    archived_playlist = described_class.create!(
       user: @user,
       name: "Archived Playlist",
       archived_at: Time.current
     )
 
-    active_playlists = Playlist.active
+    active_playlists = described_class.active
     expect(active_playlists).to include(active_playlist)
     expect(active_playlists).not_to include(archived_playlist)
   end

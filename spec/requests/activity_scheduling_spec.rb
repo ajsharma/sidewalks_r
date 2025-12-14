@@ -9,12 +9,12 @@ RSpec.describe "ActivityScheduling", type: :request do
     sign_in @user
   end
 
-  it "should get show" do
+  it "gets show" do
     get schedule_url
     expect(response).to have_http_status(:success)
   end
 
-  it "should batch create events in dry run mode" do
+  it "batches create events in dry run mode" do
     post batch_events_schedule_url, params: {
       dry_run: "true",
       start_date: Date.current.to_s,
@@ -23,7 +23,7 @@ RSpec.describe "ActivityScheduling", type: :request do
     expect(response).to have_http_status(:success)
   end
 
-  it "should preload google_accounts to prevent N+1 queries" do
+  it "preloads google_accounts to prevent N+1 queries" do
     # Create a google account for the user
     @user.google_accounts.create!(
       google_id: "test123",
@@ -39,7 +39,7 @@ RSpec.describe "ActivityScheduling", type: :request do
     # This test verifies the preload_associations before_action works
   end
 
-  it "should create single calendar event" do
+  it "creates single calendar event" do
     # Create a google account for the user to enable calendar creation
     google_account = @user.google_accounts.create!(
       google_id: "test123",
@@ -66,7 +66,7 @@ RSpec.describe "ActivityScheduling", type: :request do
     end
   end
 
-  it "should handle activity not found in create" do
+  it "handles activity not found in create" do
     start_time = 1.day.from_now.beginning_of_day + 10.hours
     end_time = start_time + 1.hour
 
@@ -80,7 +80,7 @@ RSpec.describe "ActivityScheduling", type: :request do
     expect(flash[:alert]).to eq("Activity not found")
   end
 
-  it "should handle invalid date format in create" do
+  it "handles invalid date format in create" do
     # Create a google account for the user
     google_account = @user.google_accounts.create!(
       google_id: "test123",

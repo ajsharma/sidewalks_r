@@ -1,6 +1,11 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+# Load RSpec and FactoryBot plugins
+plugins:
+  - rubocop-rspec
+  - rubocop-factory_bot
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
@@ -18,10 +23,10 @@ RSpec/NestedGroups:
   Max: 5  # Deep nesting makes tests harder to understand
 
 # Performance and best practices
-RSpec/FactoryBot/CreateList:
+FactoryBot/CreateList:
   Enabled: true  # Prefer create_list over Array.new { create(...) }
 
-RSpec/FactoryBot/FactoryAssociationWithStrategy:
+FactoryBot/FactoryAssociationWithStrategy:
   Enabled: true  # Ensure consistent factory strategies
 
 # Prevent common pitfalls

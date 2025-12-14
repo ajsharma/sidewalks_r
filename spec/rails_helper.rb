@@ -161,7 +161,7 @@ RSpec.configure do |config|
   config.after(:each, type: :system) do
     # Clean up data created in system tests
     # Use TRUNCATE with CASCADE to handle foreign key constraints
-    tables = ActiveRecord::Base.connection.tables - ['ar_internal_metadata', 'schema_migrations']
+    tables = ActiveRecord::Base.connection.tables - [ 'ar_internal_metadata', 'schema_migrations' ]
     tables.each do |table|
       ActiveRecord::Base.connection.execute("TRUNCATE TABLE #{table} RESTART IDENTITY CASCADE")
     end

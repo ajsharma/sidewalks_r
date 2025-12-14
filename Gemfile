@@ -84,6 +84,12 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
+  # RuboCop extension for RSpec [https://github.com/rubocop/rubocop-rspec]
+  gem "rubocop-rspec", require: false
+
+  # RuboCop extension for FactoryBot [https://github.com/rubocop/rubocop-factory_bot]
+  gem "rubocop-factory_bot", require: false
+
   # Code smell detection for Ruby [https://github.com/troessner/reek]
   gem "reek", require: false
 

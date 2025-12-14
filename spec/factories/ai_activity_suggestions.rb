@@ -30,10 +30,10 @@ FactoryBot.define do
           "name" => "Farmers Market Visit",
           "description" => "Visit local farmers market",
           "schedule_type" => "flexible",
-          "suggested_months" => [5, 6, 7, 8, 9],
-          "suggested_days_of_week" => [0, 6],
+          "suggested_months" => [ 5, 6, 7, 8, 9 ],
+          "suggested_days_of_week" => [ 0, 6 ],
           "suggested_time_of_day" => "morning",
-          "category_tags" => ["outdoor", "food", "social"],
+          "category_tags" => [ "outdoor", "food", "social" ],
           "confidence_score" => 85.5,
           "reasoning" => "Farmers markets are seasonal and typically open on weekend mornings"
         }
