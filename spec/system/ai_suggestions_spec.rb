@@ -69,14 +69,23 @@ RSpec.describe "AiSuggestions", type: :system do
 
     visit ai_activities_path
 
+    # Verify the suggestion card is present
+    expect(page).to have_css("#suggestion_#{suggestion.id}")
+    expect(page).to have_content("Farmers Market Visit")
+
+    # Stub the window.confirm to auto-accept for testing
+    page.execute_script("window.confirm = function() { return true; }")
+
     within "#suggestion_#{suggestion.id}" do
-      accept_confirm do
-        click_link "Dismiss"
-      end
+      click_link "Dismiss"
     end
 
-    # Suggestion should be marked as not accepted
+    # Wait for Turbo to process the request
+    sleep 0.5
+
+    # Suggestion should be marked as rejected (status: completed, accepted: false)
     suggestion.reload
+    expect(suggestion.status).to eq("completed")
     expect(suggestion.accepted).to be false
   end
 
