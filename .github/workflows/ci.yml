@@ -105,6 +105,12 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Precompile assets
+        env:
+          RAILS_ENV: test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bin/rails assets:precompile
+
       - name: Run tests
         env:
           RAILS_ENV: test
