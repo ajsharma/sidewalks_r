@@ -1,0 +1,219 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Analyze RSpec test performance to identify slow tests
+# Usage: bin/analyze-slow-tests [--threshold SECONDS] [--format json|table]
+
+require 'json'
+require 'optparse'
+require 'English'
+
+class SlowTestAnalyzer
+  SEVERITY_THRESHOLDS = {
+    critical: 10.0,   # System tests over 10s are critical
+    warning: 5.0,     # Over 5s needs attention
+    slow: 1.0         # Over 1s could be optimized
+  }.freeze
+
+  def initialize(threshold: 1.0, format: 'table')
+    @threshold = threshold
+    @format = format
+    @results = []
+  end
+
+  def run
+    puts "Running RSpec with JSON formatter to collect timing data..."
+
+    # Run RSpec with JSON formatter
+    system("bundle exec rspec --format json --out /tmp/rspec_results.json --format progress")
+    exit_status = $CHILD_STATUS.exitstatus
+
+    unless File.exist?('/tmp/rspec_results.json')
+      puts "Error: RSpec results file not found. Tests may have failed to run."
+      exit 1
+    end
+
+    analyze_results
+    display_results
+    display_recommendations
+
+    exit_status
+  end
+
+  private
+
+  def analyze_results
+    data = JSON.parse(File.read('/tmp/rspec_results.json'))
+
+    data['examples'].each do |example|
+      duration = example['run_time']
+      next if duration < @threshold
+
+      @results << {
+        description: example['full_description'],
+        file: example['file_path'],
+        line: example['line_number'],
+        duration: duration,
+        status: example['status'],
+        severity: severity_for(duration),
+        type: test_type(example['file_path'])
+      }
+    end
+
+    @results.sort_by! { |r| -r[:duration] }
+  rescue JSON::ParserError => e
+    puts "Error parsing RSpec results: #{e.message}"
+    exit 1
+  end
+
+  def severity_for(duration)
+    return :critical if duration >= SEVERITY_THRESHOLDS[:critical]
+    return :warning if duration >= SEVERITY_THRESHOLDS[:warning]
+    :slow
+  end
+
+  def test_type(file_path)
+    case file_path
+    when /spec\/system\// then 'system'
+    when /spec\/requests\// then 'request'
+    when /spec\/models\// then 'model'
+    when /spec\/services\// then 'service'
+    when /spec\/jobs\// then 'job'
+    when /spec\/helpers\// then 'helper'
+    else 'other'
+    end
+  end
+
+  def display_results
+    case @format
+    when 'json'
+      puts JSON.pretty_generate({
+        threshold: @threshold,
+        total_slow_tests: @results.size,
+        tests: @results
+      })
+    else
+      display_table
+    end
+  end
+
+  def display_table
+    puts "\n" + "=" * 100
+    puts "SLOW TEST ANALYSIS (threshold: #{@threshold}s)"
+    puts "=" * 100
+    puts
+
+    if @results.empty?
+      puts "✓ No tests exceeded the threshold of #{@threshold}s"
+      return
+    end
+
+    # Group by severity
+    critical = @results.select { |r| r[:severity] == :critical }
+    warning = @results.select { |r| r[:severity] == :warning }
+    slow = @results.select { |r| r[:severity] == :slow }
+
+    display_section("CRITICAL (>= #{SEVERITY_THRESHOLDS[:critical]}s)", critical, '🔴')
+    display_section("WARNING (>= #{SEVERITY_THRESHOLDS[:warning]}s)", warning, '🟡')
+    display_section("SLOW (>= #{SEVERITY_THRESHOLDS[:slow]}s)", slow, '🟠')
+
+    # Summary by test type
+    puts "\n" + "-" * 100
+    puts "SUMMARY BY TEST TYPE"
+    puts "-" * 100
+
+    @results.group_by { |r| r[:type] }.each do |type, tests|
+      avg_duration = tests.sum { |t| t[:duration] } / tests.size
+      total_duration = tests.sum { |t| t[:duration] }
+      puts format("%-15s | Count: %3d | Avg: %6.2fs | Total: %7.2fs",
+                  type.capitalize, tests.size, avg_duration, total_duration)
+    end
+
+    puts "\n" + "=" * 100
+  end
+
+  def display_section(title, tests, emoji)
+    return if tests.empty?
+
+    puts "\n#{emoji} #{title}"
+    puts "-" * 100
+
+    tests.first(10).each do |test|
+      status_icon = test[:status] == 'passed' ? '✓' : '✗'
+      puts format("%s [%6.2fs] %s:%d",
+                  status_icon,
+                  test[:duration],
+                  test[:file],
+                  test[:line])
+      puts format("  └─ %s", test[:description])
+    end
+
+    if tests.size > 10
+      puts "\n  ... and #{tests.size - 10} more tests"
+    end
+  end
+
+  def display_recommendations
+    return if @results.empty?
+
+    puts "\n" + "=" * 100
+    puts "RECOMMENDATIONS"
+    puts "=" * 100
+
+    system_tests = @results.select { |r| r[:type] == 'system' }
+    failed_tests = @results.select { |r| r[:status] == 'failed' }
+
+    if system_tests.any?
+      puts "\n📊 System Tests (#{system_tests.size} slow):"
+      puts "  - Consider using request specs instead of system specs for simple interactions"
+      puts "  - Use :js option only when JavaScript is actually needed"
+      puts "  - Check Capybara wait times and server startup delays"
+      puts "  - Ensure database is cleaned properly between tests"
+    end
+
+    if failed_tests.any?
+      puts "\n⚠️  Failed Tests (#{failed_tests.size}):"
+      puts "  - Slow failing tests may indicate timeouts or hanging operations"
+      puts "  - Check for network calls, external dependencies, or infinite loops"
+      puts "  - Review Selenium/Capybara configuration for system tests"
+    end
+
+    request_tests = @results.select { |r| r[:type] == 'request' }
+    if request_tests.any? { |t| t[:duration] > 1.0 }
+      puts "\n📡 Request Tests:"
+      puts "  - Check for N+1 queries using Bullet gem output"
+      puts "  - Review database factory usage and simplify test data"
+      puts "  - Consider using build_stubbed instead of create where possible"
+    end
+
+    puts "\n💡 General Tips:"
+    puts "  - Run tests in parallel: bundle exec rspec --parallel"
+    puts "  - Profile specific slow test: bundle exec rspec path/to/spec.rb --profile"
+    puts "  - Use DatabaseCleaner transaction strategy for faster cleanup"
+    puts "  - Mock external API calls with VCR or WebMock"
+
+    puts "\n" + "=" * 100
+  end
+end
+
+# Parse command line options
+options = { threshold: 1.0, format: 'table' }
+OptionParser.new do |opts|
+  opts.banner = "Usage: bin/analyze-slow-tests [options]"
+
+  opts.on("-t", "--threshold SECONDS", Float, "Minimum duration to report (default: 1.0)") do |t|
+    options[:threshold] = t
+  end
+
+  opts.on("-f", "--format FORMAT", String, "Output format: table or json (default: table)") do |f|
+    options[:format] = f
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+end.parse!
+
+analyzer = SlowTestAnalyzer.new(**options)
+exit analyzer.run

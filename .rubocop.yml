@@ -1,8 +1,42 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+# Load RSpec and FactoryBot plugins
+plugins:
+  - rubocop-rspec
+  - rubocop-factory_bot
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
 # Layout/SpaceInsideArrayLiteralBrackets:
 #   Enabled: false
+
+# RSpec-specific rules to prevent slow tests
+RSpec/ExampleLength:
+  Max: 50  # Warn if tests get too long (often a sign of doing too much)
+
+RSpec/MultipleExpectations:
+  Max: 20  # Integration tests can have more expectations than unit tests
+
+RSpec/NestedGroups:
+  Max: 5  # Deep nesting makes tests harder to understand
+
+# Allow instance variables in specs - they're acceptable for test setup
+RSpec/InstanceVariable:
+  Enabled: false
+
+# Performance and best practices
+FactoryBot/CreateList:
+  Enabled: true  # Prefer create_list over Array.new { create(...) }
+
+FactoryBot/FactoryAssociationWithStrategy:
+  Enabled: true  # Ensure consistent factory strategies
+
+# Prevent common pitfalls
+Style/GlobalVars:
+  Enabled: true  # Avoid global variables in tests
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'  # Allow long blocks in specs

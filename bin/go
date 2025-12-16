@@ -15,7 +15,7 @@ FileUtils.chdir APP_ROOT do
   system! "bin/setup --skip-server"
 
   puts "\n== Running tests =="
-  system! "bin/rails test"
+  system! "bundle exec rspec"
 
   puts "\n== Running security tests =="
   system! "bin/brakeman"

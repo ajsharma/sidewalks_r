@@ -66,6 +66,15 @@ group :development, :test do
   # Load environment variables from .env files [https://github.com/bkeepers/dotenv]
   gem "dotenv-rails"
 
+  # RSpec testing framework [https://rspec.info/]
+  gem "rspec-rails", "~> 7.1"
+
+  # Test data generation [https://github.com/thoughtbot/factory_bot_rails]
+  gem "factory_bot_rails"
+
+  # Fake data generation [https://github.com/faker-ruby/faker]
+  gem "faker"
+
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
 
@@ -74,6 +83,12 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # RuboCop extension for RSpec [https://github.com/rubocop/rubocop-rspec]
+  gem "rubocop-rspec", require: false
+
+  # RuboCop extension for FactoryBot [https://github.com/rubocop/rubocop-factory_bot]
+  gem "rubocop-factory_bot", require: false
 
   # Code smell detection for Ruby [https://github.com/troessner/reek]
   gem "reek", require: false
@@ -110,6 +125,10 @@ group :test do
   # Accessibility testing with axe-core [https://github.com/dequelabs/axe-core-gems]
   gem "axe-core-capybara"
 
+  # Additional RSpec matchers [https://github.com/thoughtbot/shoulda-matchers]
+  gem "shoulda-matchers", "~> 6.0"
+
+  # HTTP request mocking [https://github.com/vcr/vcr]
   gem "vcr", "~> 6.3"
   gem "webmock", "~> 3.25"
 end

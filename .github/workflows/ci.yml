@@ -105,13 +105,21 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Precompile assets
+        env:
+          RAILS_ENV: test
+          RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bin/rails assets:precompile
+
       - name: Run tests
         env:
           RAILS_ENV: test
           RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test
+        run: |
+          bin/rails db:test:prepare
+          bundle exec rspec
 
       - name: Check coverage report
         run: |

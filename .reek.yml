@@ -2,7 +2,8 @@ exclude_paths:
   - db/migrate
   - vendor
   - node_modules
-  - test # Exclude test files from code smell analysis
+  - test # Exclude Minitest files from code smell analysis
+  - spec # Exclude RSpec files from code smell analysis
 
 detectors:
   IrresponsibleModule:
