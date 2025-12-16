@@ -10,7 +10,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Test OAuth flow with mocked responses
-  it "should handle Google OAuth callback" do
+  it "handles Google OAuth callback" do
     # Mock OAuth response data
     omniauth_hash = {
       provider: "google_oauth2",
@@ -37,7 +37,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Test Google Calendar API with stubbed responses
-  it "should handle calendar list fetching" do
+  it "handles calendar list fetching" do
     # Stub the Google Calendar API
     stub_google_calendar_list
 
@@ -53,7 +53,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Test error handling scenarios
-  it "should handle Google API errors gracefully" do
+  it "handles Google API errors gracefully" do
     # Stub API error response
     stub_google_api_error(500, "Internal Server Error")
 
@@ -69,7 +69,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Test rate limiting
-  it "should handle rate limiting" do
+  it "handles rate limiting" do
     stub_google_rate_limit_error
 
     # Test rate limit handling
@@ -84,7 +84,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Test token refresh flow
-  it "should refresh expired tokens" do
+  it "refreshes expired tokens" do
     # Set up expired token
     @google_account.update!(expires_at: 1.hour.ago)
 
@@ -100,7 +100,7 @@ RSpec.describe "GoogleIntegration", type: :request do
   end
 
   # Example VCR test (disabled by default)
-  it "should fetch real calendar events with VCR" do
+  it "fetches real calendar events with VCR" do
     VCR.use_cassette("google_calendar_events") do
       skip "Enable when recording real API interactions with test credentials"
 

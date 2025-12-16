@@ -1,6 +1,11 @@
 # Omakase Ruby styling for Rails
 inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
+# Load RSpec and FactoryBot plugins
+plugins:
+  - rubocop-rspec
+  - rubocop-factory_bot
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`
@@ -9,19 +14,23 @@ inherit_gem: { rubocop-rails-omakase: rubocop.yml }
 
 # RSpec-specific rules to prevent slow tests
 RSpec/ExampleLength:
-  Max: 25  # Warn if tests get too long (often a sign of doing too much)
+  Max: 50  # Warn if tests get too long (often a sign of doing too much)
 
 RSpec/MultipleExpectations:
-  Max: 10  # System tests can have more expectations than unit tests
+  Max: 20  # Integration tests can have more expectations than unit tests
 
 RSpec/NestedGroups:
   Max: 5  # Deep nesting makes tests harder to understand
 
+# Allow instance variables in specs - they're acceptable for test setup
+RSpec/InstanceVariable:
+  Enabled: false
+
 # Performance and best practices
-RSpec/FactoryBot/CreateList:
+FactoryBot/CreateList:
   Enabled: true  # Prefer create_list over Array.new { create(...) }
 
-RSpec/FactoryBot/FactoryAssociationWithStrategy:
+FactoryBot/FactoryAssociationWithStrategy:
   Enabled: true  # Ensure consistent factory strategies
 
 # Prevent common pitfalls

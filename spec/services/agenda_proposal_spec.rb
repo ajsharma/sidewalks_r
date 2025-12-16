@@ -20,7 +20,7 @@ RSpec.describe AgendaProposal, type: :service do
       }
     ]
 
-    @agenda_proposal = AgendaProposal.new(
+    @agenda_proposal = described_class.new(
       existing_events: @existing_events,
       suggestions: @suggestions,
       date_range: @date_range,
@@ -80,7 +80,7 @@ RSpec.describe AgendaProposal, type: :service do
   end
 
   it "any_events? returns false when no events exist" do
-    empty_proposal = AgendaProposal.new(
+    empty_proposal = described_class.new(
       existing_events: [],
       suggestions: [],
       date_range: @date_range,
@@ -94,7 +94,7 @@ RSpec.describe AgendaProposal, type: :service do
   end
 
   it "google_calendar_connected? returns false when no calendar indicators" do
-    proposal_without_calendar = AgendaProposal.new(
+    proposal_without_calendar = described_class.new(
       existing_events: [],
       suggestions: [
         {

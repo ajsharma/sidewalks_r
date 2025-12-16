@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe OpenAiService, type: :service do
   before do
     # AI config is loaded from config/ai.yml test environment
-    @service = OpenAiService.new
+    @service = described_class.new
   end
 
   it "raises error when OPENAI_API_KEY is not set" do
@@ -12,7 +12,7 @@ RSpec.describe OpenAiService, type: :service do
     AiConfig.instance.openai_api_key = nil
 
     expect {
-      OpenAiService.new
+      described_class.new
     }.to raise_error(OpenAiService::ApiError, "OPENAI_API_KEY not configured")
   ensure
     AiConfig.instance.openai_api_key = original_key

@@ -16,7 +16,7 @@ RSpec.describe AiSuggestionGeneratorJob, type: :job do
     stub_successful_api
 
     expect {
-      AiSuggestionGeneratorJob.perform_now(
+      described_class.perform_now(
         user_id: @user.id,
         input: "Go hiking",
         request_id: "test-123"
@@ -32,7 +32,7 @@ RSpec.describe AiSuggestionGeneratorJob, type: :job do
 
     # API errors should create a failed suggestion before re-raising
     begin
-      AiSuggestionGeneratorJob.perform_now(
+      described_class.perform_now(
         user_id: @user.id,
         input: "test input",
         request_id: "test-123"

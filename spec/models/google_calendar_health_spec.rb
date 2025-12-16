@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe GoogleCalendarHealth, type: :model do
   it "check_api_connectivity returns healthy when no Google accounts" do
     GoogleAccount.delete_all
-    result = GoogleCalendarHealth.check_api_connectivity
+    result = described_class.check_api_connectivity
 
     expect(result[:status]).to eq("healthy")
     expect(result[:message]).to eq("No Google accounts configured")
@@ -18,7 +18,7 @@ RSpec.describe GoogleCalendarHealth, type: :model do
       refresh_token: "refresh_token"
     )
 
-    result = GoogleCalendarHealth.check_api_connectivity
+    result = described_class.check_api_connectivity
 
     expect(result[:status]).to eq("warning")
     expect(result[:message]).to eq("No active Google accounts found")
@@ -35,7 +35,7 @@ RSpec.describe GoogleCalendarHealth, type: :model do
       expires_at: 1.hour.ago
     )
 
-    result = GoogleCalendarHealth.check_api_connectivity
+    result = described_class.check_api_connectivity
 
     expect(result[:status]).to eq("warning")
     expect(result[:message]).to eq("Google Calendar tokens need refresh")
@@ -52,7 +52,7 @@ RSpec.describe GoogleCalendarHealth, type: :model do
       expires_at: 1.hour.from_now
     )
 
-    result = GoogleCalendarHealth.check_api_connectivity
+    result = described_class.check_api_connectivity
 
     expect(result[:status]).to eq("healthy")
     expect(result[:message]).to eq("Google Calendar API accessible")
@@ -71,7 +71,7 @@ RSpec.describe GoogleCalendarHealth, type: :model do
       expires_at: 1.hour.from_now
     )
 
-    result = GoogleCalendarHealth.check_api_connectivity
+    result = described_class.check_api_connectivity
 
     expect(result).to be_an_instance_of(Hash)
     expect(result.keys).to include(:status)
@@ -102,7 +102,7 @@ RSpec.describe GoogleCalendarHealth, type: :model do
     # Update the new account to make it more recent
     new_account.touch
 
-    result = GoogleCalendarHealth.send(:find_recent_active_account)
+    result = described_class.send(:find_recent_active_account)
     expect(result).to eq(new_account)
   end
 
@@ -114,13 +114,13 @@ RSpec.describe GoogleCalendarHealth, type: :model do
       refresh_token: "refresh_token"
     )
 
-    result = GoogleCalendarHealth.send(:find_recent_active_account)
+    result = described_class.send(:find_recent_active_account)
     expect(result).to be_nil
   end
 
   it "response_time_ms calculates correct duration" do
     start_time = Time.current - 0.05 # 50ms ago
-    response_time = GoogleCalendarHealth.send(:response_time_ms, start_time)
+    response_time = described_class.send(:response_time_ms, start_time)
 
     expect(response_time).to be_an_instance_of(Float)
     expect(response_time).to be > 0

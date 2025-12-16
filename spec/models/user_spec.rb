@@ -3,44 +3,44 @@ require "ostruct"
 
 RSpec.describe User, type: :model do
   before do
-    @user = User.new(
+    @user = described_class.new(
       email: "test@example.com",
       password: "password",
       name: "Test User"
     )
   end
 
-  it "should be valid" do
+  it "is valid" do
     expect(@user).to be_valid
   end
 
-  it "should require email" do
+  it "requires email" do
     @user.email = ""
     expect(@user).not_to be_valid
     expect(@user.errors[:email]).to include("can't be blank")
   end
 
-  it "should require name" do
+  it "requires name" do
     @user.name = ""
     expect(@user).not_to be_valid
     expect(@user.errors[:name]).to include("can't be blank")
   end
 
-  it "should require unique email" do
+  it "requires unique email" do
     @user.save!
     duplicate_user = @user.dup
     expect(duplicate_user).not_to be_valid
     expect(duplicate_user.errors[:email]).to include("has already been taken")
   end
 
-  it "should generate slug from name" do
+  it "generates slug from name" do
     @user.save!
     expect(@user.slug).to eq("test-user")
   end
 
-  it "should generate unique slug when name conflicts" do
+  it "generates unique slug when name conflicts" do
     @user.save!
-    user2 = User.create!(
+    user2 = described_class.create!(
       email: "test2@example.com",
       password: "password",
       name: "Test User"
@@ -48,9 +48,9 @@ RSpec.describe User, type: :model do
     expect(user2.slug).to eq("test-user-1")
   end
 
-  it "should require unique slug" do
+  it "requires unique slug" do
     @user.save!
-    user2 = User.new(
+    user2 = described_class.new(
       email: "test2@example.com",
       password: "password",
       name: "Different Name",
@@ -60,36 +60,36 @@ RSpec.describe User, type: :model do
     expect(user2.errors[:slug]).to include("has already been taken")
   end
 
-  it "should validate timezone" do
+  it "validates timezone" do
     @user.timezone = "Invalid/Timezone"
     expect(@user).not_to be_valid
     expect(@user.errors[:timezone]).to include("is not included in the list")
   end
 
-  it "should allow valid timezone" do
+  it "allows valid timezone" do
     @user.timezone = "Eastern Time (US & Canada)"
     @user.valid?
     expect(@user.errors[:timezone]).to be_empty
   end
 
-  it "should set default timezone on create" do
+  it "sets default timezone on create" do
     @user.timezone = nil
     @user.save!
     expect(@user.timezone).to eq("Pacific Time (US & Canada)")
   end
 
-  it "should use to_param as slug" do
+  it "uses to_param as slug" do
     @user.save!
     expect(@user.to_param).to eq(@user.slug)
   end
 
   it "archived? should return false when not archived" do
-    expect(@user.archived?).to be_falsey
+    expect(@user).not_to be_archived
   end
 
   it "archived? should return true when archived" do
     @user.archived_at = Time.current
-    expect(@user.archived?).to be_truthy
+    expect(@user).to be_archived
   end
 
   it "archive! should set archived_at" do
@@ -99,19 +99,19 @@ RSpec.describe User, type: :model do
     expect(@user.archived_at).not_to be_nil
   end
 
-  it "should have many activities" do
+  it "has many activities" do
     @user.save!
     activity = @user.activities.create!(name: "Test Activity")
     expect(@user.activities).to include(activity)
   end
 
-  it "should have many playlists" do
+  it "has many playlists" do
     @user.save!
     playlist = @user.playlists.create!(name: "Test Playlist")
     expect(@user.playlists).to include(playlist)
   end
 
-  it "should have many google_accounts" do
+  it "has many google_accounts" do
     @user.save!
     google_account = @user.google_accounts.create!(
       email: "test@gmail.com",
@@ -122,14 +122,14 @@ RSpec.describe User, type: :model do
 
   it "active scope should exclude archived users" do
     active_user = users(:one)
-    archived_user = User.create!(
+    archived_user = described_class.create!(
       email: "archived@example.com",
       password: "password",
       name: "Archived User",
       archived_at: Time.current
     )
 
-    active_users = User.active
+    active_users = described_class.active
     expect(active_users).to include(active_user)
     expect(active_users).not_to include(archived_user)
   end
@@ -141,7 +141,7 @@ RSpec.describe User, type: :model do
       uid: "123456"
     )
 
-    found_user = User.from_omniauth(auth)
+    found_user = described_class.from_omniauth(auth)
     expect(found_user).to eq(@user)
   end
 
@@ -151,6 +151,6 @@ RSpec.describe User, type: :model do
       uid: "123456"
     )
 
-    expect { User.from_omniauth(auth) }.to change { User.count }.by(1)
+    expect { described_class.from_omniauth(auth) }.to change(described_class, :count).by(1)
   end
 end

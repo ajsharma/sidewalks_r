@@ -105,7 +105,7 @@ RSpec.describe "AiActivities", type: :request do
 
     expect {
       post accept_ai_activity_path(suggestion), as: :json
-    }.to change { Activity.count }.by(1)
+    }.to change(Activity, :count).by(1)
 
     expect(response).to have_http_status(:created)
     json = JSON.parse(response.body)
@@ -146,7 +146,7 @@ RSpec.describe "AiActivities", type: :request do
 
     expect {
       delete ai_activity_path(suggestion), as: :json
-    }.to change { AiActivitySuggestion.count }.by(-1)
+    }.to change(AiActivitySuggestion, :count).by(-1)
 
     expect(response).to have_http_status(:no_content)
   end
@@ -187,7 +187,7 @@ RSpec.describe "AiActivities", type: :request do
       expect {
         post retry_ai_activity_path(suggestion), as: :json
       }.to have_enqueued_job(AiSuggestionGeneratorJob)
-    }.to change { AiActivitySuggestion.count }.by(1)
+    }.to change(AiActivitySuggestion, :count).by(1)
 
     expect(response).to have_http_status(:success)
     json = JSON.parse(response.body)
@@ -224,7 +224,7 @@ RSpec.describe "AiActivities", type: :request do
       expect {
         post retry_ai_activity_path(suggestion)
       }.to have_enqueued_job(AiSuggestionGeneratorJob)
-    }.to change { AiActivitySuggestion.count }.by(1)
+    }.to change(AiActivitySuggestion, :count).by(1)
 
     expect(response).to redirect_to(ai_activities_path)
     expect(flash[:notice]).to eq("Generating new AI suggestion...")

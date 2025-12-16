@@ -20,7 +20,7 @@ RSpec.describe AiActivitySuggestion, type: :model do
 
   # Enums
   it "input_type enum works" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_text: "test")
+    suggestion = described_class.new(user: @user, input_text: "test")
     expect(suggestion.input_type).to eq("text")
 
     suggestion.input_type = :url
@@ -28,7 +28,7 @@ RSpec.describe AiActivitySuggestion, type: :model do
   end
 
   it "status enum works" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_text: "test")
+    suggestion = described_class.new(user: @user, input_text: "test")
     expect(suggestion.status).to eq("pending")
 
     suggestion.status = :processing
@@ -43,37 +43,37 @@ RSpec.describe AiActivitySuggestion, type: :model do
 
   # Validations
   it "requires input_type" do
-    suggestion = AiActivitySuggestion.new(user: @user)
+    suggestion = described_class.new(user: @user)
     suggestion.input_type = nil
     expect(suggestion).not_to be_valid
     expect(suggestion.errors[:input_type]).to include("can't be blank")
   end
 
   it "requires input_text for text type" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_type: :text)
+    suggestion = described_class.new(user: @user, input_type: :text)
     expect(suggestion).not_to be_valid
     expect(suggestion.errors[:input_text]).to include("can't be blank")
   end
 
   it "requires source_url for url type" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_type: :url)
+    suggestion = described_class.new(user: @user, input_type: :url)
     expect(suggestion).not_to be_valid
     expect(suggestion.errors[:source_url]).to include("can't be blank")
   end
 
   it "validates url format" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_type: :url, source_url: "not-a-url")
+    suggestion = described_class.new(user: @user, input_type: :url, source_url: "not-a-url")
     expect(suggestion).not_to be_valid
     expect(suggestion.errors[:source_url]).to include("is invalid")
   end
 
   it "accepts valid http url" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_type: :url, source_url: "http://example.com")
+    suggestion = described_class.new(user: @user, input_type: :url, source_url: "http://example.com")
     expect(suggestion).to be_valid
   end
 
   it "accepts valid https url" do
-    suggestion = AiActivitySuggestion.new(user: @user, input_type: :url, source_url: "https://example.com")
+    suggestion = described_class.new(user: @user, input_type: :url, source_url: "https://example.com")
     expect(suggestion).to be_valid
   end
 
@@ -92,18 +92,18 @@ RSpec.describe AiActivitySuggestion, type: :model do
 
   # Scopes
   it "recent scope orders by created_at desc" do
-    suggestions = AiActivitySuggestion.recent
-    expect(suggestions.to_sql).to eq(AiActivitySuggestion.order(created_at: :desc).to_sql)
+    suggestions = described_class.recent
+    expect(suggestions.to_sql).to eq(described_class.order(created_at: :desc).to_sql)
   end
 
   it "accepted scope returns only accepted suggestions" do
-    accepted = AiActivitySuggestion.accepted
+    accepted = described_class.accepted
     expect(accepted).to include(ai_activity_suggestions(:accepted_suggestion))
     expect(accepted).not_to include(ai_activity_suggestions(:text_completed))
   end
 
   it "rejected scope returns unaccepted completed suggestions" do
-    rejected = AiActivitySuggestion.rejected
+    rejected = described_class.rejected
     # Should include completed but not accepted
     expect(rejected).to include(ai_activity_suggestions(:text_completed))
     expect(rejected).not_to include(ai_activity_suggestions(:accepted_suggestion))
@@ -111,7 +111,7 @@ RSpec.describe AiActivitySuggestion, type: :model do
   end
 
   it "for_user scope filters by user" do
-    user_suggestions = AiActivitySuggestion.for_user(@user)
+    user_suggestions = described_class.for_user(@user)
     user_suggestions.each do |suggestion|
       expect(suggestion.user).to eq(@user)
     end
@@ -220,7 +220,7 @@ RSpec.describe AiActivitySuggestion, type: :model do
 
   # Callbacks
   it "normalizes input_text on validation" do
-    suggestion = AiActivitySuggestion.new(
+    suggestion = described_class.new(
       user: @user,
       input_type: :text,
       input_text: "  test activity  "
@@ -230,7 +230,7 @@ RSpec.describe AiActivitySuggestion, type: :model do
   end
 
   it "normalizes source_url on validation" do
-    suggestion = AiActivitySuggestion.new(
+    suggestion = described_class.new(
       user: @user,
       input_type: :url,
       source_url: "  https://example.com  "

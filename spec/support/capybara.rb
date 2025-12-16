@@ -50,7 +50,7 @@ RSpec.configure do |config|
   end
 
   # Use headless_chrome only for tests tagged with :js
-  config.before(:each, type: :system, js: true) do
+  config.before(:each, :js, type: :system) do
     driven_by :headless_chrome
   end
 end

@@ -6,6 +6,10 @@ module SystemHelpers
     fill_in "Email", with: user.email
     fill_in "Password", with: password
     click_button "Sign in"
+
+    # Wait for sign in to complete by checking for authenticated user state
+    # This is important for JavaScript tests where redirects may take time
+    expect(page).to have_current_path(root_path, wait: 5)
   end
 
   # Sign out a user in system tests
