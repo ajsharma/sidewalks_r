@@ -46,7 +46,9 @@ class EventsController < ApplicationController
 
     if activity.save
       # Optionally sync to Google Calendar
-      sync_to_google_calendar(activity) if current_user.google_account&.valid_credentials?
+      if current_user.active_google_account && !current_user.active_google_account.needs_refresh?
+        sync_to_google_calendar(activity)
+      end
 
       redirect_to events_path, notice: "Event added to your calendar!"
     else
@@ -124,7 +126,7 @@ class EventsController < ApplicationController
   end
 
   def sync_to_google_calendar(activity)
-    GoogleCalendarService.new(current_user.google_account).create_event(
+    GoogleCalendarService.new(current_user.active_google_account).create_event(
       summary: activity.name,
       description: activity.description,
       start_time: activity.start_time,
