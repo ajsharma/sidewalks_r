@@ -36,6 +36,9 @@
 #  fk_rails_...  (event_feed_id => event_feeds.id)
 #
 class ExternalEvent < ApplicationRecord
+  # Explicitly set table name to avoid conflicts with model_name override
+  self.table_name = "external_events"
+
   belongs_to :event_feed
 
   validates :title, presence: true, length: { minimum: 2, maximum: 200 }

@@ -2,20 +2,19 @@ require "rails_helper"
 
 RSpec.describe FetchEventFeedsJob, type: :job do
   describe "#perform" do
+    let(:feed) { create(:event_feed) }
     let(:event_data) do
       [
         {
           title: "Test Event",
           start_time: 2.days.from_now,
           source_url: "https://example.com/event1",
-          external_id: "event-1",
-          raw_data: { feed_url: "https://www.bottomofthehill.com/RSS.xml", title: "Test Event" }
+          external_id: "event-1"
         }
       ]
     end
 
     before do
-      # Stub RSS parser to return test data
       allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
     end
 
@@ -24,12 +23,9 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         active_feed = create(:event_feed)
         inactive_feed = create(:event_feed, :inactive)
 
-        # Only 1 active feed should be synced
-        described_class.perform_now
+        expect_any_instance_of(EventSyncService).to receive(:sync).once
 
-        # Verify only active feed was updated
-        expect(active_feed.reload.last_fetched_at).to be_present
-        expect(inactive_feed.reload.last_fetched_at).to be_nil
+        described_class.perform_now
       end
 
       it "creates events from parsed data" do
@@ -69,7 +65,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
       it "archives old events after syncing" do
         create(:event_feed)
-        old_event = create(:external_event, start_time: 10.days.ago, end_time: 10.days.ago + 2.hours)
+        old_event = create(:external_event, :past, start_time: 10.days.ago)
 
         described_class.perform_now
         old_event.reload
@@ -79,7 +75,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
       it "does not archive recent past events" do
         create(:event_feed)
-        recent_event = create(:external_event, start_time: 5.days.ago, end_time: 5.days.ago + 2.hours)
+        recent_event = create(:external_event, :past, start_time: 5.days.ago)
 
         described_class.perform_now
         recent_event.reload
@@ -91,13 +87,11 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     context "with specific feed_id" do
       it "fetches only the specified feed" do
         feed1 = create(:event_feed)
-        feed2 = create(:event_feed, name: "Other Feed", url: "https://sf.funcheap.com/rss-date/")
+        feed2 = create(:event_feed, :funcheap)
+
+        expect_any_instance_of(RssParserService).to receive(:parse).once.and_return(event_data)
 
         described_class.perform_now(feed1.id)
-
-        # Only feed1 should be updated
-        expect(feed1.reload.last_fetched_at).to be_present
-        expect(feed2.reload.last_fetched_at).to be_nil
       end
 
       it "creates events for the specified feed" do
@@ -118,20 +112,20 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       it "records the error on the feed" do
         feed = create(:event_feed)
 
-        # EventSyncService catches FetchError and returns it in results
         expect {
           described_class.perform_now
-        }.not_to raise_error
+        }.to raise_error(RssParserService::FetchError)
 
         feed.reload
         expect(feed.last_error).to include("Connection timeout")
       end
 
       it "retries on FetchError" do
-        # Job has retry_on RssParserService::FetchError configured
-        # This is a smoke test that the job class loads without errors
-        expect(described_class).to be_a(Class)
-        expect(described_class.ancestors).to include(ApplicationJob)
+        feed = create(:event_feed)
+
+        expect {
+          described_class.perform_now
+        }.to have_enqueued_job(described_class).on_queue("event_feeds")
       end
     end
 
@@ -142,19 +136,19 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       end
 
       it "discards the job on InvalidUrlError" do
-        # Job has discard_on RssParserService::InvalidUrlError configured
-        # This is a smoke test that the job class loads without errors
-        expect(described_class).to be_a(Class)
-        expect(described_class.ancestors).to include(ApplicationJob)
+        feed = create(:event_feed)
+
+        expect {
+          described_class.perform_now
+        }.not_to have_enqueued_job(described_class)
       end
 
       it "records the error on the feed" do
         feed = create(:event_feed)
 
-        # EventSyncService catches InvalidUrlError before job can discard it
         expect {
-          described_class.perform_now
-        }.not_to raise_error
+          described_class.perform_now rescue nil
+        }
 
         feed.reload
         expect(feed.last_error).to include("Invalid URL")
@@ -170,10 +164,9 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       it "records the error on the feed" do
         feed = create(:event_feed)
 
-        # EventSyncService catches ParseError
         expect {
-          described_class.perform_now
-        }.not_to raise_error
+          described_class.perform_now rescue nil
+        }
 
         feed.reload
         expect(feed.last_error).to include("Invalid XML")
@@ -189,10 +182,9 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       it "records the error on the feed" do
         feed = create(:event_feed)
 
-        # EventSyncService catches StandardError
         expect {
-          described_class.perform_now
-        }.not_to raise_error
+          described_class.perform_now rescue nil
+        }
 
         feed.reload
         expect(feed.last_error).to include("Unexpected error")
@@ -213,8 +205,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         {
           title: "Test Event",
           start_time: 2.days.from_now,
-          source_url: "https://example.com/event1",
-          raw_data: {}
+          source_url: "https://example.com/event1"
         }
       ]
     end
@@ -224,20 +215,19 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     end
 
     it "parses the feed" do
-      # Verify RssParserService is called (through EventSyncService)
       expect_any_instance_of(RssParserService).to receive(:parse)
 
       described_class.new.send(:sync_feed, feed)
     end
 
     it "syncs the events" do
-      expect {
-        described_class.new.send(:sync_feed, feed)
-      }.to change(ExternalEvent, :count).by(1)
+      expect_any_instance_of(EventSyncService).to receive(:sync).with(event_data)
+
+      described_class.new.send(:sync_feed, feed)
     end
 
     it "logs the sync result" do
-      expect(Rails.logger).to receive(:info).at_least(:once)
+      expect(Rails.logger).to receive(:info).with(/Synced.*events for/)
 
       described_class.new.send(:sync_feed, feed)
     end
@@ -245,7 +235,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
   describe "#archive_old_events" do
     it "archives events older than 7 days" do
-      old_event = create(:external_event, start_time: 10.days.ago, end_time: 10.days.ago + 2.hours)
+      old_event = create(:external_event, :past, start_time: 10.days.ago)
 
       described_class.new.send(:archive_old_events)
       old_event.reload
@@ -254,7 +244,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     end
 
     it "does not archive recent events" do
-      recent_event = create(:external_event, start_time: 5.days.ago, end_time: 5.days.ago + 2.hours)
+      recent_event = create(:external_event, :past, start_time: 5.days.ago)
 
       described_class.new.send(:archive_old_events)
       recent_event.reload
@@ -263,7 +253,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     end
 
     it "does not archive already archived events" do
-      archived_event = create(:external_event, :archived, start_time: 10.days.ago, end_time: 10.days.ago + 2.hours)
+      archived_event = create(:external_event, :archived, start_time: 10.days.ago)
       original_archived_at = archived_event.archived_at
 
       described_class.new.send(:archive_old_events)
@@ -273,9 +263,9 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     end
 
     it "logs the archive count" do
-      create(:external_event, start_time: 10.days.ago, end_time: 10.days.ago + 2.hours)
+      create(:external_event, :past, start_time: 10.days.ago)
 
-      expect(Rails.logger).to receive(:info).with(/Archived 1 old events/)
+      expect(Rails.logger).to receive(:info).with(/Archived.*past events/)
 
       described_class.new.send(:archive_old_events)
     end

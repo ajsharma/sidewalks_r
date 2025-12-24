@@ -155,7 +155,7 @@ RSpec.describe "Event Discovery", type: :system do
   end
 
   describe "viewing event details" do
-    let!(:event) do
+    let(:event) do
       create(:external_event,
         title: "Amazing Concert",
         description: "This is a fantastic live music event",
@@ -196,7 +196,7 @@ RSpec.describe "Event Discovery", type: :system do
 
   describe "adding events to calendar", js: true do
     let(:user) { create(:user) }
-    let!(:event) { create(:external_event, :upcoming) }
+    let(:event) { create(:external_event, :upcoming) }
 
     before do
       sign_in user
@@ -357,24 +357,24 @@ RSpec.describe "Event Discovery", type: :system do
   end
 
   describe "navigation" do
+    it "has link to events from main navigation" do
+      visit root_path
+
+      expect(page).to have_link("Discover Events")
+    end
+
+    it "navigates to events index" do
+      visit root_path
+      click_link "Discover Events"
+
+      expect(page).to have_current_path(events_path)
+      expect(page).to have_content("Discover Events")
+    end
+
     context "when signed in" do
       let(:user) { create(:user) }
 
       before { sign_in user }
-
-      it "has link to events from main navigation" do
-        visit root_path
-
-        expect(page).to have_link("Discover Events")
-      end
-
-      it "navigates to events index" do
-        visit root_path
-        first(:link, "Discover Events").click
-
-        expect(page).to have_current_path(events_path)
-        expect(page).to have_content("Discover Events")
-      end
 
       it "shows link to My Activities" do
         visit events_path
@@ -414,7 +414,7 @@ RSpec.describe "Event Discovery", type: :system do
     it "shows calendar icon in empty state" do
       visit events_path
 
-      within(".text-center.py-12") do
+      within(".text-center") do
         expect(page).to have_css("svg")
       end
     end

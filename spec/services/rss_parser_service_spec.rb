@@ -107,13 +107,9 @@ RSpec.describe RssParserService do
       end
     end
 
-    context "with timeout" do
+    context "with timeout", :vcr do
       let(:url) { "https://www.bottomofthehill.com/RSS.xml" }
-      let(:service) { described_class.new(url) }
-
-      before do
-        allow(service).to receive(:make_http_request).and_raise(Net::ReadTimeout.new("Request timed out"))
-      end
+      let(:service) { described_class.new(url, timeout: 0.001) }
 
       it "raises FetchError on timeout" do
         expect { service.parse }.to raise_error(RssParserService::FetchError, /timeout/i)
@@ -125,7 +121,7 @@ RSpec.describe RssParserService do
       let(:service) { described_class.new(url) }
 
       before do
-        allow(service).to receive(:fetch_feed_content).and_return("Not valid XML")
+        allow(service).to receive(:fetch_content).and_return("Not valid XML")
       end
 
       it "raises ParseError" do
@@ -213,7 +209,7 @@ RSpec.describe RssParserService do
 
     it "handles empty string" do
       result = service.send(:sanitize_html, "")
-      expect(result).to be_nil
+      expect(result).to eq("")
     end
   end
 end
