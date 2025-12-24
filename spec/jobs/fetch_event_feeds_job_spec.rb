@@ -9,13 +9,25 @@ RSpec.describe FetchEventFeedsJob, type: :job do
           title: "Test Event",
           start_time: 2.days.from_now,
           source_url: "https://example.com/event1",
-          external_id: "event-1"
+          external_id: "event-1",
+          raw_data: { feed_url: feed.url, title: "Test Event" }
         }
       ]
     end
 
+    let(:sync_results) do
+      {
+        success: true,
+        events_added: 1,
+        events_updated: 0,
+        events_skipped: 0,
+        errors: []
+      }
+    end
+
     before do
       allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
+      allow_any_instance_of(EventSyncService).to receive(:sync).and_return(sync_results)
     end
 
     context "with no feed_id specified" do
@@ -23,13 +35,18 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         active_feed = create(:event_feed)
         inactive_feed = create(:event_feed, :inactive)
 
-        expect_any_instance_of(EventSyncService).to receive(:sync).once
+        # Only active feeds should be synced
+        expect(EventFeed).to receive(:active).and_call_original
+        expect_any_instance_of(EventSyncService).to receive(:sync).exactly(1).times.and_return(sync_results)
 
         described_class.perform_now
       end
 
       it "creates events from parsed data" do
         create(:event_feed)
+
+        # Remove the stub so events actually get created
+        allow_any_instance_of(EventSyncService).to receive(:sync).and_call_original
 
         expect {
           described_class.perform_now
@@ -47,6 +64,9 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
       it "updates feed event_count" do
         feed = create(:event_feed)
+
+        # Remove the stub so events actually get created
+        allow_any_instance_of(EventSyncService).to receive(:sync).and_call_original
 
         described_class.perform_now
         feed.reload
@@ -87,15 +107,18 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     context "with specific feed_id" do
       it "fetches only the specified feed" do
         feed1 = create(:event_feed)
-        feed2 = create(:event_feed, :funcheap)
+        feed2 = create(:event_feed, name: "Other Feed", url: "https://sf.funcheap.com/rss-date/")
 
-        expect_any_instance_of(RssParserService).to receive(:parse).once.and_return(event_data)
+        expect_any_instance_of(EventSyncService).to receive(:sync).once.and_return(sync_results)
 
         described_class.perform_now(feed1.id)
       end
 
       it "creates events for the specified feed" do
         feed = create(:event_feed)
+
+        # Remove the stub so events actually get created
+        allow_any_instance_of(EventSyncService).to receive(:sync).and_call_original
 
         expect {
           described_class.perform_now(feed.id)
@@ -124,8 +147,13 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         feed = create(:event_feed)
 
         expect {
-          described_class.perform_now
-        }.to have_enqueued_job(described_class).on_queue("event_feeds")
+          perform_enqueued_jobs do
+            described_class.perform_later
+          end
+        }.to raise_error(RssParserService::FetchError)
+
+        # Check that retry was attempted
+        expect(ActiveJob::Base.queue_adapter.enqueued_jobs.count).to be > 0
       end
     end
 
@@ -139,16 +167,16 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         feed = create(:event_feed)
 
         expect {
-          described_class.perform_now
-        }.not_to have_enqueued_job(described_class)
+          described_class.perform_now rescue RssParserService::InvalidUrlError
+        }.not_to change { ActiveJob::Base.queue_adapter.enqueued_jobs.count }
       end
 
       it "records the error on the feed" do
         feed = create(:event_feed)
 
         expect {
-          described_class.perform_now rescue nil
-        }
+          described_class.perform_now
+        }.to raise_error(RssParserService::InvalidUrlError)
 
         feed.reload
         expect(feed.last_error).to include("Invalid URL")
@@ -164,9 +192,18 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       it "records the error on the feed" do
         feed = create(:event_feed)
 
+        # EventSyncService catches ParseError and returns results with errors
+        allow_any_instance_of(EventSyncService).to receive(:sync).and_return({
+          success: false,
+          events_added: 0,
+          events_updated: 0,
+          events_skipped: 0,
+          errors: ["Feed parse failed: Invalid XML"]
+        })
+
         expect {
-          described_class.perform_now rescue nil
-        }
+          described_class.perform_now
+        }.not_to raise_error
 
         feed.reload
         expect(feed.last_error).to include("Invalid XML")
@@ -182,9 +219,18 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       it "records the error on the feed" do
         feed = create(:event_feed)
 
+        # EventSyncService catches StandardError and returns results with errors
+        allow_any_instance_of(EventSyncService).to receive(:sync).and_return({
+          success: false,
+          events_added: 0,
+          events_updated: 0,
+          events_skipped: 0,
+          errors: ["Unexpected error: Unexpected error"]
+        })
+
         expect {
-          described_class.perform_now rescue nil
-        }
+          described_class.perform_now
+        }.not_to raise_error
 
         feed.reload
         expect(feed.last_error).to include("Unexpected error")
@@ -205,29 +251,42 @@ RSpec.describe FetchEventFeedsJob, type: :job do
         {
           title: "Test Event",
           start_time: 2.days.from_now,
-          source_url: "https://example.com/event1"
+          source_url: "https://example.com/event1",
+          raw_data: {}
         }
       ]
     end
 
+    let(:sync_results) do
+      {
+        success: true,
+        events_added: 1,
+        events_updated: 0,
+        events_skipped: 0,
+        errors: []
+      }
+    end
+
     before do
       allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
+      allow_any_instance_of(EventSyncService).to receive(:sync).and_return(sync_results)
     end
 
     it "parses the feed" do
+      # EventSyncService calls RssParserService internally
       expect_any_instance_of(RssParserService).to receive(:parse)
 
       described_class.new.send(:sync_feed, feed)
     end
 
     it "syncs the events" do
-      expect_any_instance_of(EventSyncService).to receive(:sync).with(event_data)
+      expect_any_instance_of(EventSyncService).to receive(:sync)
 
       described_class.new.send(:sync_feed, feed)
     end
 
     it "logs the sync result" do
-      expect(Rails.logger).to receive(:info).with(/Synced.*events for/)
+      expect(Rails.logger).to receive(:info).with(/Added 1, Updated 0, Skipped 0/)
 
       described_class.new.send(:sync_feed, feed)
     end
@@ -265,7 +324,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     it "logs the archive count" do
       create(:external_event, :past, start_time: 10.days.ago)
 
-      expect(Rails.logger).to receive(:info).with(/Archived.*past events/)
+      expect(Rails.logger).to receive(:info).with(/Archived 1 old events/)
 
       described_class.new.send(:archive_old_events)
     end
