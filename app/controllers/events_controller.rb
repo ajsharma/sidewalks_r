@@ -46,9 +46,7 @@ class EventsController < ApplicationController
 
     if activity.save
       # Optionally sync to Google Calendar
-      if current_user.active_google_account && !current_user.active_google_account.needs_refresh?
-        sync_to_google_calendar(activity)
-      end
+      sync_to_google_calendar(activity) if current_user.google_account&.valid_credentials?
 
       redirect_to events_path, notice: "Event added to your calendar!"
     else
@@ -65,35 +63,41 @@ class EventsController < ApplicationController
   end
 
   def apply_filters
-    filter_options = build_filter_options
-    @events = @events.apply_filters(filter_options)
-  end
-
-  def build_filter_options
-    filter_params = params.slice(:start_date, :end_date, :weekends_only, :free_only, :price_max, :category, :search)
-
-    {}.tap do |options|
-      # Parse date range
-      if filter_params[:start_date].present? && filter_params[:end_date].present?
-        begin
-          options[:start_date] = Date.parse(filter_params[:start_date])
-          options[:end_date] = Date.parse(filter_params[:end_date])
-        rescue Date::Error
-          flash.now[:alert] = "Invalid date format"
-        end
-      end
-
-      # Boolean filters
-      options[:weekends_only] = filter_params[:weekends_only] == "true"
-      options[:free_only] = filter_params[:free_only] == "true"
-
-      # Price max
-      options[:price_max] = filter_params[:price_max].to_f if filter_params[:price_max].present?
-
-      # Text filters
-      options[:category] = filter_params[:category] if filter_params[:category].present?
-      options[:search] = filter_params[:search] if filter_params[:search].present?
+    # Date range filter
+    if params[:start_date].present? && params[:end_date].present?
+      start_date = Date.parse(params[:start_date])
+      end_date = Date.parse(params[:end_date])
+      @events = @events.by_date_range(start_date, end_date)
     end
+
+    # Weekends only filter
+    if params[:weekends_only] == "true"
+      @events = @events.weekends_only
+    end
+
+    # Free events filter
+    if params[:free_only] == "true"
+      @events = @events.free_only
+    end
+
+    # Price max filter
+    if params[:price_max].present?
+      price_max = params[:price_max].to_f
+      @events = @events.where("price IS NULL OR price <= ?", price_max)
+    end
+
+    # Category filter
+    if params[:category].present?
+      @events = @events.where("? = ANY(category_tags)", params[:category])
+    end
+
+    # Search filter
+    if params[:search].present?
+      @events = @events.search_by_text(params[:search])
+    end
+  rescue Date::Error
+    # Invalid date format, ignore filter
+    flash.now[:alert] = "Invalid date format"
   end
 
   def find_free_weekends
@@ -120,7 +124,7 @@ class EventsController < ApplicationController
   end
 
   def sync_to_google_calendar(activity)
-    GoogleCalendarService.new(current_user.active_google_account).create_event(
+    GoogleCalendarService.new(current_user.google_account).create_event(
       summary: activity.name,
       description: activity.description,
       start_time: activity.start_time,

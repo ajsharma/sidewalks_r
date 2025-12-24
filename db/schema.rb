@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_24_200138) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_24_022435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -114,7 +114,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_24_200138) do
     t.string "organizer"
     t.decimal "price", precision: 10, scale: 2
     t.string "price_details"
-    t.jsonb "raw_data", comment: "Raw RSS/Atom feed entry data for reprocessing"
     t.text "source_url", null: false
     t.datetime "start_time", null: false
     t.string "title", null: false
@@ -124,7 +123,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_24_200138) do
     t.index ["category_tags"], name: "index_external_events_on_category_tags", using: :gin
     t.index ["event_feed_id", "external_id"], name: "index_external_events_on_event_feed_id_and_external_id", unique: true
     t.index ["event_feed_id"], name: "index_external_events_on_event_feed_id"
-    t.index ["raw_data"], name: "index_external_events_on_raw_data", using: :gin, comment: "Enable fast searches within raw feed data"
     t.index ["start_time"], name: "index_external_events_on_start_time"
   end
 
