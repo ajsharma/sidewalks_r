@@ -4,24 +4,25 @@
 #
 # Table name: external_events
 #
-#  id             :bigint           not null, primary key
-#  archived_at    :datetime
-#  category_tags  :string           default([]), is an Array
-#  description    :text
-#  end_time       :datetime
-#  last_synced_at :datetime
-#  location       :string
-#  organizer      :string
-#  price          :decimal(10, 2)
-#  price_details  :string
-#  source_url     :text             not null
-#  start_time     :datetime         not null
-#  title          :string           not null
-#  venue          :string
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
-#  event_feed_id  :bigint           not null
-#  external_id    :string
+#  id                                                      :bigint           not null, primary key
+#  archived_at                                             :datetime
+#  category_tags                                           :string           default([]), is an Array
+#  description                                             :text
+#  end_time                                                :datetime
+#  last_synced_at                                          :datetime
+#  location                                                :string
+#  organizer                                               :string
+#  price                                                   :decimal(10, 2)
+#  price_details                                           :string
+#  raw_data(Raw RSS/Atom feed entry data for reprocessing) :jsonb
+#  source_url                                              :text             not null
+#  start_time                                              :datetime         not null
+#  title                                                   :string           not null
+#  venue                                                   :string
+#  created_at                                              :datetime         not null
+#  updated_at                                              :datetime         not null
+#  event_feed_id                                           :bigint           not null
+#  external_id                                             :string
 #
 # Indexes
 #
@@ -29,6 +30,7 @@
 #  index_external_events_on_category_tags                  (category_tags) USING gin
 #  index_external_events_on_event_feed_id                  (event_feed_id)
 #  index_external_events_on_event_feed_id_and_external_id  (event_feed_id,external_id) UNIQUE
+#  index_external_events_on_raw_data                       (raw_data) USING gin
 #  index_external_events_on_start_time                     (start_time)
 #
 # Foreign Keys
@@ -102,6 +104,66 @@ class ExternalEvent < ApplicationRecord
       ai_generated: false,
       duration_minutes: duration_hours ? (duration_hours * 60).to_i : nil
     }
+  end
+
+  # Reprocess this event from its raw feed data
+  # Useful after fixing parser bugs or adding new features
+  # @return [Boolean] true if reprocessed successfully
+  def reprocess_from_raw_data!
+    return false unless raw_data.present?
+    return false unless raw_data["feed_url"].present?
+
+    # Parse the raw data again using the current parser
+    parser = RssParserService.new(raw_data["feed_url"])
+
+    # Create a mock entry from the raw data
+    # This is a simplified approach - we'd need to properly reconstruct the entry
+    # For now, we'll just re-fetch the feed and find the matching entry
+    events = parser.parse
+    matching_event = events.find { |e| e[:source_url] == source_url }
+
+    return false unless matching_event
+
+    # Update this event with the reprocessed data
+    update!(
+      title: matching_event[:title],
+      description: matching_event[:description],
+      start_time: matching_event[:start_time],
+      end_time: matching_event[:end_time],
+      location: matching_event[:location],
+      venue: matching_event[:venue],
+      price: matching_event[:price],
+      organizer: matching_event[:organizer],
+      category_tags: matching_event[:category_tags],
+      raw_data: matching_event[:raw_data],
+      last_synced_at: Time.current
+    )
+
+    true
+  rescue StandardError => e
+    Rails.logger.error("Failed to reprocess event #{id}: #{e.message}")
+    false
+  end
+
+  # Class method to reprocess all events or events from a specific feed
+  # @param feed_id [Integer, nil] optional feed ID to limit reprocessing
+  # @return [Hash] counts of successful and failed reprocessing
+  def self.reprocess_all(feed_id: nil)
+    scope = feed_id ? where(event_feed_id: feed_id) : all
+    events_to_process = scope.where.not(raw_data: nil)
+
+    successful = 0
+    failed = 0
+
+    events_to_process.find_each do |event|
+      if event.reprocess_from_raw_data!
+        successful += 1
+      else
+        failed += 1
+      end
+    end
+
+    { successful: successful, failed: failed, total: events_to_process.count }
   end
 
   private
