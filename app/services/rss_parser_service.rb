@@ -38,6 +38,7 @@ class RssParserService
   # @return [Array<Hash>] array of event hashes
   def parse
     xml_content = fetch_feed_content
+    @feed_xml = xml_content  # Store raw XML for custom namespace parsing
     parsed_feed = Feedjira.parse(xml_content)
 
     raise ParseError, "Failed to parse feed" unless parsed_feed
@@ -160,23 +161,64 @@ class RssParserService
   end
 
   def parse_funcheap_entry(entry)
-    # FunCheap uses custom namespace ev:* for event data
-    start_time = parse_date(entry.try(:ev_startdate) || entry.published)
-    end_time = parse_date(entry.try(:ev_enddate))
+    # FunCheap uses custom namespace funCheap:* for event data
+    # Feedjira doesn't expose these, so we need to parse the raw entry XML
+    custom_fields = extract_funcheap_custom_fields(entry)
+
+    # Extract price from title (format: "76 - Event Name" or "27.95 - Event Name")
+    title = entry.title.to_s
+    price_from_title = title.match(/^([\d.]+)\s*-\s*(.+)/)
+    actual_title = price_from_title ? price_from_title[2] : title
+    price = custom_fields[:cost] || (price_from_title ? price_from_title[1].to_f : nil)
+
+    start_time = parse_date(custom_fields[:start_time] || entry.published)
+    end_time = parse_date(custom_fields[:end_time])
 
     {
-      title: sanitize_text(entry.title),
+      title: sanitize_text(actual_title),
       description: sanitize_html(entry.summary || entry.content),
       start_time: start_time,
       end_time: end_time,
-      location: sanitize_text(entry.try(:ev_location)),
-      venue: sanitize_text(entry.try(:ev_location)),
+      location: sanitize_text(custom_fields[:venue_address] || custom_fields[:venue]),
+      venue: sanitize_text(custom_fields[:venue]),
       source_url: entry.url,
-      price: parse_price(entry.try(:ev_price)),
-      organizer: sanitize_text(entry.try(:ev_organizer) || entry.author),
-      category_tags: extract_categories(entry),
+      price: price,
+      organizer: sanitize_text(entry.author),
+      category_tags: parse_funcheap_categories(custom_fields[:categories]),
       external_id: entry.entry_id || entry.url
     }
+  end
+
+  def extract_funcheap_custom_fields(entry)
+    # Parse the raw XML entry to extract funCheap: namespace fields
+    return {} unless @feed_xml
+
+    doc = Nokogiri::XML(@feed_xml)
+    namespace = { "funCheap" => "https://sf.funcheap.com/rssfeed/" }
+
+    # Find the item with matching GUID
+    item = doc.xpath("//item[guid='#{entry.url}']").first
+    return {} unless item
+
+    {
+      start_time: item.at_xpath("funCheap:startTime", namespace)&.text,
+      end_time: item.at_xpath("funCheap:endTime", namespace)&.text,
+      cost: item.at_xpath("funCheap:cost", namespace)&.text&.to_f,
+      venue: item.at_xpath("funCheap:venue", namespace)&.text,
+      venue_address: item.at_xpath("funCheap:venueAddress", namespace)&.text,
+      categories: item.at_xpath("funCheap:categories", namespace)&.text
+    }
+  end
+
+  def parse_funcheap_categories(categories_string)
+    return [] unless categories_string.present?
+
+    categories_string.split(",")
+                     .map(&:strip)
+                     .reject { |c| c.start_with?("*", "-", "**") }
+                     .map(&:parameterize)
+                     .reject(&:blank?)
+                     .first(5)
   end
 
   def parse_bottom_of_the_hill_entry(entry)
