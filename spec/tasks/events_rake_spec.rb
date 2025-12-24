@@ -11,6 +11,16 @@ RSpec.describe "events rake tasks" do
     Rake::Task.tasks.each(&:reenable)
   end
 
+  # Helper to capture stdout
+  def capture_stdout
+    original_stdout = $stdout
+    $stdout = StringIO.new
+    yield
+    $stdout.string
+  ensure
+    $stdout = original_stdout
+  end
+
   describe "events:fetch" do
     let(:feed) { create(:event_feed) }
     let(:event_data) do
@@ -19,7 +29,8 @@ RSpec.describe "events rake tasks" do
           title: "Test Event",
           start_time: 2.days.from_now,
           source_url: "https://example.com/event1",
-          external_id: "event-1"
+          external_id: "event-1",
+          raw_data: { feed_url: "https://www.bottomofthehill.com/RSS.xml", title: "Test Event" }
         }
       ]
     end
@@ -44,11 +55,13 @@ RSpec.describe "events rake tasks" do
     it "outputs summary information" do
       feed # Create feed
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:fetch"].invoke
-      }.to output(/Fetching RSS event feeds/).to_stdout
-        .and output(/Fetch Complete!/).to_stdout
-        .and output(/Events added:/).to_stdout
+      end
+
+      expect(output).to include("Fetching RSS event feeds")
+      expect(output).to include("Fetch Complete!")
+      expect(output).to include("Events added:")
     end
   end
 
@@ -58,31 +71,37 @@ RSpec.describe "events rake tasks" do
     let!(:archived_events) { create_list(:external_event, 2, :archived, event_feed: feed) }
 
     it "displays overall statistics" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:summary"].invoke
-      }.to output(/OVERALL STATISTICS/).to_stdout
-        .and output(/Total events:/).to_stdout
-        .and output(/Active events:/).to_stdout
-        .and output(/Upcoming events:/).to_stdout
+      end
+
+      expect(output).to include("OVERALL STATISTICS")
+      expect(output).to include("Total events:")
+      expect(output).to include("Active events:")
+      expect(output).to include("Upcoming events:")
     end
 
     it "displays feed breakdown" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:summary"].invoke
-      }.to output(/FEED BREAKDOWN/).to_stdout
-        .and output(/#{feed.name}/).to_stdout
-        .and output(/Events: \d+/).to_stdout
+      end
+
+      expect(output).to include("FEED BREAKDOWN")
+      expect(output).to include(feed.name)
+      expect(output).to match(/Events: \d+/)
     end
 
     it "shows price breakdown" do
       create(:external_event, :free, :upcoming)
       create(:external_event, :paid, :upcoming)
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:summary"].invoke
-      }.to output(/PRICE BREAKDOWN/).to_stdout
-        .and output(/Free events:/).to_stdout
-        .and output(/Paid events:/).to_stdout
+      end
+
+      expect(output).to include("PRICE BREAKDOWN")
+      expect(output).to include("Free events:")
+      expect(output).to include("Paid events:")
     end
 
     it "shows weekend events count" do
@@ -90,19 +109,23 @@ RSpec.describe "events rake tasks" do
       saturday += 1.day until saturday.saturday?
       create(:external_event, start_time: saturday.to_time)
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:summary"].invoke
-      }.to output(/Weekend events:/).to_stdout
+      end
+
+      expect(output).to include("Weekend events:")
     end
 
     it "shows top categories" do
       create(:external_event, :upcoming, category_tags: %w[music rock])
       create(:external_event, :upcoming, category_tags: %w[music jazz])
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:summary"].invoke
-      }.to output(/TOP CATEGORIES/).to_stdout
-        .and output(/music:/).to_stdout
+      end
+
+      expect(output).to include("TOP CATEGORIES")
+      expect(output).to include("music:")
     end
   end
 
@@ -119,24 +142,30 @@ RSpec.describe "events rake tasks" do
     end
 
     it "displays events for next 7 days by default" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:upcoming"].invoke
-      }.to output(/UPCOMING EVENTS \(Next 7 days\)/).to_stdout
-        .and output(/#{near_event.title}/).to_stdout
+      end
+
+      expect(output).to include("UPCOMING EVENTS (Next 7 days)")
+      expect(output).to include(near_event.title)
     end
 
     it "does not show events beyond default range" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:upcoming"].invoke
-      }.to output(/#{near_event.title}/).to_stdout
-        .and not_to output(/#{far_event.title}/).to_stdout
+      end
+
+      expect(output).to include(near_event.title)
+      expect(output).not_to include(far_event.title)
     end
 
     it "accepts custom days parameter" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:upcoming"].invoke(60)
-      }.to output(/UPCOMING EVENTS \(Next 60 days\)/).to_stdout
-        .and output(/#{far_event.title}/).to_stdout
+      end
+
+      expect(output).to include("UPCOMING EVENTS (Next 60 days)")
+      expect(output).to include(far_event.title)
     end
 
     it "groups events by date" do
@@ -147,22 +176,27 @@ RSpec.describe "events rake tasks" do
         title: "Event 2",
         start_time: 2.days.from_now.change(hour: 20))
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:upcoming"].invoke
-      }.to output(/2 events/).to_stdout
+      end
+
+      # 3 events total: near_event + Event 1 + Event 2 (all on same day)
+      expect(output).to include("3 events")
     end
 
     it "shows price and venue information" do
       create(:external_event,
         :free,
-        :upcoming,
         venue: "The Fillmore",
-        start_time: 2.days.from_now)
+        start_time: 2.days.from_now,
+        end_time: 2.days.from_now + 2.hours)
 
-      expect {
+      output = capture_stdout do
         Rake::Task["events:upcoming"].invoke
-      }.to output(/\[FREE\]/).to_stdout
-        .and output(/@ The Fillmore/).to_stdout
+      end
+
+      expect(output).to include("[FREE]")
+      expect(output).to include("@ The Fillmore")
     end
 
     it "handles no upcoming events gracefully" do
@@ -198,10 +232,12 @@ RSpec.describe "events rake tasks" do
     end
 
     it "shows healthy feed status" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:health"].invoke
-      }.to output(/✓.*Active/).to_stdout
-        .and output(/✓.*No errors/).to_stdout
+      end
+
+      expect(output).to match(/✓.*Active/)
+      expect(output).to match(/✓.*No errors/)
     end
 
     it "warns about stale feeds" do
@@ -344,13 +380,15 @@ RSpec.describe "events rake tasks" do
 
   describe "events:help" do
     it "displays available tasks" do
-      expect {
+      output = capture_stdout do
         Rake::Task["events:help"].invoke
-      }.to output(/EVENTS RAKE TASKS/).to_stdout
-        .and output(/Available tasks:/).to_stdout
-        .and output(/rake events:fetch/).to_stdout
-        .and output(/rake events:summary/).to_stdout
-        .and output(/rake events:upcoming/).to_stdout
+      end
+
+      expect(output).to include("EVENTS RAKE TASKS")
+      expect(output).to include("Available tasks:")
+      expect(output).to include("rake events:fetch")
+      expect(output).to include("rake events:summary")
+      expect(output).to include("rake events:upcoming")
     end
 
     it "shows examples" do
@@ -362,8 +400,13 @@ RSpec.describe "events rake tasks" do
 
   describe "events (default task)" do
     it "invokes the help task" do
-      expect(Rake::Task["events:help"]).to receive(:invoke)
-      Rake::Task["events"].invoke
+      # The "events" task depends on "events:help", so it should produce help output
+      output = capture_stdout do
+        Rake::Task["events"].invoke
+      end
+
+      expect(output).to include("EVENTS RAKE TASKS")
+      expect(output).to include("Available tasks:")
     end
   end
 end
