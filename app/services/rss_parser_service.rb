@@ -149,7 +149,7 @@ class RssParserService
 
   def parse_entry(entry)
     # Determine feed source and use appropriate parsing strategy
-    if @feed_url.include?("funcheap.com")
+    parsed_data = if @feed_url.include?("funcheap.com")
       parse_funcheap_entry(entry)
     elsif @feed_url.include?("bottomofthehill.com")
       parse_bottom_of_the_hill_entry(entry)
@@ -158,6 +158,49 @@ class RssParserService
     else
       parse_generic_entry(entry)
     end
+
+    # Add raw feed entry data for future reprocessing
+    parsed_data[:raw_data] = serialize_entry(entry)
+    parsed_data
+  end
+
+  def serialize_entry(entry)
+    # Capture all available entry data for potential reprocessing
+    {
+      title: entry.title.to_s,
+      url: entry.url.to_s,
+      summary: entry.summary.to_s,
+      content: entry.content.to_s,
+      published: entry.published.to_s,
+      updated: entry.try(:updated).to_s,
+      author: entry.try(:author).to_s,
+      entry_id: entry.entry_id.to_s,
+      categories: entry.try(:categories).to_a,
+      # Store the raw XML for this specific item if we can find it
+      raw_xml: extract_raw_xml_for_entry(entry),
+      feed_url: @feed_url,
+      fetched_at: Time.current.iso8601
+    }
+  end
+
+  def extract_raw_xml_for_entry(entry)
+    return nil unless @feed_xml
+
+    # Try to extract the raw XML <item> or <entry> for this specific entry
+    doc = Nokogiri::XML(@feed_xml)
+
+    # Try RSS <item> first
+    item = doc.xpath("//item[guid='#{entry.url}' or link='#{entry.url}']").first
+    return item.to_xml if item
+
+    # Try Atom <entry>
+    entry_node = doc.xpath("//entry[id='#{entry.url}' or link[@href='#{entry.url}']]").first
+    return entry_node.to_xml if entry_node
+
+    nil
+  rescue StandardError => e
+    Rails.logger.warn("Failed to extract raw XML for entry: #{e.message}")
+    nil
   end
 
   def parse_funcheap_entry(entry)

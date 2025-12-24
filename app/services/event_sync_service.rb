@@ -89,6 +89,7 @@ class EventSyncService
         organizer: event_data[:organizer],
         category_tags: event_data[:category_tags] || [],
         external_id: event_data[:external_id],
+        raw_data: event_data[:raw_data],
         last_synced_at: Time.current
       )
 
@@ -111,6 +112,7 @@ class EventSyncService
     changes[:price] = event_data[:price] if event.price != event_data[:price]
     changes[:organizer] = event_data[:organizer] if event.organizer != event_data[:organizer]
     changes[:category_tags] = event_data[:category_tags] if event.category_tags != event_data[:category_tags]
+    changes[:raw_data] = event_data[:raw_data] if event_data[:raw_data].present?
     changes[:last_synced_at] = Time.current
 
     if changes.any?
