@@ -9,7 +9,7 @@ class EventsController < ApplicationController
   # Lists all upcoming external events with filtering and pagination
   # @return [void] Sets @events instance variable for view rendering
   def index
-    @events = ExternalEvent.active.order(start_time: :desc)
+    @events = ExternalEvent.active.upcoming.order(start_time: :asc)
 
     # Apply filters
     apply_filters
