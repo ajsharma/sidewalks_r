@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_22_220338) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_24_022435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,6 +87,45 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_22_220338) do
     t.index ["user_id"], name: "index_ai_activity_suggestions_on_user_id"
   end
 
+  create_table "event_feeds", force: :cascade do |t|
+    t.boolean "active", default: true
+    t.datetime "created_at", null: false
+    t.integer "event_count", default: 0
+    t.string "feed_type", default: "rss"
+    t.text "last_error"
+    t.datetime "last_fetched_at"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.string "url", null: false
+    t.index ["active"], name: "index_event_feeds_on_active"
+    t.index ["last_fetched_at"], name: "index_event_feeds_on_last_fetched_at"
+  end
+
+  create_table "external_events", force: :cascade do |t|
+    t.datetime "archived_at"
+    t.string "category_tags", default: [], array: true
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.datetime "end_time"
+    t.bigint "event_feed_id", null: false
+    t.string "external_id"
+    t.datetime "last_synced_at"
+    t.string "location"
+    t.string "organizer"
+    t.decimal "price", precision: 10, scale: 2
+    t.string "price_details"
+    t.text "source_url", null: false
+    t.datetime "start_time", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.string "venue"
+    t.index ["archived_at"], name: "index_external_events_on_archived_at"
+    t.index ["category_tags"], name: "index_external_events_on_category_tags", using: :gin
+    t.index ["event_feed_id", "external_id"], name: "index_external_events_on_event_feed_id_and_external_id", unique: true
+    t.index ["event_feed_id"], name: "index_external_events_on_event_feed_id"
+    t.index ["start_time"], name: "index_external_events_on_start_time"
+  end
+
   create_table "google_accounts", force: :cascade do |t|
     t.text "access_token"
     t.datetime "archived_at"
@@ -151,6 +190,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_22_220338) do
   add_foreign_key "activities", "users"
   add_foreign_key "ai_activity_suggestions", "activities", column: "final_activity_id"
   add_foreign_key "ai_activity_suggestions", "users"
+  add_foreign_key "external_events", "event_feeds"
   add_foreign_key "google_accounts", "users"
   add_foreign_key "playlist_activities", "activities"
   add_foreign_key "playlist_activities", "playlists"

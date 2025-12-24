@@ -42,6 +42,8 @@
               <div class="hidden md:flex items-center space-x-8 ml-10">
                 <%= link_to "Activities", activities_path,
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(activities_path) || params[:controller] == 'activities'}" %>
+                <%= link_to "Discover Events", events_path,
+                    class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(events_path) || params[:controller] == 'events'}" %>
                 <%= link_to "AI Suggestions", ai_activities_path,
                     class: "text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition duration-200 #{'text-blue-600 border-b-2 border-blue-600' if current_page?(ai_activities_path) || params[:controller] == 'ai_activities'}" %>
                 <%= link_to "Playlists", playlists_path,
@@ -104,6 +106,8 @@
           <div data-mobile-menu-target="menu" class="hidden md:hidden border-t border-gray-200 py-4">
             <div class="space-y-1">
               <%= link_to "Activities", activities_path,
+                  class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
+              <%= link_to "Discover Events", events_path,
                   class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
               <%= link_to "Playlists", playlists_path,
                   class: "block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg text-sm font-medium transition duration-200" %>
