@@ -349,8 +349,17 @@ class RssParserService
       next unless match
 
       date_str = match[1]
-      # Assume current year if not specified
-      date_str = "#{date_str} #{Time.current.year}" unless date_str.match?(/\d{4}/)
+
+      # Handle US date format (MM/DD/YYYY)
+      if date_str.match?(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/)
+        parts = date_str.split("/")
+        month, day, year = parts[0], parts[1], parts[2]
+        year = "20#{year}" if year.length == 2
+        date_str = "#{year}-#{month.rjust(2, '0')}-#{day.rjust(2, '0')}"
+      else
+        # Assume current year if not specified
+        date_str = "#{date_str} #{Time.current.year}" unless date_str.match?(/\d{4}/)
+      end
 
       begin
         parsed = Date.parse(date_str)
