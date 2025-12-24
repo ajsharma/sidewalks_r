@@ -1,15 +1,6 @@
 require "rails_helper"
 
 RSpec.describe "Events", type: :request do
-  # Disable Bullet for integration tests - N+1 optimization can be addressed separately
-  before do
-    Bullet.enable = false
-  end
-
-  after do
-    Bullet.enable = true
-  end
-
   describe "GET /events" do
     let!(:active_events) { create_list(:external_event, 5, :upcoming) }
     let!(:archived_event) { create(:external_event, :archived) }
@@ -22,8 +13,7 @@ RSpec.describe "Events", type: :request do
     it "displays active events" do
       get events_path
       active_events.each do |event|
-        # Check for venue instead of title to avoid HTML escaping issues with Faker-generated band names
-        expect(response.body).to include(event.venue)
+        expect(response.body).to include(event.title)
       end
     end
 
@@ -81,33 +71,27 @@ RSpec.describe "Events", type: :request do
       it "filters to free events only" do
         get events_path, params: { free_only: "true" }
 
-        # Check for free event by venue and "Free" badge
-        expect(response.body).to include(free_event.venue)
-        expect(response.body).to include("Free")
-        # Paid event won't be shown, check price doesn't appear
-        expect(response.body).not_to include("$#{paid_event.price}")
+        expect(response.body).to include(free_event.title)
+        expect(response.body).not_to include(paid_event.title)
       end
     end
 
     context "with price_max filter" do
       let!(:cheap_event) { create(:external_event, price: 10.00) }
-
-      before do
-        create(:external_event, price: 50.00)
-      end
+      let!(:expensive_event) { create(:external_event, price: 50.00) }
 
       it "filters events under max price" do
         get events_path, params: { price_max: 20 }
 
-        expect(response.body).to include(cheap_event.venue)
-        expect(response.body).not_to include("$50.0") # Check for expensive price instead of title
+        expect(response.body).to include(cheap_event.title)
+        expect(response.body).not_to include(expensive_event.title)
       end
 
       it "includes free events" do
-        free_event = create(:external_event, price: nil, venue: "Free Event Venue")
+        free_event = create(:external_event, price: nil)
         get events_path, params: { price_max: 20 }
 
-        expect(response.body).to include(free_event.venue)
+        expect(response.body).to include(free_event.title)
       end
     end
 
@@ -138,8 +122,7 @@ RSpec.describe "Events", type: :request do
 
     context "with pagination" do
       before do
-        # Create in smaller batches to avoid RuboCop warning
-        3.times { create_list(:external_event, 10, :upcoming) }
+        create_list(:external_event, 30, :upcoming)
       end
 
       it "paginates results" do
@@ -221,7 +204,7 @@ RSpec.describe "Events", type: :request do
     it "displays event details" do
       get event_path(event)
 
-      # Check for venue and description instead of title to avoid HTML escaping issues
+      expect(response.body).to include(event.title)
       expect(response.body).to include(event.description)
       expect(response.body).to include(event.venue)
     end
@@ -321,25 +304,19 @@ RSpec.describe "Events", type: :request do
 
       context "when user has Google Calendar connected" do
         let(:google_account) { create(:google_account, user: user) }
-        let(:calendar_service) { instance_double(GoogleCalendarService) }
 
         before do
-          # Setup google account for the user
-          google_account
-          allow(google_account).to receive(:needs_refresh?).and_return(false)
-          allow(GoogleCalendarService).to receive(:new).and_return(calendar_service)
+          allow_any_instance_of(GoogleAccount).to receive(:valid_credentials?).and_return(true)
+          allow_any_instance_of(GoogleCalendarService).to receive(:create_event).and_return(true)
         end
 
         it "syncs to Google Calendar" do
-          allow(calendar_service).to receive(:create_event).and_return(true)
-
+          expect_any_instance_of(GoogleCalendarService).to receive(:create_event)
           post add_to_calendar_event_path(event)
-
-          expect(calendar_service).to have_received(:create_event)
         end
 
         it "handles sync errors gracefully" do
-          allow(calendar_service).to receive(:create_event)
+          allow_any_instance_of(GoogleCalendarService).to receive(:create_event)
             .and_raise(StandardError.new("API error"))
 
           expect {
@@ -352,12 +329,11 @@ RSpec.describe "Events", type: :request do
       end
 
       context "when Activity creation fails" do
-        let(:activity_double) { instance_double(Activity, save: false, errors: errors_double) }
-        let(:errors_double) { instance_double(ActiveModel::Errors, full_messages: [ "Name can't be blank" ]) }
-
         before do
-          # Stub Activity.new to return a double that fails to save
-          allow(Activity).to receive(:new).and_return(activity_double)
+          allow_any_instance_of(Activity).to receive(:save).and_return(false)
+          allow_any_instance_of(Activity).to receive(:errors).and_return(
+            double(full_messages: ["Name can't be blank"])
+          )
         end
 
         it "does not create Activity" do
@@ -370,6 +346,7 @@ RSpec.describe "Events", type: :request do
           post add_to_calendar_event_path(event)
           follow_redirect!
           expect(response.body).to include("Failed to add event")
+          expect(response.body).to include("Name can't be blank")
         end
       end
     end

@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :external_event do
-    event_feed
+    association :event_feed
     title { Faker::Music.band }
     description { Faker::Lorem.paragraph }
     start_time { 2.days.from_now.change(hour: 20, min: 0) }
