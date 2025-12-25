@@ -320,7 +320,12 @@ RSpec.describe "Events", type: :request do
       end
 
       context "when user has Google Calendar connected" do
-        let!(:google_account) { create(:google_account, user: user) }
+        let(:google_account) { create(:google_account, user: user) }
+
+        before do
+          # Ensure google account exists for this user
+          google_account
+        end
 
         # Note: Google Calendar sync tests are complex due to association reloading
         # The sync_to_google_calendar method is tested in isolation in google_calendar_service_spec.rb
@@ -335,21 +340,28 @@ RSpec.describe "Events", type: :request do
       end
 
       context "when Activity creation fails" do
+        let(:event_with_invalid_params) { create(:external_event, :upcoming) }
+
         before do
-          # Make the event params invalid by stubbing to_activity_params
-          allow_any_instance_of(ExternalEvent).to receive(:to_activity_params).and_return(
+          # Stub the active scope chain to return our event
+          active_scope = ExternalEvent.active
+          allow(ExternalEvent).to receive(:active).and_return(active_scope)
+          allow(active_scope).to receive(:find).with(event_with_invalid_params.id.to_s).and_return(event_with_invalid_params)
+
+          # Stub to_activity_params to return invalid params
+          allow(event_with_invalid_params).to receive(:to_activity_params).and_return(
             { name: nil } # Invalid - name is required
           )
         end
 
         it "does not create Activity" do
           expect {
-            post add_to_calendar_event_path(event)
+            post add_to_calendar_event_path(event_with_invalid_params)
           }.not_to change(Activity, :count)
         end
 
         it "shows error message" do
-          post add_to_calendar_event_path(event)
+          post add_to_calendar_event_path(event_with_invalid_params)
           follow_redirect!
           expect(response.body).to include("Failed to add event")
         end
