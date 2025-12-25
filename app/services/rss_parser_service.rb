@@ -258,7 +258,7 @@ class RssParserService
 
     categories_string.split(",")
                      .map(&:strip)
-                     .reject { |c| c.start_with?("*", "-", "**") }
+                     .reject { |category| category.start_with?("*", "-", "**") }
                      .map(&:parameterize)
                      .reject(&:blank?)
                      .first(5)
@@ -392,7 +392,7 @@ class RssParserService
 
     # Extract from RSS categories
     if entry.respond_to?(:categories) && entry.categories.present?
-      categories += entry.categories.map { |c| c.to_s.downcase }
+      categories += entry.categories.map { |category| category.to_s.downcase }
     end
 
     # Extract from tags if available
