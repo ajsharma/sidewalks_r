@@ -28,7 +28,7 @@ RSpec.describe EventSyncService do
 
     context "with successful feed fetch" do
       before do
-        allow(parser).to receive(:parse).and_return([event_data])
+        allow(parser).to receive(:parse).and_return([ event_data ])
       end
 
       it "creates new ExternalEvent records" do
@@ -97,7 +97,7 @@ RSpec.describe EventSyncService do
       end
 
       before do
-        allow(parser).to receive(:parse).and_return([event_data])
+        allow(parser).to receive(:parse).and_return([ event_data ])
       end
 
       it "does not create duplicate events" do
@@ -147,7 +147,7 @@ RSpec.describe EventSyncService do
       end
 
       before do
-        allow(parser).to receive(:parse).and_return([similar_event_data])
+        allow(parser).to receive(:parse).and_return([ similar_event_data ])
       end
 
       it "detects same source_url and doesn't create duplicate" do
@@ -222,7 +222,7 @@ RSpec.describe EventSyncService do
       end
 
       before do
-        allow(parser).to receive(:parse).and_return([invalid_data])
+        allow(parser).to receive(:parse).and_return([ invalid_data ])
       end
 
       it "skips invalid events" do

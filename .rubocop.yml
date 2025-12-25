@@ -6,6 +6,9 @@ plugins:
   - rubocop-rspec
   - rubocop-factory_bot
 
+AllCops:
+    NewCops: enable
+
 # Overwrite or add rules to create your own house style
 #
 # # Use `[a, [b, c]]` not `[ a, [ b, c ] ]`

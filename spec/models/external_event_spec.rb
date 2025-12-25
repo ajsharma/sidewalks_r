@@ -67,7 +67,7 @@ RSpec.describe ExternalEvent, type: :model do
 
   describe ".model_name" do
     it "returns Event as the model name for routing" do
-      expect(ExternalEvent.model_name.name).to eq("Event")
+      expect(described_class.model_name.name).to eq("Event")
     end
   end
 
@@ -77,8 +77,8 @@ RSpec.describe ExternalEvent, type: :model do
         active_event = create(:external_event)
         archived_event = create(:external_event, :archived)
 
-        expect(ExternalEvent.active).to include(active_event)
-        expect(ExternalEvent.active).not_to include(archived_event)
+        expect(described_class.active).to include(active_event)
+        expect(described_class.active).not_to include(archived_event)
       end
     end
 
@@ -87,15 +87,15 @@ RSpec.describe ExternalEvent, type: :model do
         upcoming_event = create(:external_event, :upcoming)
         past_event = create(:external_event, :past)
 
-        expect(ExternalEvent.upcoming).to include(upcoming_event)
-        expect(ExternalEvent.upcoming).not_to include(past_event)
+        expect(described_class.upcoming).to include(upcoming_event)
+        expect(described_class.upcoming).not_to include(past_event)
       end
 
       it "includes events starting today" do
         today_event = create(:external_event,
           start_time: Time.current.end_of_day - 3.hours,
           end_time: Time.current.end_of_day)
-        expect(ExternalEvent.upcoming).to include(today_event)
+        expect(described_class.upcoming).to include(today_event)
       end
     end
 
@@ -113,7 +113,7 @@ RSpec.describe ExternalEvent, type: :model do
           start_time: 10.days.from_now,
           end_time: 10.days.from_now + 2.hours)
 
-        results = ExternalEvent.by_date_range(start_date, end_date)
+        results = described_class.by_date_range(start_date, end_date)
         expect(results).to include(in_range)
         expect(results).not_to include(before_range)
         expect(results).not_to include(after_range)
@@ -123,24 +123,24 @@ RSpec.describe ExternalEvent, type: :model do
     describe ".free_only" do
       it "returns events with nil price" do
         free_event = create(:external_event, price: nil)
-        expect(ExternalEvent.free_only).to include(free_event)
+        expect(described_class.free_only).to include(free_event)
       end
 
       it "returns events with zero price" do
         free_event = create(:external_event, price: 0)
-        expect(ExternalEvent.free_only).to include(free_event)
+        expect(described_class.free_only).to include(free_event)
       end
 
       it "excludes paid events" do
         paid_event = create(:external_event, :paid)
-        expect(ExternalEvent.free_only).not_to include(paid_event)
+        expect(described_class.free_only).not_to include(paid_event)
       end
     end
 
     describe ".weekends_only" do
       it "returns Saturday events" do
         saturday_event = create(:external_event, :weekend)
-        expect(ExternalEvent.weekends_only).to include(saturday_event)
+        expect(described_class.weekends_only).to include(saturday_event)
       end
 
       it "excludes weekday events" do
@@ -151,39 +151,39 @@ RSpec.describe ExternalEvent, type: :model do
           start_time: monday.to_time,
           end_time: monday.to_time + 2.hours)
 
-        expect(ExternalEvent.weekends_only).not_to include(weekday_event)
+        expect(described_class.weekends_only).not_to include(weekday_event)
       end
     end
 
     describe ".search_by_text" do
       it "finds events by title" do
         event = create(:external_event, title: "Unique Band Name")
-        results = ExternalEvent.search_by_text("Unique")
+        results = described_class.search_by_text("Unique")
         expect(results).to include(event)
       end
 
       it "finds events by description" do
         event = create(:external_event, description: "Special concert description")
-        results = ExternalEvent.search_by_text("Special")
+        results = described_class.search_by_text("Special")
         expect(results).to include(event)
       end
 
       it "finds events by venue" do
         event = create(:external_event, venue: "The Fillmore")
-        results = ExternalEvent.search_by_text("Fillmore")
+        results = described_class.search_by_text("Fillmore")
         expect(results).to include(event)
       end
 
       it "is case insensitive" do
         event = create(:external_event, title: "Rock Concert")
-        results = ExternalEvent.search_by_text("ROCK")
+        results = described_class.search_by_text("ROCK")
         expect(results).to include(event)
       end
 
       it "sanitizes SQL LIKE wildcards" do
         event = create(:external_event, title: "Band Name")
         # Should not treat % as wildcard
-        results = ExternalEvent.search_by_text("%")
+        results = described_class.search_by_text("%")
         expect(results).not_to include(event)
       end
     end

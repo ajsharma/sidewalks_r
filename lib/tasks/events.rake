@@ -80,7 +80,7 @@ namespace :events do
 
     # Price breakdown
     free_count = ExternalEvent.active.upcoming.free_only.count
-    paid_count = ExternalEvent.active.upcoming.where.not(price: [nil, 0]).count
+    paid_count = ExternalEvent.active.upcoming.where.not(price: [ nil, 0 ]).count
 
     puts "\nPRICE BREAKDOWN:"
     puts "  Free events: #{free_count}"
@@ -107,7 +107,7 @@ namespace :events do
   end
 
   desc "Show upcoming events (default: next 7 days)"
-  task :upcoming, [:days] => :environment do |_t, args|
+  task :upcoming, [ :days ] => :environment do |_t, args|
     days = (args[:days] || 7).to_i
     end_date = days.days.from_now
 
@@ -127,7 +127,7 @@ namespace :events do
         puts "-" * 60
 
         day_events.each do |event|
-          time = event.start_time.strftime('%I:%M %p')
+          time = event.start_time.strftime("%I:%M %p")
           price = event.free? ? "[FREE]" : (event.price ? "[$#{event.price}]" : "")
           venue = event.venue ? " @ #{event.venue}" : ""
 
@@ -144,7 +144,7 @@ namespace :events do
   end
 
   desc "Clean up old archived events (default: older than 30 days)"
-  task :cleanup, [:days] => :environment do |_t, args|
+  task :cleanup, [ :days ] => :environment do |_t, args|
     days = (args[:days] || 30).to_i
     cutoff_date = days.days.ago
 
@@ -232,7 +232,7 @@ namespace :events do
   end
 
   desc "Reprocess events from raw feed data (useful after parser fixes)"
-  task :reprocess, [:feed_id] => :environment do |_t, args|
+  task :reprocess, [ :feed_id ] => :environment do |_t, args|
     feed_id = args[:feed_id]&.to_i
 
     if feed_id
