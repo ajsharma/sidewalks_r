@@ -4,10 +4,10 @@ module AiActivitiesHelper
   # @return [Array<Array<String>>] array of [label, value] pairs
   def ai_schedule_type_options
     [
-      [ "Flexible - Can happen anytime", "flexible" ],
-      [ "Strict - Specific date/time", "strict" ],
-      [ "Deadline - Must complete by date", "deadline" ],
-      [ "Recurring - Repeats on a schedule", "recurring_strict" ]
+      ['Flexible - Can happen anytime', 'flexible'],
+      ['Strict - Specific date/time', 'strict'],
+      ['Deadline - Must complete by date', 'deadline'],
+      ['Recurring - Repeats on a schedule', 'recurring_strict']
     ]
   end
 
@@ -15,11 +15,11 @@ module AiActivitiesHelper
   # @return [Array<Array<String>>] array of [label, value] pairs
   def ai_time_of_day_options
     [
-      [ "Flexible", "" ],
-      [ "Morning (6am-12pm)", "morning" ],
-      [ "Afternoon (12pm-5pm)", "afternoon" ],
-      [ "Evening (5pm-9pm)", "evening" ],
-      [ "Night (9pm-late)", "night" ]
+      ['Flexible', ''],
+      ['Morning (6am-12pm)', 'morning'],
+      ['Afternoon (12pm-5pm)', 'afternoon'],
+      ['Evening (5pm-9pm)', 'evening'],
+      ['Night (9pm-late)', 'night']
     ]
   end
 
@@ -28,12 +28,12 @@ module AiActivitiesHelper
   # @return [String] formatted relative time (e.g., "2 days ago")
   # :reek:UtilityFunction
   def relative_time(time)
-    return "" unless time
+    return '' unless time
 
     distance = Time.current - time
     case distance
     when 0..59
-      "just now"
+      'just now'
     when 60..3599
       "#{(distance / 60).round} minutes ago"
     when 3600..86399
@@ -43,7 +43,7 @@ module AiActivitiesHelper
     when 604800..2419199
       "#{(distance / 604800).round} weeks ago"
     else
-      time.strftime("%b %d, %Y")
+      time.strftime('%b %d, %Y')
     end
   end
 end

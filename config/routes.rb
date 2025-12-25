@@ -15,7 +15,7 @@ Rails.application.routes.draw do
   end
 
   # AI Activity Suggestions
-  resources :ai_activities, path: "ai-suggestions", except: [ :create, :edit, :update ] do
+  resources :ai_activities, path: "ai-suggestions", except: [:create, :edit, :update] do
     post :generate, on: :collection
     post :accept, on: :member
     post :reject, on: :member
