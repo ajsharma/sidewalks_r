@@ -7,7 +7,7 @@ RSpec.describe "events rake tasks" do
     Rake::Task.define_task(:environment)
   end
 
-  before(:each) do
+  before do
     Rake::Task.tasks.each(&:reenable)
   end
 

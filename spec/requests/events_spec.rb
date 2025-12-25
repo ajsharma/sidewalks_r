@@ -2,13 +2,14 @@ require "rails_helper"
 
 RSpec.describe "Events", type: :request do
   # Disable Bullet for integration tests - N+1 optimization can be addressed separately
-  before(:each) do
+  before do
     Bullet.enable = false
   end
 
-  after(:each) do
+  after do
     Bullet.enable = true
   end
+
   describe "GET /events" do
     let!(:active_events) { create_list(:external_event, 5, :upcoming) }
     let!(:archived_event) { create(:external_event, :archived) }
@@ -345,7 +346,7 @@ RSpec.describe "Events", type: :request do
         before do
           # Create an invalid activity that will fail validation
           allow_any_instance_of(Activity).to receive(:save).and_return(false)
-          errors_double = instance_double(ActiveModel::Errors, full_messages: ["Name can't be blank"])
+          errors_double = instance_double(ActiveModel::Errors, full_messages: [ "Name can't be blank" ])
           allow_any_instance_of(Activity).to receive(:errors).and_return(errors_double)
         end
 
