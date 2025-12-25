@@ -77,6 +77,7 @@ VCR.configure do |config|
   config.ignore_request do |request|
     request.uri.include?("oauth2.googleapis.com/token") && !VCR.current_cassette
   end
+
 end
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -106,38 +107,18 @@ end
 # Rails 8 lazy loads routes by default, which breaks Devise test helpers (sign_in, etc.)
 # This is a known compatibility issue: https://github.com/heartcombo/devise/issues/5694
 RSpec.configure do |config|
-  config.before(:suite) do
-    Rails.application.routes_reloader.execute_unless_loaded
-  end
-end
-
-RSpec.configure do |config|
-  # Selectively use VCR for specs that make external HTTP calls
-  # This prevents VCR from interfering with Devise test helpers in Rails 8
-  # while still maintaining protection against unexpected HTTP requests
+  # Automatically use VCR for all examples
+  # Cassette names are derived from the spec file path and example description
+  # This ensures CI fails if any third-party HTTP request is made without a recorded cassette
   config.around do |example|
-    # Auto-enable VCR for specs that are likely to make external HTTP calls:
-    # - Service specs (RssParserService, GoogleCalendarService, etc.)
-    # - ActivityScheduling specs (Google Calendar API integration)
-    # - Specs explicitly tagged with vcr: true
-    needs_vcr = example.metadata[:vcr] == true ||
-                example.metadata[:type] == :service ||
-                example.file_path.include?('spec/services/') ||
-                example.file_path.include?('activity_scheduling')
+    # Generate cassette name from spec file path and example description
+    # e.g., "spec/services/rss_parser_service_spec.rb" + "parses the RSS feed successfully"
+    # becomes "RssParserService/_parse/with_Bottom_of_the_Hill_feed/parses_the_RSS_feed_successfully"
+    cassette_name = example.metadata[:full_description]
+      .gsub(/[^\w\s\/]/, '')  # Remove special chars except slashes
+      .gsub(/\s+/, '_')        # Replace spaces with underscores
 
-    if needs_vcr
-      # Generate cassette name from spec file path and example description
-      cassette_name = example.metadata[:full_description]
-        .gsub(/[^\w\s\/]/, '')  # Remove special chars except slashes
-        .gsub(/\s+/, '_')        # Replace spaces with underscores
-
-      VCR.use_cassette(cassette_name) do
-        example.run
-      end
-    else
-      # Run without VCR wrapper
-      # Note: VCR is still configured with allow_http_connections_when_no_cassette: false
-      # so any unexpected HTTP call will still cause the test to fail
+    VCR.use_cassette(cassette_name) do
       example.run
     end
   end
