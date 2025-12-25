@@ -64,6 +64,35 @@ class ExternalEvent < ApplicationRecord
           "%#{sanitized_query}%", "%#{sanitized_query}%", "%#{sanitized_query}%")
   }
 
+  # Scope to apply filters from filter options hash
+  # @param options [Hash] Filter options (parsed dates, booleans, etc.)
+  # @return [ActiveRecord::Relation] Filtered events
+  scope :apply_filters, ->(options = {}) {
+    relation = all
+
+    # Date range filter
+    if options[:start_date] && options[:end_date]
+      relation = relation.by_date_range(options[:start_date], options[:end_date])
+    end
+
+    # Weekends only filter
+    relation = relation.weekends_only if options[:weekends_only]
+
+    # Free events filter
+    relation = relation.free_only if options[:free_only]
+
+    # Price max filter
+    relation = relation.where("price IS NULL OR price <= ?", options[:price_max]) if options[:price_max]
+
+    # Category filter
+    relation = relation.where("? = ANY(category_tags)", options[:category]) if options[:category].present?
+
+    # Search filter
+    relation = relation.search_by_text(options[:search]) if options[:search].present?
+
+    relation
+  }
+
   def archived?
     archived_at.present?
   end
