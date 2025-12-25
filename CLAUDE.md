@@ -10,7 +10,7 @@ This is a Rails 8 application called "Sidewalks" that uses modern Rails conventi
 
 **CRITICAL**: Never modify configuration files (files in `config/`, `.yml`, `.json`, etc.) or create new configuration files without EXPLICIT user approval. This includes but is not limited to:
 - Rails configuration files (`config/**/*.yml`, `config/**/*.rb`)
-- Linter/analyzer configuration (`.rubocop.yml`, `.rails_best_practices.yml`, `.reek.yml`, etc.)
+- Linter/analyzer configuration (`.rubocop.yml`, `rails_best_practices.yml`, `.reek.yml`, etc.)
 - CI/CD configuration (`.github/workflows/*`, `render.yaml`, etc.)
 - Environment configuration (`.env.*`, `config/credentials.yml.enc`)
 
