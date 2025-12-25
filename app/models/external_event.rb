@@ -65,7 +65,7 @@ class ExternalEvent < ApplicationRecord
   }
 
   # Scope to apply filters from filter options hash
-  # @param options [Hash] Filter options (parsed dates, booleans, etc.)
+  # @scope class
   # @return [ActiveRecord::Relation] Filtered events
   scope :apply_filters, ->(options = {}) {
     relation = all

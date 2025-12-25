@@ -12,7 +12,7 @@ RSpec.describe "Events", type: :request do
 
   describe "GET /events" do
     let!(:active_events) { create_list(:external_event, 5, :upcoming) }
-    let!(:archived_event) { create(:external_event, :archived) }
+    let!(:archived_event) { create(:external_event, :archived, title: "ARCHIVED EVENT UNIQUE TITLE") }
 
     it "returns successful response" do
       get events_path
@@ -58,12 +58,12 @@ RSpec.describe "Events", type: :request do
       let!(:saturday_event) do
         saturday = Date.current
         saturday += 1.day until saturday.saturday?
-        create(:external_event, start_time: saturday.to_time)
+        create(:external_event, title: "Saturday Event Unique", start_time: saturday.to_time)
       end
       let!(:weekday_event) do
         monday = Date.current
         monday += 1.day until monday.monday?
-        create(:external_event, start_time: monday.to_time)
+        create(:external_event, title: "Monday Event Unique", start_time: monday.to_time)
       end
 
       it "filters to weekend events only" do
@@ -112,8 +112,8 @@ RSpec.describe "Events", type: :request do
     end
 
     context "with search filter" do
-      let!(:rock_event) { create(:external_event, title: "Rock Concert") }
-      let!(:jazz_event) { create(:external_event, title: "Jazz Night") }
+      let!(:rock_event) { create(:external_event, title: "Rock Concert", description: "A great rock music event", venue: "Bottom of the Hill") }
+      let!(:jazz_event) { create(:external_event, title: "Jazz Night", description: "Smooth jazz performance", venue: "SFJAZZ Center") }
 
       it "searches by title" do
         get events_path, params: { search: "Rock" }
@@ -123,10 +123,12 @@ RSpec.describe "Events", type: :request do
       end
 
       it "searches by venue" do
-        fillmore_event = create(:external_event, venue: "The Fillmore")
+        fillmore_event = create(:external_event, title: "Concert at Fillmore", description: "Live music event", venue: "The Fillmore")
         get events_path, params: { search: "Fillmore" }
 
         expect(response.body).to include(fillmore_event.title)
+        expect(response.body).not_to include(rock_event.title)
+        expect(response.body).not_to include(jazz_event.title)
       end
 
       it "is case insensitive" do
