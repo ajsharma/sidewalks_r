@@ -130,13 +130,6 @@ RSpec.describe EventSyncService do
     end
 
     context "with duplicate events by source_url matching" do
-      let(:similar_event_data) do
-        event_data.merge(
-          external_id: "different-id",
-          source_url: "https://example.com/event1" # Same source_url as existing
-        )
-      end
-
       let!(:existing_event) do
         create(:external_event,
           event_feed: feed,
@@ -147,6 +140,11 @@ RSpec.describe EventSyncService do
       end
 
       before do
+        # Inline similar_event_data to reduce memoized helper count
+        similar_event_data = event_data.merge(
+          external_id: "different-id",
+          source_url: "https://example.com/event1" # Same source_url as existing
+        )
         allow(parser).to receive(:parse).and_return([ similar_event_data ])
       end
 
