@@ -13,8 +13,8 @@ RSpec.describe EventFeed, type: :model do
   end
 
   describe "validations" do
-    it { should validate_presence_of(:name) }
-    it { should validate_presence_of(:url) }
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_presence_of(:url) }
 
     it "validates URL is from allowed list" do
       feed = build(:event_feed, url: "https://malicious-site.com/feed")
@@ -44,33 +44,33 @@ RSpec.describe EventFeed, type: :model do
         active_feed = create(:event_feed)
         inactive_feed = create(:event_feed, :inactive)
 
-        expect(EventFeed.active).to include(active_feed)
-        expect(EventFeed.active).not_to include(inactive_feed)
+        expect(described_class.active).to include(active_feed)
+        expect(described_class.active).not_to include(inactive_feed)
       end
     end
 
     describe ".needs_refresh" do
       it "returns feeds never fetched" do
         never_fetched = create(:event_feed)
-        expect(EventFeed.needs_refresh).to include(never_fetched)
+        expect(described_class.needs_refresh).to include(never_fetched)
       end
 
       it "returns feeds fetched more than 6 hours ago by default" do
         stale_feed = create(:event_feed, :stale)
-        expect(EventFeed.needs_refresh).to include(stale_feed)
+        expect(described_class.needs_refresh).to include(stale_feed)
       end
 
       it "does not return recently fetched feeds" do
         recent_feed = create(:event_feed, :recently_fetched)
-        expect(EventFeed.needs_refresh).not_to include(recent_feed)
+        expect(described_class.needs_refresh).not_to include(recent_feed)
       end
 
       it "accepts custom hours parameter" do
         feed_1_hour_ago = create(:event_feed, last_fetched_at: 1.hour.ago)
         feed_3_hours_ago = create(:event_feed, last_fetched_at: 3.hours.ago)
 
-        expect(EventFeed.needs_refresh(2)).to include(feed_3_hours_ago)
-        expect(EventFeed.needs_refresh(2)).not_to include(feed_1_hour_ago)
+        expect(described_class.needs_refresh(2)).to include(feed_3_hours_ago)
+        expect(described_class.needs_refresh(2)).not_to include(feed_1_hour_ago)
       end
     end
   end
