@@ -63,10 +63,6 @@ class AiActivitySuggestion < ApplicationRecord
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
-  scope :accepted, -> { where(accepted: true) }
-  scope :rejected, -> { where(accepted: false).where.not(status: "pending") }
-  scope :for_user, ->(user) { where(user: user) }
-  scope :this_month, -> { where(created_at: Time.current.beginning_of_month..Time.current.end_of_month) }
 
   # Callbacks
   before_validation :normalize_input
@@ -85,10 +81,6 @@ class AiActivitySuggestion < ApplicationRecord
 
   def reject!
     update!(accepted: false, status: "completed")
-  end
-
-  def mark_processing!
-    update!(status: "processing")
   end
 
   def mark_completed!(data = {})
@@ -126,10 +118,6 @@ class AiActivitySuggestion < ApplicationRecord
 
   def suggested_activity_name
     suggested_data["name"] || "Untitled Activity"
-  end
-
-  def suggested_description
-    suggested_data["description"]
   end
 
   def confidence_label

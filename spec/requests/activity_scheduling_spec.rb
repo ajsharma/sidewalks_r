@@ -24,6 +24,9 @@ RSpec.describe "ActivityScheduling", type: :request do
   end
 
   it "preloads google_accounts to prevent N+1 queries" do
+    # Stub OAuth token requests to avoid VCR errors during GoogleAccount creation
+    stub_request(:post, "https://oauth2.googleapis.com/token").to_return(status: 200, body: "{}")
+
     # Create a google account for the user
     @user.google_accounts.create!(
       google_id: "test123",
@@ -40,6 +43,9 @@ RSpec.describe "ActivityScheduling", type: :request do
   end
 
   it "creates single calendar event" do
+    # Stub OAuth token requests to avoid VCR errors during GoogleAccount creation
+    stub_request(:post, "https://oauth2.googleapis.com/token").to_return(status: 200, body: "{}")
+
     # Create a google account for the user to enable calendar creation
     google_account = @user.google_accounts.create!(
       google_id: "test123",
@@ -81,6 +87,9 @@ RSpec.describe "ActivityScheduling", type: :request do
   end
 
   it "handles invalid date format in create" do
+    # Stub OAuth token requests to avoid VCR errors during GoogleAccount creation
+    stub_request(:post, "https://oauth2.googleapis.com/token").to_return(status: 200, body: "{}")
+
     # Create a google account for the user
     google_account = @user.google_accounts.create!(
       google_id: "test123",

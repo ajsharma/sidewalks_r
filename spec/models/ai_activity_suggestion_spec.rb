@@ -96,27 +96,6 @@ RSpec.describe AiActivitySuggestion, type: :model do
     expect(suggestions.to_sql).to eq(described_class.order(created_at: :desc).to_sql)
   end
 
-  it "accepted scope returns only accepted suggestions" do
-    accepted = described_class.accepted
-    expect(accepted).to include(ai_activity_suggestions(:accepted_suggestion))
-    expect(accepted).not_to include(ai_activity_suggestions(:text_completed))
-  end
-
-  it "rejected scope returns unaccepted completed suggestions" do
-    rejected = described_class.rejected
-    # Should include completed but not accepted
-    expect(rejected).to include(ai_activity_suggestions(:text_completed))
-    expect(rejected).not_to include(ai_activity_suggestions(:accepted_suggestion))
-    expect(rejected).not_to include(ai_activity_suggestions(:text_pending))
-  end
-
-  it "for_user scope filters by user" do
-    user_suggestions = described_class.for_user(@user)
-    user_suggestions.each do |suggestion|
-      expect(suggestion.user).to eq(@user)
-    end
-  end
-
   # Instance methods
   it "accept! marks suggestion as accepted and sets activity" do
     suggestion = ai_activity_suggestions(:text_completed)
@@ -139,14 +118,6 @@ RSpec.describe AiActivitySuggestion, type: :model do
 
     expect(suggestion.accepted).to be_falsey
     expect(suggestion.status).to eq("completed")
-  end
-
-  it "mark_processing! updates status" do
-    suggestion = ai_activity_suggestions(:text_pending)
-
-    suggestion.mark_processing!
-
-    expect(suggestion.status).to eq("processing")
   end
 
   it "mark_completed! updates status and data" do
@@ -192,11 +163,6 @@ RSpec.describe AiActivitySuggestion, type: :model do
   it "suggested_activity_name returns default when no name" do
     suggestion = ai_activity_suggestions(:text_pending)
     expect(suggestion.suggested_activity_name).to eq("Untitled Activity")
-  end
-
-  it "suggested_description returns description from suggested_data" do
-    suggestion = ai_activity_suggestions(:text_completed)
-    expect(suggestion.suggested_description).to eq("Visit local farmers market")
   end
 
   it "confidence_label returns appropriate label" do
