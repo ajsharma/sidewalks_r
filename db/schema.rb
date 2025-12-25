@@ -32,7 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_24_200138) do
     t.string "organizer"
     t.decimal "price", precision: 10, scale: 2
     t.date "recurrence_end_date", comment: "Optional last date for recurrence (null for indefinite recurrence)"
-    t.jsonb "recurrence_rule", comment: "iCalendar RRULE pattern (RFC 5545)"
+    t.jsonb "recurrence_rule", comment: "iCalendar RRULE format (RFC 5545) defining recurrence pattern (DAILY, WEEKLY, MONTHLY, YEARLY) with interval, byday, bymonthday, bysetpos"
     t.date "recurrence_start_date", comment: "First date when the recurring event begins"
     t.string "schedule_type", default: "flexible"
     t.string "slug", null: false
