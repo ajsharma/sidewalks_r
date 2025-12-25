@@ -149,7 +149,34 @@ end
 
 **Solution**: Use SystemHelpers module instead (already configured)
 
-### 3. "Capybara::NotSupportedByDriverError: accept_modal"
+**Additional Note**: In Rails 8, this error can also occur due to lazy route loading combined with VCR. The test suite now forces route loading at startup to prevent this issue.
+
+### 3. VCR and External HTTP Calls
+
+**Pattern**: Specs that make external HTTP requests should use VCR cassettes
+
+**How it works**: VCR automatically wraps service specs and activity_scheduling specs. For other specs making external HTTP calls, tag them with `vcr: true`.
+
+```ruby
+# Service specs automatically get VCR wrapping
+RSpec.describe RssParserService, type: :service do
+  # VCR cassettes auto-recorded/replayed
+end
+
+# Request specs need explicit tag if they make external HTTP calls
+RSpec.describe "ExternalAPI", type: :request, vcr: true do
+  # VCR cassettes auto-recorded/replayed
+end
+
+# Most request specs don't make external HTTP calls and don't need VCR
+RSpec.describe "Events", type: :request do
+  # No VCR wrapper (faster tests)
+end
+```
+
+**Note**: VCR is configured with `allow_http_connections_when_no_cassette: false`, so any spec that makes an external HTTP call without a cassette will fail, providing CI safety.
+
+### 4. "Capybara::NotSupportedByDriverError: accept_modal"
 
 **Symptom**: Tests fail with `accept_confirm` or `dismiss_confirm`
 
