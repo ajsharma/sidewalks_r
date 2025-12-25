@@ -15,15 +15,11 @@ Rails.application.routes.draw do
   end
 
   # AI Activity Suggestions
-  resources :ai_activities, path: "ai-suggestions" do
-    collection do
-      post :generate
-    end
-    member do
-      post :accept
-      post :reject
-      post :retry
-    end
+  resources :ai_activities, path: "ai-suggestions", except: [:create, :edit, :update] do
+    post :generate, on: :collection
+    post :accept, on: :member
+    post :reject, on: :member
+    post :retry, on: :member
   end
 
   # Activity scheduling
