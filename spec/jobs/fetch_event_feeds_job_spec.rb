@@ -14,9 +14,12 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       ]
     end
 
+    let(:rss_parser) { instance_double(RssParserService) }
+
     before do
       # Stub RSS parser to return test data
-      allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
+      allow(RssParserService).to receive(:new).and_return(rss_parser)
+      allow(rss_parser).to receive(:parse).and_return(event_data)
     end
 
     context "with no feed_id specified" do
@@ -111,7 +114,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
     context "with fetch errors" do
       before do
-        allow_any_instance_of(RssParserService).to receive(:parse)
+        allow(rss_parser).to receive(:parse)
           .and_raise(RssParserService::FetchError.new("Connection timeout"))
       end
 
@@ -137,7 +140,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
     context "with invalid URL errors" do
       before do
-        allow_any_instance_of(RssParserService).to receive(:parse)
+        allow(rss_parser).to receive(:parse)
           .and_raise(RssParserService::InvalidUrlError.new("Invalid URL"))
       end
 
@@ -163,7 +166,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
     context "with parse errors" do
       before do
-        allow_any_instance_of(RssParserService).to receive(:parse)
+        allow(rss_parser).to receive(:parse)
           .and_raise(RssParserService::ParseError.new("Invalid XML"))
       end
 
@@ -182,7 +185,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
 
     context "with standard errors" do
       before do
-        allow_any_instance_of(RssParserService).to receive(:parse)
+        allow(rss_parser).to receive(:parse)
           .and_raise(StandardError.new("Unexpected error"))
       end
 
@@ -219,15 +222,18 @@ RSpec.describe FetchEventFeedsJob, type: :job do
       ]
     end
 
+    let(:rss_parser) { instance_double(RssParserService) }
+
     before do
-      allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
+      allow(RssParserService).to receive(:new).and_return(rss_parser)
+      allow(rss_parser).to receive(:parse).and_return(event_data)
     end
 
     it "parses the feed" do
       # Verify RssParserService is called (through EventSyncService)
-      expect_any_instance_of(RssParserService).to receive(:parse)
-
       described_class.new.send(:sync_feed, feed)
+
+      expect(rss_parser).to have_received(:parse)
     end
 
     it "syncs the events" do
@@ -237,9 +243,11 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     end
 
     it "logs the sync result" do
-      expect(Rails.logger).to receive(:info).at_least(:once)
+      allow(Rails.logger).to receive(:info)
 
       described_class.new.send(:sync_feed, feed)
+
+      expect(Rails.logger).to have_received(:info).at_least(:once)
     end
   end
 
@@ -275,9 +283,11 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     it "logs the archive count" do
       create(:external_event, start_time: 10.days.ago, end_time: 10.days.ago + 2.hours)
 
-      expect(Rails.logger).to receive(:info).with(/Archived 1 old events/)
+      allow(Rails.logger).to receive(:info)
 
       described_class.new.send(:archive_old_events)
+
+      expect(Rails.logger).to have_received(:info).with(/Archived 1 old events/)
     end
   end
 end
