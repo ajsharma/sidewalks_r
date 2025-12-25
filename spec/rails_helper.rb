@@ -77,7 +77,6 @@ VCR.configure do |config|
   config.ignore_request do |request|
     request.uri.include?("oauth2.googleapis.com/token") && !VCR.current_cassette
   end
-
 end
 
 # Requires supporting ruby files with custom matchers and macros, etc, in

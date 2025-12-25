@@ -194,7 +194,7 @@ RSpec.describe "Event Discovery", type: :system do
     end
   end
 
-  describe "adding events to calendar", js: true do
+  describe "adding events to calendar", :js do
     let(:user) { create(:user) }
     let!(:event) { create(:external_event, :upcoming) }
 
