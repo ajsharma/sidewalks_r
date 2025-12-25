@@ -27,7 +27,10 @@ bin/rails tailwindcss:watch # Watch and compile Tailwind CSS
 ### Quick Development Workflow
 ```bash
 bin/go                      # Run full development pipeline: setup, tests, security, code quality, linting
+bin/go --errors-only        # Run pipeline showing only section headers and errors (recommended for Claude)
 ```
+
+**Note for Claude Code**: When running `bin/go`, always use the `--errors-only` flag to minimize output. This shows section headers and only displays output when commands fail, making it easier to focus on issues.
 
 ### CI/CD Pipeline
 The project includes a comprehensive CI/CD pipeline with:

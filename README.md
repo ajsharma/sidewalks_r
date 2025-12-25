@@ -114,8 +114,11 @@ The application will be available at `http://localhost:3000`
 Run the full development pipeline (setup, tests, security, quality checks):
 
 ```bash
-bin/go
+bin/go                 # Run all checks with full output
+bin/go --errors-only   # Run all checks showing only section headers and errors (quieter output)
 ```
+
+The `--errors-only` flag is useful for quick validation as it suppresses successful command output while still showing failures.
 
 ### Database Operations
 

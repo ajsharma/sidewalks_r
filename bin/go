@@ -1,7 +1,11 @@
 #!/usr/bin/env ruby
 require "fileutils"
+require "open3"
 
 APP_ROOT = File.expand_path("..", __dir__)
+
+# Parse command line arguments
+ERRORS_ONLY = ARGV.include?("--errors-only")
 
 # Set environment variables for the script
 # ENV["BULLET_RAISE"] = "false"
@@ -10,44 +14,62 @@ def system!(*args)
   system(*args, exception: true)
 end
 
+def run_command(*args, errors_only: false)
+  if errors_only
+    # Capture output in errors-only mode
+    output, status = Open3.capture2e(*args)
+    if status.success?
+      # Success: suppress output
+      return true
+    else
+      # Failure: show output then raise
+      puts output
+      raise "Command failed with status #{status.exitstatus}: #{args.join(' ')}"
+    end
+  else
+    # Normal mode: stream output directly
+    system(*args, exception: true)
+  end
+end
+
 FileUtils.chdir APP_ROOT do
   puts "== Running setup =="
-  system! "bin/setup --skip-server"
+  run_command "bin/setup --skip-server", errors_only: ERRORS_ONLY
 
   puts "\n== Running tests =="
-  system! "bundle exec rspec"
+  run_command "bundle exec rspec", errors_only: ERRORS_ONLY
 
   puts "\n== Running security tests =="
-  system! "bin/brakeman"
+  run_command "bin/brakeman", errors_only: ERRORS_ONLY
 
   puts "\n== Running gem security audit =="
-  system! "bundle exec bundle-audit --update"
+  run_command "bundle exec bundle-audit --update", errors_only: ERRORS_ONLY
 
   puts "\n== Scanning for leaked secrets =="
   if system("which gitleaks > /dev/null 2>&1")
-    system! "gitleaks detect --verbose --no-git"
+    run_command "gitleaks detect --verbose --no-git", errors_only: ERRORS_ONLY
   else
     puts "⚠️  Gitleaks not installed. Install with: brew install gitleaks"
     puts "Skipping secret scanning..."
   end
 
   # puts "\n== Regenerating swagger =="
-  # system! "bundle exec rake rswag:specs:swaggerize"
+  # run_command "bundle exec rake rswag:specs:swaggerize", errors_only: ERRORS_ONLY
 
   puts "\n== Running code quality analysis =="
-  system! "bundle exec reek ."
+  run_command "bundle exec reek .", errors_only: ERRORS_ONLY
 
   puts "\n== Running Rails best practices =="
-  system! "bundle exec rails_best_practices ."
+  run_command "bundle exec rails_best_practices .", errors_only: ERRORS_ONLY
 
   puts "\n== Running lints =="
-  system! "bundle exec rubocop -A"
+  run_command "bundle exec rubocop -A", errors_only: ERRORS_ONLY
 
   puts "\n== Running YARD documentation checks =="
-  system! "bundle exec yardoc --no-output --no-cache --fail-on-warning"
+  run_command "bundle exec yardoc --no-output --no-cache --fail-on-warning", errors_only: ERRORS_ONLY
 
   puts "\n== Updating model annotations =="
-  system! "bundle exec annotaterb models"
+  run_command "bundle exec annotaterb models", errors_only: ERRORS_ONLY
 
   puts "\n== All checks passed! =="
 end
