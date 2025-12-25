@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe RssParserService do
   describe "#parse" do
-    context "with Bottom of the Hill feed", :vcr do
+    context "with Bottom of the Hill feed" do
       let(:url) { "https://www.bottomofthehill.com/RSS.xml" }
       let(:service) { described_class.new(url) }
 
@@ -32,7 +32,7 @@ RSpec.describe RssParserService do
       end
     end
 
-    context "with FunCheap SF feed", :vcr do
+    context "with FunCheap SF feed" do
       let(:url) { "https://sf.funcheap.com/rss-date/" }
       let(:service) { described_class.new(url) }
 
@@ -71,7 +71,7 @@ RSpec.describe RssParserService do
       end
     end
 
-    context "with Eddie's List feed", :vcr do
+    context "with Eddie's List feed" do
       let(:url) { "https://www.eddies-list.com/feed" }
       let(:service) { described_class.new(url) }
 
@@ -99,7 +99,7 @@ RSpec.describe RssParserService do
       end
     end
 
-    context "with unreachable URL", :vcr do
+    context "with unreachable URL" do
       let(:service) { described_class.new("https://nonexistent-domain-12345.com/feed") }
 
       it "raises FetchError" do
