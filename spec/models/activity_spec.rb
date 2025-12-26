@@ -598,5 +598,4 @@ RSpec.describe Activity, type: :model do
 
     expect(@activity.next_occurrence).to be_nil
   end
-
 end
