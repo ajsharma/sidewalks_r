@@ -394,7 +394,7 @@ RSpec.describe EventSyncService do
 
     it "only searches within the same feed" do
       # Use an allowed feed URL (FunCheap)
-      other_feed = create(:event_feed, name: "FunCheap SF", url: "https://sf.funcheap.com/rss-date/")
+      other_feed = create(:event_feed, name: "FunCheap SF", url: "https://sf.funcheap.com/feed")
       other_service = described_class.new(other_feed)
       other_event = create(:external_event,
         event_feed: other_feed,

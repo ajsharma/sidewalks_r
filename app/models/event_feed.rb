@@ -28,7 +28,7 @@ class EventFeed < ApplicationRecord
   # Whitelist of allowed feed URLs for SSRF protection
   ALLOWED_FEED_URLS = [
     "https://www.bottomofthehill.com/RSS.xml",
-    "https://sf.funcheap.com/rss-date/",
+    "https://sf.funcheap.com/feed",
     "https://www.eddies-list.com/feed"
   ].freeze
 
