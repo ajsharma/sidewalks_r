@@ -28,7 +28,7 @@ RSpec.describe EventFeed, type: :model do
     end
 
     it "allows FunCheap SF URL" do
-      feed = build(:event_feed, url: EventFeed::FUNCHEAP_SF_URL)
+      feed = build(:event_feed, url: "https://sf.funcheap.com/feed")
       expect(feed).to be_valid
     end
 
