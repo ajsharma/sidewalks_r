@@ -214,7 +214,10 @@ class RssParserService
     actual_title = price_from_title ? price_from_title[2] : title
     price = custom_fields[:cost] || (price_from_title ? price_from_title[1].to_f : nil)
 
-    start_time = parse_date(custom_fields[:start_time] || entry.published)
+    # Try to extract date from custom fields, then from title, then fall back to publish date
+    start_time = parse_date(custom_fields[:start_time]) ||
+                 extract_funcheap_date_from_title(title) ||
+                 parse_date(entry.published)
     end_time = parse_date(custom_fields[:end_time])
 
     {
@@ -262,6 +265,26 @@ class RssParserService
                      .map(&:parameterize)
                      .reject(&:blank?)
                      .first(5)
+  end
+
+  def extract_funcheap_date_from_title(title)
+    # FunCheap format: "2/25/26: Event Name" or "12/31/25: Event Name"
+    # Pattern: M/D/YY: or MM/DD/YY: at the start of the title
+    match = title.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}):\s*/)
+    return nil unless match
+
+    month, day, year = match[1].to_i, match[2].to_i, match[3].to_i
+
+    # Convert 2-digit year to 4-digit year (assuming 20XX for years 00-99)
+    full_year = 2000 + year
+
+    begin
+      # Create date and set a default time (let's use noon as a reasonable default)
+      Date.new(full_year, month, day).to_time.change(hour: 12, min: 0)
+    rescue ArgumentError => e
+      Rails.logger.warn("Invalid date in FunCheap title '#{title}': #{e.message}")
+      nil
+    end
   end
 
   def parse_bottom_of_the_hill_entry(entry)
@@ -337,16 +360,30 @@ class RssParserService
 
   def extract_date_from_title(title)
     # Pattern: "Fri, Dec 20: Band Name" or "Sat Dec 20: Event"
+    # Also handles: "2026  02/13  :  Band Name" (new Bottom of the Hill format)
     # Try to match various date formats in title
     date_patterns = [
-      /(\w{3},?\s+\w{3}\s+\d{1,2})/i,  # "Fri, Dec 20" or "Fri Dec 20"
-      /(\d{1,2}\/\d{1,2}\/\d{2,4})/,    # "12/20/2024"
-      /(\w{3}\s+\d{1,2})/i               # "Dec 20"
+      /^(\d{4})\s+(\d{1,2})\/(\d{1,2})\s+:/,  # "2026  02/13  :" (new BOTH format)
+      /(\w{3},?\s+\w{3}\s+\d{1,2})/i,          # "Fri, Dec 20" or "Fri Dec 20"
+      /(\d{1,2}\/\d{1,2}\/\d{2,4})/,           # "12/20/2024"
+      /(\w{3}\s+\d{1,2})/i                      # "Dec 20"
     ]
 
     date_patterns.each do |pattern|
       match = title.match(pattern)
       next unless match
+
+      # Handle new Bottom of the Hill format: "2026  02/13  :"
+      if pattern.source.include?('\\d{4}')
+        year, month, day = match[1], match[2], match[3]
+        begin
+          parsed = Date.new(year.to_i, month.to_i, day.to_i)
+          # Default to 8pm for concert events
+          return parsed.to_time.change(hour: 20, min: 0)
+        rescue ArgumentError
+          next
+        end
+      end
 
       date_str = match[1]
 
@@ -374,8 +411,10 @@ class RssParserService
   end
 
   def clean_bottom_of_hill_title(title)
-    # Remove date prefix from title: "Fri, Dec 20: Band Name" -> "Band Name"
-    title.sub(/^\w{3},?\s+\w{3}\s+\d{1,2}:\s*/, "").strip
+    # Remove date prefix from title
+    # Old format: "Fri, Dec 20: Band Name" -> "Band Name"
+    # New format: "2026  02/13  :  Band Name" -> "Band Name"
+    title.sub(/^(\d{4}\s+\d{1,2}\/\d{1,2}\s+:\s*|\w{3},?\s+\w{3}\s+\d{1,2}:\s*)/, "").strip
   end
 
   def extract_location_from_description(description)

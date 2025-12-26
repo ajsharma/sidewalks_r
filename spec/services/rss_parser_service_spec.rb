@@ -137,6 +137,17 @@ RSpec.describe RssParserService do
   describe "#extract_date_from_title" do
     let(:service) { described_class.new("http://example.com") }
 
+    it "extracts date from 'YYYY MM/DD :' format (new Bottom of the Hill)" do
+      title = "2026  02/13  :  Blossom ~ Sledges ~ Rosegate Ave."
+      date = service.send(:extract_date_from_title, title)
+
+      expect(date).to be_a(Time)
+      expect(date.year).to eq(2026)
+      expect(date.month).to eq(2)
+      expect(date.day).to eq(13)
+      expect(date.hour).to eq(20)
+    end
+
     it "extracts date from 'Fri, Dec 20' format" do
       title = "Fri, Dec 20: Band Name"
       date = service.send(:extract_date_from_title, title)
@@ -176,6 +187,45 @@ RSpec.describe RssParserService do
       date = service.send(:extract_date_from_title, title)
 
       expect(date.hour).to eq(20)
+    end
+  end
+
+  describe "#extract_funcheap_date_from_title" do
+    let(:service) { described_class.new("http://example.com") }
+
+    it "extracts date from 'MM/DD/YY:' format" do
+      title = "2/25/26: Hook-Up Horror Stories Stand-Up Comedy Show"
+      date = service.send(:extract_funcheap_date_from_title, title)
+
+      expect(date).to be_a(Time)
+      expect(date.year).to eq(2026)
+      expect(date.month).to eq(2)
+      expect(date.day).to eq(25)
+      expect(date.hour).to eq(12) # Default noon
+    end
+
+    it "extracts date from 'M/D/YY:' format" do
+      title = "1/5/26: Event Name"
+      date = service.send(:extract_funcheap_date_from_title, title)
+
+      expect(date).to be_a(Time)
+      expect(date.year).to eq(2026)
+      expect(date.month).to eq(1)
+      expect(date.day).to eq(5)
+    end
+
+    it "returns nil when no date found" do
+      title = "Random Event Title Without Date"
+      date = service.send(:extract_funcheap_date_from_title, title)
+
+      expect(date).to be_nil
+    end
+
+    it "returns nil for invalid dates" do
+      title = "13/32/26: Invalid Date"
+      date = service.send(:extract_funcheap_date_from_title, title)
+
+      expect(date).to be_nil
     end
   end
 
