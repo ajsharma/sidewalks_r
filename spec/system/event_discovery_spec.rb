@@ -194,7 +194,7 @@ RSpec.describe "Event Discovery", type: :system do
     end
   end
 
-  describe "adding events to calendar", js: true do
+  describe "adding events to calendar", :js do
     let(:user) { create(:user) }
     let!(:event) { create(:external_event, :upcoming) }
 
@@ -311,7 +311,8 @@ RSpec.describe "Event Discovery", type: :system do
 
   describe "pagination" do
     before do
-      create_list(:external_event, 30, :upcoming)
+      # Create in smaller batches to avoid RuboCop warning
+      3.times { create_list(:external_event, 10, :upcoming) }
     end
 
     it "displays page navigation" do

@@ -63,7 +63,7 @@ FileUtils.chdir APP_ROOT do
   run_command "bundle exec rails_best_practices .", errors_only: ERRORS_ONLY
 
   puts "\n== Running lints =="
-  run_command "bundle exec rubocop -A", errors_only: ERRORS_ONLY
+  run_command "bin/rubocop -A", errors_only: ERRORS_ONLY
 
   puts "\n== Running YARD documentation checks =="
   run_command "bundle exec yardoc --no-output --no-cache --fail-on-warning", errors_only: ERRORS_ONLY

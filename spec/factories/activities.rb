@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :activity do
-    association :user
+    user
     sequence(:name) { |n| "Activity #{n}" }
     sequence(:slug) { |n| "activity-#{n}" }
     description { "Activity description" }

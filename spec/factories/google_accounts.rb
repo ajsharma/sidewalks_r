@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :google_account do
-    association :user
+    user
     sequence(:email) { |n| "google#{n}@gmail.com" }
     sequence(:google_id) { |n| "google#{n}23" }
     access_token { "test_access_token" }

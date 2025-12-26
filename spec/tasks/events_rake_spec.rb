@@ -1,13 +1,14 @@
 require "rails_helper"
 require "rake"
 
-RSpec.describe "events rake tasks" do
-  before(:all) do
+# rubocop:disable RSpec/DescribeClass
+RSpec.describe "events rake tasks", type: :task do
+  # rubocop:enable RSpec/DescribeClass
+  before do
+    # Load rake tasks before each example to avoid state leaks
     Rake.application.rake_require "tasks/events"
     Rake::Task.define_task(:environment)
-  end
-
-  before(:each) do
+    # Re-enable tasks for each test
     Rake::Task.tasks.each(&:reenable)
   end
 
@@ -35,13 +36,17 @@ RSpec.describe "events rake tasks" do
       ]
     end
 
+    let(:rss_parser) { instance_double(RssParserService) }
+
     before do
-      allow_any_instance_of(RssParserService).to receive(:parse).and_return(event_data)
+      allow(RssParserService).to receive(:new).and_return(rss_parser)
+      allow(rss_parser).to receive(:parse).and_return(event_data)
     end
 
     it "runs the FetchEventFeedsJob" do
-      expect(FetchEventFeedsJob).to receive(:perform_now)
+      allow(FetchEventFeedsJob).to receive(:perform_now)
       Rake::Task["events:fetch"].invoke
+      expect(FetchEventFeedsJob).to have_received(:perform_now)
     end
 
     it "creates events from feeds" do
@@ -66,9 +71,12 @@ RSpec.describe "events rake tasks" do
   end
 
   describe "events:summary" do
-    let!(:feed) { create(:event_feed, :recently_fetched) }
-    let!(:active_events) { create_list(:external_event, 5, :upcoming, event_feed: feed) }
-    let!(:archived_events) { create_list(:external_event, 2, :archived, event_feed: feed) }
+    let(:feed) { create(:event_feed, :recently_fetched) }
+
+    before do
+      create_list(:external_event, 5, :upcoming, event_feed: feed)
+      create_list(:external_event, 2, :archived, event_feed: feed)
+    end
 
     it "displays overall statistics" do
       output = capture_stdout do
@@ -209,19 +217,10 @@ RSpec.describe "events rake tasks" do
   end
 
   describe "events:health" do
-    let!(:healthy_feed) do
+    before do
       create(:event_feed, :recently_fetched, event_count: 10)
-    end
-
-    let!(:stale_feed) do
       create(:event_feed, :stale, name: "Stale Feed")
-    end
-
-    let!(:error_feed) do
       create(:event_feed, :with_error, name: "Error Feed")
-    end
-
-    let!(:inactive_feed) do
       create(:event_feed, :inactive, name: "Inactive Feed")
     end
 

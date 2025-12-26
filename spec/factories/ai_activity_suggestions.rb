@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :ai_activity_suggestion do
-    association :user
+    user
     input_type { "text" }
     input_text { "Go hiking on a weekend" }
     source_url { nil }
