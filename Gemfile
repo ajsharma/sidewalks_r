@@ -129,7 +129,7 @@ group :test do
   gem "axe-core-capybara"
 
   # Additional RSpec matchers [https://github.com/thoughtbot/shoulda-matchers]
-  gem "shoulda-matchers", "~> 6.0"
+  gem "shoulda-matchers", "~> 7.0"
 
   # HTTP request mocking [https://github.com/vcr/vcr]
   gem "vcr", "~> 6.3"
