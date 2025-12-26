@@ -35,8 +35,11 @@ RSpec.describe "ActivityScheduling", type: :request do
       refresh_token: "test_refresh"
     )
 
-    get schedule_url
-    expect(response).to have_http_status(:success)
+    # Mock Google Calendar API to prevent actual API calls
+    with_mocked_google_calendar([]) do
+      get schedule_url
+      expect(response).to have_http_status(:success)
+    end
 
     # The page should render without N+1 queries on google_accounts
     # This test verifies the preload_associations before_action works
