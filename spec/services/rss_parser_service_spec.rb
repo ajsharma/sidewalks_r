@@ -33,7 +33,7 @@ RSpec.describe RssParserService do
     end
 
     context "with FunCheap SF feed" do
-      let(:url) { EventFeed::FUNCHEAP_SF_URL }
+      let(:url) { "https://sf.funcheap.com/feed" }
       let(:service) { described_class.new(url) }
 
       it "parses the RSS feed successfully" do
