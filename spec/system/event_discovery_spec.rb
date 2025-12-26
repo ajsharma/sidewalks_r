@@ -179,9 +179,15 @@ RSpec.describe "Event Discovery", type: :system do
     end
 
     it "displays event time and duration" do
+      # Sign in to access current_user.timezone
+      user = create(:user, timezone: "Pacific Time (US & Canada)")
+      sign_in user
+
       visit event_path(event)
 
-      expect(page).to have_content(event.start_time.strftime("%I:%M %p"))
+      # Event time should be displayed in user's timezone with timezone abbreviation
+      user_tz_time = event.start_time.in_time_zone(user.timezone)
+      expect(page).to have_content(user_tz_time.strftime("%I:%M %p"))
       expect(page).to have_content("3.0 hours")
     end
 
@@ -417,6 +423,61 @@ RSpec.describe "Event Discovery", type: :system do
 
       within(".text-center.py-12") do
         expect(page).to have_css("svg")
+      end
+    end
+  end
+
+  describe "timezone conversion" do
+    let(:user) { create(:user, timezone: "Pacific Time (US & Canada)") }
+
+    before do
+      sign_in user
+    end
+
+    context "when viewing events in user's timezone" do
+      # Event at 5:00 PM PST = 1:00 AM UTC (next day)
+      let!(:event) do
+        create(:external_event,
+          title: "Timezone Test Event",
+          start_time: Time.zone.parse("2025-12-26 01:00:00 UTC"),
+          end_time: Time.zone.parse("2025-12-26 06:00:00 UTC"))
+      end
+
+      it "displays start time in user's Pacific timezone on index page" do
+        visit events_path
+
+        # Should show 5:00 PM PST (previous day), not 1:00 AM UTC
+        expect(page).to have_content("05:00 PM")
+        expect(page).to have_content("PST")
+        expect(page).to have_content("Dec 25") # Previous day in PST
+      end
+
+      it "displays start and end times in user's Pacific timezone on show page" do
+        visit event_path(event)
+
+        # Should show 5:00 PM PST, not 1:00 AM UTC
+        expect(page).to have_content("05:00 PM PST")
+        # Should show 10:00 PM PST, not 6:00 AM UTC
+        expect(page).to have_content("10:00 PM PST")
+        expect(page).to have_content("December 25") # Previous day in PST
+      end
+    end
+
+    context "when user changes timezone" do
+      it "displays times in new timezone" do
+        # Update user to Eastern Time
+        user.update!(timezone: "Eastern Time (US & Canada)")
+
+        # Event at 8:00 PM EST = 1:00 AM UTC (next day)
+        event = create(:external_event,
+          title: "Eastern Time Event",
+          start_time: Time.zone.parse("2025-12-26 01:00:00 UTC"))
+
+        visit events_path
+
+        # Should show 8:00 PM EST (previous day), not 1:00 AM UTC
+        expect(page).to have_content("08:00 PM")
+        expect(page).to have_content("EST")
       end
     end
   end
