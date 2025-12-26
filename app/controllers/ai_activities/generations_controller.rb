@@ -12,7 +12,7 @@ module AiActivities
       input = params[:input]&.strip
 
       if input.blank?
-        return render json: { error: "Input cannot be blank" }, status: :unprocessable_entity
+        return render json: { error: "Input cannot be blank" }, status: :unprocessable_content
       end
 
       # Generate unique request ID for tracking

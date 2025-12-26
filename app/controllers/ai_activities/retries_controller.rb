@@ -38,7 +38,7 @@ module AiActivities
 
     def render_retry_not_allowed
       respond_to do |format|
-        format.json { render json: { error: "Cannot retry accepted suggestions" }, status: :unprocessable_entity }
+        format.json { render json: { error: "Cannot retry accepted suggestions" }, status: :unprocessable_content }
         format.html { redirect_to ai_activity_path(@suggestion), alert: "Cannot retry accepted suggestions" }
       end
     end

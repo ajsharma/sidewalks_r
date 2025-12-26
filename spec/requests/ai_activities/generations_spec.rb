@@ -20,7 +20,7 @@ RSpec.describe "AiActivities::Generations", type: :request do
 
     it "returns error for blank input" do
       post ai_activities_generations_path, params: { input: "" }, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       json = JSON.parse(response.body)
       expect(json["error"]).to match(/cannot be blank/)
     end

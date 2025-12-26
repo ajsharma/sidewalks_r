@@ -41,7 +41,7 @@ module AiActivities
       end
     rescue ActiveRecord::RecordInvalid => e
       respond_to do |format|
-        format.json { render json: { error: e.message }, status: :unprocessable_entity }
+        format.json { render json: { error: e.message }, status: :unprocessable_content }
         format.html { redirect_to ai_activity_path(@suggestion), alert: "Failed to create activity: #{e.message}" }
       end
     end

@@ -153,7 +153,7 @@ RSpec.describe "ActivitiesIntegration", type: :request do
     }
 
     # Test error display - should show validation errors
-    expect(response).to have_http_status(:unprocessable_entity)
+    expect(response).to have_http_status(:unprocessable_content)
     expect(response.body).to include "Name can&#39;t be blank" # HTML escaped apostrophe
   end
 

@@ -50,7 +50,7 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
 
   test "generate returns error for blank input" do
     post generate_ai_activities_path, params: { input: "" }, as: :json
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     json = JSON.parse(response.body)
     assert_match(/cannot be blank/, json["error"])
   end
@@ -175,7 +175,7 @@ class AiActivitiesControllerTest < ActionDispatch::IntegrationTest
 
     post retry_ai_activity_path(suggestion), as: :json
 
-    assert_response :unprocessable_entity
+    assert_response :unprocessable_content
     json = JSON.parse(response.body)
     assert_match(/Cannot retry accepted suggestions/, json["error"])
   end

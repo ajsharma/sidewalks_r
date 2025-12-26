@@ -31,7 +31,7 @@ RSpec.describe "AiActivities::Retries", type: :request do
 
       post ai_activity_retry_path(suggestion), as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       json = JSON.parse(response.body)
       expect(json["error"]).to match(/Cannot retry accepted suggestions/)
     end
