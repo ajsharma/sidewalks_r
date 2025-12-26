@@ -32,9 +32,9 @@ class EventFeed < ApplicationRecord
 
   # Whitelist of allowed feed URLs for SSRF protection
   ALLOWED_FEED_URLS = [
-    "https://www.bottomofthehill.com/RSS.xml",
-    "https://sf.funcheap.com/feed",
-    "https://www.eddies-list.com/feed"
+    BOTTOM_OF_THE_HILL_URL,
+    FUNCHEAP_SF_URL,
+    EDDIES_LIST_URL
   ].freeze
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
