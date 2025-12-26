@@ -69,13 +69,15 @@ VCR.configure do |config|
     allow_unused_http_interactions: false
   }
 
-  # Allow HTTP connections when no cassette is in use for development
-  config.allow_http_connections_when_no_cassette = true
+  # STRICT: Never allow HTTP connections without a cassette
+  # This ensures CI fails if any third-party HTTP request is made without a recorded cassette
+  config.allow_http_connections_when_no_cassette = false
 
   # Ignore OAuth token refresh requests in tests unless specifically testing
   config.ignore_request do |request|
     request.uri.include?("oauth2.googleapis.com/token") && !VCR.current_cassette
   end
+
 end
 
 # Requires supporting ruby files with custom matchers and macros, etc, in
@@ -101,6 +103,22 @@ rescue ActiveRecord::PendingMigrationError => e
   abort e.to_s.strip
 end
 RSpec.configure do |config|
+  # Automatically use VCR for all examples
+  # Cassette names are derived from the spec file path and example description
+  # This ensures CI fails if any third-party HTTP request is made without a recorded cassette
+  config.around do |example|
+    # Generate cassette name from spec file path and example description
+    # e.g., "spec/services/rss_parser_service_spec.rb" + "parses the RSS feed successfully"
+    # becomes "RssParserService/_parse/with_Bottom_of_the_Hill_feed/parses_the_RSS_feed_successfully"
+    cassette_name = example.metadata[:full_description]
+      .gsub(/[^\w\s\/]/, '')  # Remove special chars except slashes
+      .gsub(/\s+/, '_')        # Replace spaces with underscores
+
+    VCR.use_cassette(cassette_name) do
+      example.run
+    end
+  end
+
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.fixture_paths = [
     Rails.root.join('test/fixtures')  # Keep using existing fixtures
