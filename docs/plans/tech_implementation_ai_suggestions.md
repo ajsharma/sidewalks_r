@@ -1165,21 +1165,21 @@ class AiActivitiesController < ApplicationController
       return render json: {
         error: true,
         message: "Please enter an activity description or URL"
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
 
     if input.length < 5
       return render json: {
         error: true,
         message: "Please provide more details (at least 5 characters)"
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
 
     if input.length > 500
       return render json: {
         error: true,
         message: "Input too long (max 500 characters)"
-      }, status: :unprocessable_entity
+      }, status: :unprocessable_content
     end
 
     # Enqueue background job
@@ -1222,8 +1222,8 @@ class AiActivitiesController < ApplicationController
       end
     else
       respond_to do |format|
-        format.html { render :review, status: :unprocessable_entity }
-        format.json { render json: { errors: @activity.errors.full_messages }, status: :unprocessable_entity }
+        format.html { render :review, status: :unprocessable_content }
+        format.json { render json: { errors: @activity.errors.full_messages }, status: :unprocessable_content }
       end
     end
   end
@@ -2758,7 +2758,7 @@ def generate
 
   # ... rest of action
 rescue SecurityError => e
-  render json: { error: e.message }, status: :unprocessable_entity
+  render json: { error: e.message }, status: :unprocessable_content
 end
 ```
 
