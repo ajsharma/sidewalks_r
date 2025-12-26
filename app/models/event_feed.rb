@@ -25,11 +25,16 @@ class EventFeed < ApplicationRecord
 
   FEED_TYPES = %w[rss atom].freeze
 
+  # Feed URL constants
+  BOTTOM_OF_THE_HILL_URL = "https://www.bottomofthehill.com/RSS.xml"
+  FUNCHEAP_SF_URL = "https://sf.funcheap.com/feed"
+  EDDIES_LIST_URL = "https://www.eddies-list.com/feed"
+
   # Whitelist of allowed feed URLs for SSRF protection
   ALLOWED_FEED_URLS = [
-    "https://www.bottomofthehill.com/RSS.xml",
-    "https://sf.funcheap.com/rss-date/",
-    "https://www.eddies-list.com/feed"
+    BOTTOM_OF_THE_HILL_URL,
+    FUNCHEAP_SF_URL,
+    EDDIES_LIST_URL
   ].freeze
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }

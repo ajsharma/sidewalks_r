@@ -23,17 +23,17 @@ RSpec.describe EventFeed, type: :model do
     end
 
     it "allows Bottom of the Hill URL" do
-      feed = build(:event_feed, url: "https://www.bottomofthehill.com/RSS.xml")
+      feed = build(:event_feed, url: EventFeed::BOTTOM_OF_THE_HILL_URL)
       expect(feed).to be_valid
     end
 
     it "allows FunCheap SF URL" do
-      feed = build(:event_feed, url: "https://sf.funcheap.com/rss-date/")
+      feed = build(:event_feed, url: EventFeed::FUNCHEAP_SF_URL)
       expect(feed).to be_valid
     end
 
     it "allows Eddie's List URL" do
-      feed = build(:event_feed, url: "https://www.eddies-list.com/feed")
+      feed = build(:event_feed, url: EventFeed::EDDIES_LIST_URL)
       expect(feed).to be_valid
     end
   end

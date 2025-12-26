@@ -94,7 +94,7 @@ RSpec.describe FetchEventFeedsJob, type: :job do
     context "with specific feed_id" do
       it "fetches only the specified feed" do
         feed1 = create(:event_feed)
-        feed2 = create(:event_feed, name: "Other Feed", url: "https://sf.funcheap.com/rss-date/")
+        feed2 = create(:event_feed, name: "Other Feed", url: EventFeed::FUNCHEAP_SF_URL)
 
         described_class.perform_now(feed1.id)
 

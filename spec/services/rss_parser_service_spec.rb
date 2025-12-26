@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe RssParserService do
   describe "#parse" do
     context "with Bottom of the Hill feed" do
-      let(:url) { "https://www.bottomofthehill.com/RSS.xml" }
+      let(:url) { EventFeed::BOTTOM_OF_THE_HILL_URL }
       let(:service) { described_class.new(url) }
 
       it "parses the RSS feed successfully" do
@@ -33,7 +33,7 @@ RSpec.describe RssParserService do
     end
 
     context "with FunCheap SF feed" do
-      let(:url) { "https://sf.funcheap.com/rss-date/" }
+      let(:url) { EventFeed::FUNCHEAP_SF_URL }
       let(:service) { described_class.new(url) }
 
       it "parses the RSS feed successfully" do
@@ -72,7 +72,7 @@ RSpec.describe RssParserService do
     end
 
     context "with Eddie's List feed" do
-      let(:url) { "https://www.eddies-list.com/feed" }
+      let(:url) { EventFeed::EDDIES_LIST_URL }
       let(:service) { described_class.new(url) }
 
       it "parses the RSS feed successfully" do
@@ -108,7 +108,7 @@ RSpec.describe RssParserService do
     end
 
     context "with timeout" do
-      let(:url) { "https://www.bottomofthehill.com/RSS.xml" }
+      let(:url) { EventFeed::BOTTOM_OF_THE_HILL_URL }
       let(:service) { described_class.new(url) }
 
       before do
@@ -121,7 +121,7 @@ RSpec.describe RssParserService do
     end
 
     context "with invalid XML" do
-      let(:url) { "https://www.bottomofthehill.com/RSS.xml" }
+      let(:url) { EventFeed::BOTTOM_OF_THE_HILL_URL }
       let(:service) { described_class.new(url) }
 
       before do
