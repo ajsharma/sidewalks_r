@@ -15,7 +15,7 @@
       <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
         <span><%= @suggestion.input_type.titleize %> input</span>
         <span>•</span>
-        <span>Created <%= time_ago_in_words(@suggestion.created_at) %> ago</span>
+        <span>Created <%= relative_time(@suggestion.created_at) %></span>
         <% if @suggestion.confidence_score.present? %>
           <span>•</span>
           <span class="<%= @suggestion.confidence_score >= 66 ? 'text-green-600 font-medium' : @suggestion.confidence_score >= 31 ? 'text-yellow-600' : 'text-gray-500' %>">
@@ -102,12 +102,7 @@
             <div>
               <%= form.label :schedule_type, "Schedule Type", class: "block text-sm font-medium text-gray-700" %>
               <%= form.select :schedule_type,
-                    options_for_select([
-                      ['Flexible - Can happen anytime', 'flexible'],
-                      ['Strict - Specific date/time', 'strict'],
-                      ['Deadline - Must complete by date', 'deadline'],
-                      ['Recurring - Repeats on a schedule', 'recurring_strict']
-                    ], suggested_data[:schedule_type]),
+                    options_for_select(ai_schedule_type_options, suggested_data[:schedule_type]),
                     {},
                     class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm",
                     id: "ai_schedule_type_select" %>
@@ -116,13 +111,7 @@
             <div>
               <%= form.label :suggested_time_of_day, "Preferred Time", class: "block text-sm font-medium text-gray-700" %>
               <%= form.select :suggested_time_of_day,
-                    options_for_select([
-                      ['Flexible', ''],
-                      ['Morning (6am-12pm)', 'morning'],
-                      ['Afternoon (12pm-5pm)', 'afternoon'],
-                      ['Evening (5pm-9pm)', 'evening'],
-                      ['Night (9pm-late)', 'night']
-                    ], suggested_data[:suggested_time_of_day]),
+                    options_for_select(ai_time_of_day_options, suggested_data[:suggested_time_of_day]),
                     {},
                     class: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" %>
             </div>

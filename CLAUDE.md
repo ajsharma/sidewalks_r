@@ -6,6 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a Rails 8 application called "Sidewalks" that uses modern Rails conventions with PostgreSQL, Tailwind CSS, and is deployed on Render.com.
 
+## Important Guidelines for Claude Code
+
+**CRITICAL**: Never modify configuration files (files in `config/`, `.yml`, `.json`, etc.) or create new configuration files without EXPLICIT user approval. This includes but is not limited to:
+- Rails configuration files (`config/**/*.yml`, `config/**/*.rb`)
+- Linter/analyzer configuration (`.rubocop.yml`, `rails_best_practices.yml`, `.reek.yml`, etc.)
+- CI/CD configuration (`.github/workflows/*`, `render.yaml`, etc.)
+- Environment configuration (`.env.*`, `config/credentials.yml.enc`)
+
+If you encounter errors from linters or analyzers that could be resolved by configuration changes, report the issue to the user and ask for approval before making any changes.
+
 ## Development Commands
 
 ### Setup and Installation

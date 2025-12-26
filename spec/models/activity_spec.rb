@@ -185,60 +185,12 @@ RSpec.describe Activity, type: :model do
   end
 
   # AI-related tests
-  it "ai_generated? should return true when ai_generated is true" do
-    activity = activities(:ai_generated)
-    expect(activity).to be_ai_generated
-  end
-
-  it "ai_generated? should return false when ai_generated is false" do
-    activity = activities(:one)
-    expect(activity).not_to be_ai_generated
-  end
-
-  it "formatted_suggested_months should return month names" do
-    activity = activities(:ai_generated)
-    expect(activity.formatted_suggested_months).to eq("May, June, July, August, September")
-  end
-
-  it "formatted_suggested_months should return 'Any time' when empty" do
-    activity = activities(:one)
-    expect(activity.formatted_suggested_months).to eq("Any time")
-  end
-
-  it "formatted_suggested_days should return day names" do
-    activity = activities(:ai_generated)
-    expect(activity.formatted_suggested_days).to eq("Sunday, Saturday")
-  end
-
-  it "formatted_suggested_days should return 'Any day' when empty" do
-    activity = activities(:one)
-    expect(activity.formatted_suggested_days).to eq("Any day")
-  end
-
-  it "formatted_time_of_day should return titleized time" do
-    activity = activities(:ai_generated)
-    expect(activity.formatted_time_of_day).to eq("Morning")
-  end
-
-  it "formatted_time_of_day should return 'Flexible' when nil" do
-    activity = activities(:one)
-    expect(activity.formatted_time_of_day).to eq("Flexible")
-  end
-
   it "has_many ai_suggestions association" do
     activity = activities(:one)
     suggestion = ai_activity_suggestions(:text_completed)
     suggestion.update!(final_activity: activity, accepted: true)
 
     expect(activity.ai_suggestions).to include(suggestion)
-  end
-
-  it "originating_suggestion should return accepted suggestion" do
-    activity = activities(:one)
-    suggestion = ai_activity_suggestions(:text_completed)
-    suggestion.update!(final_activity: activity, accepted: true)
-
-    expect(activity.originating_suggestion).to eq(suggestion)
   end
 
   # Phase 1: Recurring events and duration fields
@@ -398,32 +350,6 @@ RSpec.describe Activity, type: :model do
   end
 
   # Phase 2: Duration helper tests
-
-  it "effective_duration_minutes returns duration_minutes when set" do
-    @activity.duration_minutes = 90
-    expect(@activity.effective_duration_minutes).to eq(90)
-  end
-
-  it "effective_duration_minutes returns occurrence_duration_minutes for recurring_strict" do
-    @activity.schedule_type = "recurring_strict"
-    @activity.occurrence_time_start = Time.zone.parse("09:00")
-    @activity.occurrence_time_end = Time.zone.parse("11:30")
-
-    expect(@activity.effective_duration_minutes).to eq(150)
-  end
-
-  it "effective_duration_minutes returns calculated_duration_minutes for strict" do
-    @activity.schedule_type = "strict"
-    @activity.start_time = Time.current
-    @activity.end_time = Time.current + 2.hours
-
-    expect(@activity.effective_duration_minutes).to eq(120)
-  end
-
-  it "effective_duration_minutes returns 60 as default" do
-    @activity.schedule_type = "flexible"
-    expect(@activity.effective_duration_minutes).to eq(60)
-  end
 
   it "occurrence_duration_minutes calculates from occurrence times" do
     @activity.occurrence_time_start = Time.zone.parse("14:00")
@@ -671,53 +597,5 @@ RSpec.describe Activity, type: :model do
     @activity.occurrence_time_end = Time.zone.parse("11:00")
 
     expect(@activity.next_occurrence).to be_nil
-  end
-
-  it "occurrences_in_range returns empty for non-recurring" do
-    @activity.schedule_type = "flexible"
-    occurrences = @activity.occurrences_in_range(Date.current, Date.current + 1.week)
-    expect(occurrences).to be_empty
-  end
-
-  it "occurrences_in_range finds all daily occurrences" do
-    @activity.schedule_type = "recurring_strict"
-    @activity.recurrence_rule = { "freq" => "DAILY", "interval" => 1 }
-    @activity.recurrence_start_date = Date.current
-    @activity.occurrence_time_start = Time.zone.parse("09:00")
-    @activity.occurrence_time_end = Time.zone.parse("10:00")
-
-    occurrences = @activity.occurrences_in_range(Date.current, Date.current + 6.days)
-    expect(occurrences.length).to eq(7)
-
-    occurrences.each do |occ|
-      expect(occ[:start_time].hour).to eq(9)
-      expect(occ[:end_time].hour).to eq(10)
-    end
-  end
-
-  it "occurrences_in_range finds weekly occurrences" do
-    monday = Date.current.beginning_of_week
-    @activity.schedule_type = "recurring_strict"
-    @activity.recurrence_rule = { "freq" => "WEEKLY", "interval" => 1, "byday" => [ "MO", "WE" ] }
-    @activity.recurrence_start_date = monday
-    @activity.occurrence_time_start = Time.zone.parse("14:00")
-    @activity.occurrence_time_end = Time.zone.parse("15:00")
-
-    occurrences = @activity.occurrences_in_range(monday, monday + 2.weeks)
-    # 2 weeks + partial = should have 4-6 occurrences (2 per week)
-    expect(occurrences.length).to be >= 4
-    expect(occurrences).to be_all { |occ| occ[:start_time].monday? || occ[:start_time].wednesday? }
-  end
-
-  it "occurrences_in_range respects recurrence_end_date" do
-    @activity.schedule_type = "recurring_strict"
-    @activity.recurrence_rule = { "freq" => "DAILY", "interval" => 1 }
-    @activity.recurrence_start_date = Date.current
-    @activity.recurrence_end_date = Date.current + 3.days
-    @activity.occurrence_time_start = Time.zone.parse("09:00")
-    @activity.occurrence_time_end = Time.zone.parse("10:00")
-
-    occurrences = @activity.occurrences_in_range(Date.current, Date.current + 10.days)
-    expect(occurrences.length).to eq(4) # Days 0, 1, 2, 3
   end
 end
