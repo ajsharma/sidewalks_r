@@ -70,7 +70,7 @@ group :development, :test do
   gem "dotenv-rails"
 
   # RSpec testing framework [https://rspec.info/]
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 
   # Test data generation [https://github.com/thoughtbot/factory_bot_rails]
   gem "factory_bot_rails"
