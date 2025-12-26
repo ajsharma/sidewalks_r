@@ -214,7 +214,10 @@ class RssParserService
     actual_title = price_from_title ? price_from_title[2] : title
     price = custom_fields[:cost] || (price_from_title ? price_from_title[1].to_f : nil)
 
-    start_time = parse_date(custom_fields[:start_time] || entry.published)
+    # Try to extract date from custom fields, then from title, then fall back to publish date
+    start_time = parse_date(custom_fields[:start_time]) ||
+                 extract_funcheap_date_from_title(title) ||
+                 parse_date(entry.published)
     end_time = parse_date(custom_fields[:end_time])
 
     {
@@ -262,6 +265,26 @@ class RssParserService
                      .map(&:parameterize)
                      .reject(&:blank?)
                      .first(5)
+  end
+
+  def extract_funcheap_date_from_title(title)
+    # FunCheap format: "2/25/26: Event Name" or "12/31/25: Event Name"
+    # Pattern: M/D/YY: or MM/DD/YY: at the start of the title
+    match = title.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}):\s*/)
+    return nil unless match
+
+    month, day, year = match[1].to_i, match[2].to_i, match[3].to_i
+
+    # Convert 2-digit year to 4-digit year (assuming 20XX for years 00-99)
+    full_year = 2000 + year
+
+    begin
+      # Create date and set a default time (let's use noon as a reasonable default)
+      Date.new(full_year, month, day).to_time.change(hour: 12, min: 0)
+    rescue ArgumentError => e
+      Rails.logger.warn("Invalid date in FunCheap title '#{title}': #{e.message}")
+      nil
+    end
   end
 
   def parse_bottom_of_the_hill_entry(entry)
