@@ -32,6 +32,8 @@ bin/go --errors-only        # Run pipeline showing only section headers and erro
 
 **Note for Claude Code**: When running `bin/go`, always use the `--errors-only` flag to minimize output. This shows section headers and only displays output when commands fail, making it easier to focus on issues.
 
+**IMPORTANT for Claude Code**: Before completing any task or creating a commit, run `bin/go --errors-only` to ensure all tests, security checks, and code quality standards pass. A task is not complete until this pipeline passes successfully.
+
 ### CI/CD Pipeline
 The project includes a comprehensive CI/CD pipeline with:
 - **Parallel job execution** - Security scanning, linting, and testing run in parallel
