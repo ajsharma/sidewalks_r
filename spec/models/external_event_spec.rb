@@ -99,6 +99,30 @@ RSpec.describe ExternalEvent, type: :model do
       end
     end
 
+    describe ".past" do
+      it "returns events that have already started" do
+        past_event = create(:external_event, :past)
+        upcoming_event = create(:external_event, :upcoming)
+
+        expect(described_class.past).to include(past_event)
+        expect(described_class.past).not_to include(upcoming_event)
+      end
+
+      it "excludes events starting today" do
+        today_event = create(:external_event,
+          start_time: Time.current.end_of_day - 3.hours,
+          end_time: Time.current.end_of_day)
+        expect(described_class.past).not_to include(today_event)
+      end
+
+      it "includes events from yesterday" do
+        yesterday_event = create(:external_event,
+          start_time: 1.day.ago,
+          end_time: 1.day.ago + 2.hours)
+        expect(described_class.past).to include(yesterday_event)
+      end
+    end
+
     describe ".by_date_range" do
       it "returns events within specified date range" do
         start_date = Date.current
