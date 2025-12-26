@@ -10,6 +10,9 @@ Rails.application.routes.draw do
   # RESTful resources
   resources :activities
   resources :playlists
+  resources :events, only: [ :index, :show ] do
+    post :add_to_calendar, on: :member
+  end
 
   # AI Activity Suggestions
   resources :ai_activities, path: "ai-suggestions" do

@@ -1,0 +1,149 @@
+<div class="max-w-4xl mx-auto px-4 py-6">
+  <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+    <%# Header %>
+    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+      <div class="flex justify-between items-start">
+        <div class="flex-1">
+          <h1 class="text-2xl font-bold text-gray-900"><%= @event.title %></h1>
+          <div class="flex items-center mt-2 space-x-4 flex-wrap">
+            <% if @event.free? %>
+              <span class="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800">
+                Free
+              </span>
+            <% elsif @event.price %>
+              <span class="px-3 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                $<%= @event.price %> <%= @event.price_details %>
+              </span>
+            <% end %>
+
+            <% if @event.weekend? %>
+              <span class="px-3 py-1 text-sm font-medium rounded-full bg-purple-100 text-purple-800">
+                Weekend Event
+              </span>
+            <% end %>
+          </div>
+        </div>
+        <% if user_signed_in? %>
+          <%= button_to "Add to Calendar", add_to_calendar_event_path(@event),
+              method: :post,
+              class: "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200" %>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Content %>
+    <div class="px-6 py-6">
+      <%# Event Details %>
+      <div class="grid md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-3">Event Details</h3>
+          <div class="space-y-3">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 mr-3 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <div>
+                <p class="text-sm font-medium text-gray-900">When</p>
+                <p class="text-sm text-gray-600"><%= @event.start_time.strftime("%A, %B %d, %Y at %I:%M %p") %></p>
+                <% if @event.end_time %>
+                  <p class="text-sm text-gray-600">Until <%= @event.end_time.strftime("%I:%M %p") %></p>
+                  <% if @event.duration_hours %>
+                    <p class="text-xs text-gray-500">(<%= @event.duration_hours %> hours)</p>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+
+            <% if @event.venue? || @event.location? %>
+              <div class="flex items-start">
+                <svg class="w-5 h-5 mr-3 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-900">Where</p>
+                  <% if @event.venue? %>
+                    <p class="text-sm text-gray-600"><%= @event.venue %></p>
+                  <% end %>
+                  <% if @event.location? && @event.location != @event.venue %>
+                    <p class="text-sm text-gray-600"><%= @event.location %></p>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @event.organizer? %>
+              <div class="flex items-start">
+                <svg class="w-5 h-5 mr-3 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-900">Organizer</p>
+                  <p class="text-sm text-gray-600"><%= @event.organizer %></p>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @event.price? %>
+              <div class="flex items-start">
+                <svg class="w-5 h-5 mr-3 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-gray-900">Price</p>
+                  <p class="text-sm text-gray-600">$<%= @event.price %> <%= @event.price_details %></p>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 mb-3">Categories</h3>
+          <% if @event.category_tags.any? %>
+            <div class="flex flex-wrap gap-2">
+              <% @event.category_tags.each do |tag| %>
+                <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+                  <%= tag %>
+                </span>
+              <% end %>
+            </div>
+          <% else %>
+            <p class="text-sm text-gray-500">No categories</p>
+          <% end %>
+        </div>
+      </div>
+
+      <% if @event.description? %>
+        <div class="mb-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-2">Description</h3>
+          <div class="prose prose-sm max-w-none text-gray-700">
+            <%= sanitize @event.description, tags: %w[p br strong em a], attributes: %w[href] %>
+          </div>
+        </div>
+      <% end %>
+
+      <%# Source Link %>
+      <div class="border-t border-gray-200 pt-4">
+        <% if safe_url(@event.source_url) %>
+          <%= link_to "View Original Event", safe_url(@event.source_url), target: "_blank", rel: "noopener noreferrer",
+              class: "inline-flex items-center text-blue-600 hover:text-blue-800" %>
+          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+        <% else %>
+          <p class="text-sm text-gray-500">Source URL not available</p>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Footer %>
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <%= link_to "← Back to Events", events_path,
+          class: "text-gray-600 hover:text-gray-900" %>
+      <span class="text-sm text-gray-500 float-right">
+        Last updated <%= @event.last_synced_at&.strftime("%B %d, %Y") || @event.updated_at.strftime("%B %d, %Y") %>
+      </span>
+    </div>
+  </div>
+</div>

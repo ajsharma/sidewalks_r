@@ -56,6 +56,9 @@ gem "anyway_config", "~> 2.0"
 # AI service integrations
 gem "ruby-openai", "~> 8.3"  # OpenAI/ChatGPT API client
 
+# RSS/Atom feed parsing
+gem "feedjira"  # RSS/Atom parsing with custom namespace support
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
