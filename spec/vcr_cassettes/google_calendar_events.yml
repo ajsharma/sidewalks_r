@@ -1,0 +1,79 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events?orderBy=startTime&singleEvents=true&timeMax=2026-01-01T00:00:00-08:00&timeMin=2025-12-25T00:00:00-08:00
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - unknown/0.0.0 google-apis-calendar_v3/0.51.0 Mac OS X/15.5 (gzip)
+      X-Goog-Api-Client:
+      - gl-ruby/3.4.5 gdcl/1.51.0
+      Authorization:
+      - Bearer test_access_token_12345
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 25 Dec 2025 00:00:00 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        {
+          "kind": "calendar#events",
+          "etag": "\"test_etag\"",
+          "summary": "Test Calendar",
+          "updated": "2025-12-25T00:00:00.000Z",
+          "timeZone": "America/Los_Angeles",
+          "accessRole": "owner",
+          "defaultReminders": [],
+          "items": [
+            {
+              "kind": "calendar#event",
+              "etag": "\"test_event_etag\"",
+              "id": "test_event_1",
+              "status": "confirmed",
+              "htmlLink": "https://www.google.com/calendar/event?eid=test",
+              "created": "2025-12-20T00:00:00.000Z",
+              "updated": "2025-12-20T00:00:00.000Z",
+              "summary": "Test Event",
+              "description": "This is a test event",
+              "creator": {
+                "email": "test@example.com"
+              },
+              "organizer": {
+                "email": "test@example.com",
+                "self": true
+              },
+              "start": {
+                "dateTime": "2025-12-26T14:00:00-08:00",
+                "timeZone": "America/Los_Angeles"
+              },
+              "end": {
+                "dateTime": "2025-12-26T15:00:00-08:00",
+                "timeZone": "America/Los_Angeles"
+              },
+              "iCalUID": "test_event_1@google.com",
+              "sequence": 0,
+              "reminders": {
+                "useDefault": true
+              }
+            }
+          ]
+        }
+  recorded_at: Wed, 25 Dec 2025 00:00:00 GMT
+recorded_with: VCR 6.3.1

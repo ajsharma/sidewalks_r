@@ -362,9 +362,11 @@ RSpec.describe EventSyncService do
       # Calculate similarity: ["rock","concert","live","event"] vs ["rock","concert","live","music"]
       # Intersection: rock, concert, live = 3
       # Union: rock, concert, live, event, music = 5
-      # Similarity: 3/5 = 60% - not enough!
-      # Let's skip this test for now and rely on source_url matching
-      skip "Fuzzy matching requires >80% similarity which is hard to achieve with short titles"
+      # Similarity: 3/5 = 60% - below the 80% threshold, so should return nil
+      similar = service.send(:find_similar_event, event_data)
+
+      # With 60% similarity, it should NOT find a match (threshold is 80%)
+      expect(similar).to be_nil
     end
 
     it "returns nil for different dates" do

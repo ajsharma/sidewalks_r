@@ -36,14 +36,12 @@ RSpec.describe GoogleCalendarService, type: :service do
   # VCR test for real API calls (when recording)
   it "fetches calendar list with VCR" do
     VCR.use_cassette("google_calendar_list") do
-      skip "Enable when recording real API interactions"
-
       # Uncomment when ready to record real API calls:
-      # service = GoogleCalendarService.new(@google_account)
-      # calendars = service.fetch_calendars
-      #
-      # expect(calendars).to be_a(Array)
-      # expect(calendars.any? { |cal| cal[:id] == 'primary' }).to be true
+      service = described_class.new(@google_account)
+      calendars = service.fetch_calendars
+
+      expect(calendars).to be_a(Array)
+      expect(calendars.any? { |cal| cal.id == "primary" }).to be true
     end
   end
 
@@ -57,18 +55,23 @@ RSpec.describe GoogleCalendarService, type: :service do
   end
 
   # Test calendar event creation logic
-  it "formats event data correctly" do
+  it "creates event with correct data" do
     VCR.use_cassette("google_create_event") do
-      skip "Enable when recording real API interactions"
+      service = described_class.new(@google_account)
 
-      # service = GoogleCalendarService.new(@google_account)
-      # activity = activities(:one)
-      #
-      # event_data = service.format_event_for_google(activity, Time.current, Time.current + 1.hour)
-      #
-      # expect(event_data[:summary]).to be_present
-      # expect(event_data[:start]).to be_present
-      # expect(event_data[:end]).to be_present
+      event_data = {
+        title: "Test Activity",
+        description: "Test Description",
+        start_time: Time.parse("2025-12-25 12:00:00 -0800"),
+        end_time: Time.parse("2025-12-25 13:00:00 -0800"),
+        timezone: "America/Los_Angeles"
+      }
+
+      event = service.create_event("primary", event_data)
+
+      expect(event.summary).to eq("Test Activity")
+      expect(event.start).to be_present
+      expect(event.end).to be_present
     end
   end
 end

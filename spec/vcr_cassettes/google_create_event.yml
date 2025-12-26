@@ -1,0 +1,70 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://www.googleapis.com/calendar/v3/calendars/primary/events
+    body:
+      encoding: UTF-8
+      string: '{"summary":"Test Activity","description":"Test Description","start":{"dateTime":"2025-12-25T12:00:00-08:00","timeZone":"America/Los_Angeles"},"end":{"dateTime":"2025-12-25T13:00:00-08:00","timeZone":"America/Los_Angeles"}}'
+    headers:
+      User-Agent:
+      - unknown/0.0.0 google-apis-calendar_v3/0.51.0 Mac OS X/15.5 (gzip)
+      X-Goog-Api-Client:
+      - gl-ruby/3.4.5 gdcl/1.51.0
+      Authorization:
+      - Bearer test_access_token_12345
+      Content-Type:
+      - application/json
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 25 Dec 2025 00:00:00 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        {
+          "kind": "calendar#event",
+          "etag": "\"test_created_event_etag\"",
+          "id": "test_created_event_1",
+          "status": "confirmed",
+          "htmlLink": "https://www.google.com/calendar/event?eid=test_created",
+          "created": "2025-12-25T00:00:00.000Z",
+          "updated": "2025-12-25T00:00:00.000Z",
+          "summary": "Test Activity",
+          "description": "Test Description",
+          "creator": {
+            "email": "test@example.com"
+          },
+          "organizer": {
+            "email": "test@example.com",
+            "self": true
+          },
+          "start": {
+            "dateTime": "2025-12-25T12:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "end": {
+            "dateTime": "2025-12-25T13:00:00-08:00",
+            "timeZone": "America/Los_Angeles"
+          },
+          "iCalUID": "test_created_event_1@google.com",
+          "sequence": 0,
+          "reminders": {
+            "useDefault": true
+          }
+        }
+  recorded_at: Wed, 25 Dec 2025 00:00:00 GMT
+recorded_with: VCR 6.3.1

@@ -1,0 +1,71 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://www.googleapis.com/calendar/v3/users/me/calendarList
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - unknown/0.0.0 google-apis-calendar_v3/0.51.0 Mac OS X/15.5 (gzip)
+      X-Goog-Api-Client:
+      - gl-ruby/3.4.5 gdcl/1.51.0
+      Authorization:
+      - Bearer test_access_token_12345
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Type:
+      - application/json; charset=UTF-8
+      Date:
+      - Wed, 25 Dec 2025 00:00:00 GMT
+      Server:
+      - ESF
+      Transfer-Encoding:
+      - chunked
+    body:
+      encoding: ASCII-8BIT
+      string: |
+        {
+          "kind": "calendar#calendarList",
+          "etag": "\"test_etag\"",
+          "items": [
+            {
+              "kind": "calendar#calendarListEntry",
+              "etag": "\"test_calendar_etag\"",
+              "id": "primary",
+              "summary": "Test User",
+              "description": "Primary Calendar",
+              "timeZone": "America/Los_Angeles",
+              "colorId": "1",
+              "backgroundColor": "#9fe1e7",
+              "foregroundColor": "#000000",
+              "selected": true,
+              "accessRole": "owner",
+              "defaultReminders": []
+            },
+            {
+              "kind": "calendar#calendarListEntry",
+              "etag": "\"test_calendar_etag_2\"",
+              "id": "test_calendar_2@group.calendar.google.com",
+              "summary": "Work Calendar",
+              "description": "Work events",
+              "timeZone": "America/Los_Angeles",
+              "colorId": "2",
+              "backgroundColor": "#b99aff",
+              "foregroundColor": "#000000",
+              "selected": true,
+              "accessRole": "owner",
+              "defaultReminders": []
+            }
+          ]
+        }
+  recorded_at: Wed, 25 Dec 2025 00:00:00 GMT
+recorded_with: VCR 6.3.1

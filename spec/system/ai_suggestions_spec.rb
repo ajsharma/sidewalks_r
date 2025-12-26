@@ -119,8 +119,23 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "editing suggestion fields before accepting" do
-    # Skip - form field locators need to be verified against actual view
-    skip "Form field selectors need verification"
+    suggestion = create(:ai_activity_suggestion, :completed, user: user)
+
+    visit ai_activity_path(suggestion)
+
+    # Edit multiple fields
+    fill_in "name", with: "Edited Activity Name"
+    fill_in "description", with: "This is my edited description"
+    select "Flexible", from: "schedule_type"
+    select "Afternoon", from: "suggested_time_of_day"
+    fill_in "category_tags", with: "custom, edited, tags"
+
+    click_button "Accept & Create Activity"
+
+    # Should create activity with edited values
+    expect(page).to have_current_path %r{/activities/\w+}
+    expect(page).to have_content "Edited Activity Name"
+    expect(page).to have_content "This is my edited description"
   end
 
   it "shows confidence score with appropriate styling" do
@@ -163,9 +178,14 @@ RSpec.describe "AiSuggestions", type: :system do
   end
 
   it "redirects when AI feature is disabled" do
-    # Skip this test as it requires ENV manipulation and feature flag testing
-    # Best tested with feature flag system like Flipper
-    skip "Feature flag testing requires proper setup"
+    # Stub AiConfig to return feature_enabled = false
+    allow(AiConfig.instance).to receive(:feature_enabled?).and_return(false)
+
+    visit ai_activities_path
+
+    # Should redirect or show error message since AI feature is disabled
+    expect(page).to have_current_path(root_path)
+    expect(page).to have_content("AI suggestions are not currently available")
   end
 
   private
