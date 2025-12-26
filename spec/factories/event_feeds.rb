@@ -10,7 +10,7 @@ FactoryBot.define do
 
     trait :funcheap do
       name { "FunCheap SF" }
-      url { "https://sf.funcheap.com/rss-date/" }
+      url { "https://sf.funcheap.com/feed" }
     end
 
     trait :eddies_list do

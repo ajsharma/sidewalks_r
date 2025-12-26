@@ -20,7 +20,7 @@ EventFeed.find_or_create_by!(url: "https://www.bottomofthehill.com/RSS.xml") do 
   feed.active = true
 end
 
-EventFeed.find_or_create_by!(url: "https://sf.funcheap.com/rss-date/") do |feed|
+EventFeed.find_or_create_by!(url: "https://sf.funcheap.com/feed") do |feed|
   feed.name = "FunCheap SF"
   feed.feed_type = "rss"
   feed.active = true
