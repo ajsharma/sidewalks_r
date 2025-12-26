@@ -70,6 +70,13 @@ bundle exec rspec spec/requests                # Run all request tests
 bundle exec rspec spec/system                  # Run all system tests
 ```
 
+**IMPORTANT for Claude Code**: All bug fixes MUST include a test that:
+1. Reproduces the bug (test should fail before the fix)
+2. Verifies the fix (test should pass after the fix)
+3. Prevents regressions (test will catch if the bug is reintroduced)
+
+When fixing a bug, always write the test first to confirm the bug exists, then implement the fix, and verify the test passes. This ensures the bug is truly fixed and won't resurface.
+
 ### Code Quality and Linting
 ```bash
 bin/rubocop                # Run RuboCop linter

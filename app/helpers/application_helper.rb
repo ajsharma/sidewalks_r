@@ -11,4 +11,11 @@ module ApplicationHelper
   rescue URI::InvalidURIError
     nil
   end
+
+  # Get the timezone for displaying times
+  # Uses current user's timezone if signed in, otherwise defaults to Pacific Time
+  # (since most events in the system are from San Francisco area)
+  def display_timezone
+    user_signed_in? ? current_user.timezone : "Pacific Time (US & Canada)"
+  end
 end
