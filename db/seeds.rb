@@ -14,19 +14,19 @@ if Rails.env.development?
 end
 
 # Event feeds for discovering SF events
-EventFeed.find_or_create_by!(url: "https://www.bottomofthehill.com/RSS.xml") do |feed|
+EventFeed.find_or_create_by!(url: EventFeed::BOTTOM_OF_THE_HILL_URL) do |feed|
   feed.name = "Bottom of the Hill"
   feed.feed_type = "rss"
   feed.active = true
 end
 
-EventFeed.find_or_create_by!(url: "https://sf.funcheap.com/feed") do |feed|
+EventFeed.find_or_create_by!(url: EventFeed::FUNCHEAP_SF_URL) do |feed|
   feed.name = "FunCheap SF"
   feed.feed_type = "rss"
   feed.active = true
 end
 
-EventFeed.find_or_create_by!(url: "https://www.eddies-list.com/feed") do |feed|
+EventFeed.find_or_create_by!(url: EventFeed::EDDIES_LIST_URL) do |feed|
   feed.name = "Eddie's List"
   feed.feed_type = "rss"
   feed.active = true

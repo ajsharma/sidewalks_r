@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :event_feed do
     name { "Bottom of the Hill" }
-    url { "https://www.bottomofthehill.com/RSS.xml" }
+    url { EventFeed::BOTTOM_OF_THE_HILL_URL }
     feed_type { "rss" }
     active { true }
     last_fetched_at { nil }
@@ -10,12 +10,12 @@ FactoryBot.define do
 
     trait :funcheap do
       name { "FunCheap SF" }
-      url { "https://sf.funcheap.com/feed" }
+      url { EventFeed::FUNCHEAP_SF_URL }
     end
 
     trait :eddies_list do
       name { "Eddie's List" }
-      url { "https://www.eddies-list.com/feed" }
+      url { EventFeed::EDDIES_LIST_URL }
     end
 
     trait :inactive do
