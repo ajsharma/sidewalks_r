@@ -267,7 +267,7 @@ GEM
     hashie (5.0.0)
     heapy (0.2.0)
       thor
-    i18n (1.14.7)
+    i18n (1.14.8)
       concurrent-ruby (~> 1.0)
     ice_nine (0.11.2)
     importmap-rails (2.2.2)
@@ -285,7 +285,7 @@ GEM
     json (2.18.0)
     jwt (3.1.2)
       base64
-    kamal (2.10.0)
+    kamal (2.10.1)
       activesupport (>= 7.0)
       base64 (~> 0.2)
       bcrypt_pbkdf (~> 1.0)
@@ -313,7 +313,8 @@ GEM
     memory_profiler (1.1.0)
     mini_histogram (0.3.1)
     mini_mime (1.1.5)
-    minitest (5.27.0)
+    minitest (6.0.0)
+      prism (~> 1.5)
     msgpack (1.8.0)
     multi_json (1.18.0)
     multi_xml (0.7.2)
@@ -648,7 +649,7 @@ GEM
     xpath (3.2.0)
       nokogiri (~> 1.8)
     yard (0.9.38)
-    zeitwerk (2.7.3)
+    zeitwerk (2.7.4)
 
 PLATFORMS
   aarch64-linux
