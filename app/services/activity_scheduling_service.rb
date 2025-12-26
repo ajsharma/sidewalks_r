@@ -203,10 +203,6 @@ class ActivitySchedulingService
 
     # Strict activities already have defined start/end times
     if activity.start_time? && activity.end_time?
-      # Skip if the activity starts before the minimum allowed time
-      min_time = minimum_start_time
-      return suggestions if activity.start_time < min_time
-
       start_date = [ activity.start_time.to_date, date_range.begin ].max
       end_date = [ activity.end_time.to_date, date_range.end ].min
 
@@ -230,10 +226,13 @@ class ActivitySchedulingService
     suggestions = []
     min_time = minimum_start_time
     frequency_days = activity.max_frequency_days || 7
+    duration = options[:preferred_duration]
+    activity_name = activity.name
+    name_downcase = activity_name.downcase
 
     current_date = date_range.begin
-    base_offset = time_offset_tracker[:offset]
-    occurrence_count = 0
+    time_offset = 0 # Stagger activities to avoid conflicts
+    time_offset_minutes = time_offset.minutes
 
     while current_date <= date_range.end
       if skip_weekend?(current_date)
@@ -244,16 +243,36 @@ class ActivitySchedulingService
       time_offset_minutes = calculate_time_offset(base_offset, occurrence_count)
       suggested_time = calculate_flexible_activity_time(activity, current_date, time_offset_minutes)
 
-      adjusted_time = adjust_for_past_time(suggested_time, min_time, current_date)
-      if adjusted_time.nil?
-        current_date += frequency_days.days
-        occurrence_count += 1
-        next
+      suggested_time = if name_downcase.include?("work") || name_downcase.include?("meeting")
+        base_date + options[:work_hours_start].hours + time_offset_minutes
+      else
+        # Personal activities - stagger between morning and evening
+        base_time = if name_downcase.include?("walk") || name_downcase.include?("exercise")
+          7.hours # 7 AM for physical activities
+        else
+          19.hours # 7 PM for other activities
+        end
+
+        base_date + base_time + time_offset_minutes
       end
 
-      suggestions << build_flexible_suggestion(activity, adjusted_time, frequency_days)
-      occurrence_count += 1
+      suggestions << {
+        activity: activity,
+        title: activity_name,
+        description: activity.description,
+        start_time: suggested_time,
+        end_time: suggested_time + duration,
+        type: "flexible",
+        confidence: "medium",
+        frequency_note: "Suggested every #{frequency_days} days"
+      }
+
+      # Move to next occurrence based on frequency
       current_date += frequency_days.days
+
+      # Increment time offset to stagger activities (max 2 hours)
+      time_offset = (time_offset + 30) % 120
+      time_offset_minutes = time_offset.minutes
     end
 
     time_offset_tracker[:offset] = base_offset + 30
@@ -266,20 +285,12 @@ class ActivitySchedulingService
     return suggestions unless activity.deadline?
 
     deadline = activity.deadline
-    # Convert deadline to user timezone to get correct date
-    deadline_in_timezone = deadline.in_time_zone(@user_timezone)
-    deadline_date = deadline_in_timezone.to_date
+    deadline_date = deadline.to_date
     activity_name = activity.name
     name_downcase = activity_name.downcase
-    min_time = minimum_start_time
 
-    # Include urgent deadlines even if their date is before date_range start,
-    # as long as the deadline itself is in the future
-    is_urgent = deadline_in_timezone > Time.current && deadline_in_timezone < (Time.current + 24.hours)
-    deadline_in_range = date_range.cover?(deadline_date) || is_urgent
-
-    # Only suggest if deadline is within the date range (or is urgent and still in future)
-    if deadline_in_range
+    # Only suggest if deadline is within the date range
+    if date_range.cover?(deadline_date)
       # Suggest scheduling 1-3 days before deadline depending on urgency
       two_days = 2.days
       days_before = case deadline - Time.current
@@ -299,28 +310,17 @@ class ActivitySchedulingService
           base_date + 14.hours # 2 PM
         end
 
-        # Ensure suggested time is not in the past
-        suggested_time = min_time if suggested_time < min_time
-
-        # Only suggest if start time is before the deadline
-        # For urgent deadlines, we still show them even if there isn't enough time for full duration
-        if suggested_time < deadline_in_timezone
-          # Adjust end time if it would exceed the deadline
-          end_time = suggested_time + options[:preferred_duration]
-          end_time = deadline_in_timezone if end_time > deadline_in_timezone
-
-          suggestions << {
-            activity: activity,
-            title: "Complete: #{activity_name}",
-            description: "#{activity.description}\n\nDeadline: #{deadline.strftime('%B %d, %Y at %I:%M %p')}",
-            start_time: suggested_time,
-            end_time: end_time,
-            type: "deadline",
-            confidence: "high",
-            urgency: activity.expired? ? "overdue" : "upcoming",
-            deadline: deadline
-          }
-        end
+        suggestions << {
+          activity: activity,
+          title: "Complete: #{activity_name}",
+          description: "#{activity.description}\n\nDeadline: #{deadline.strftime('%B %d, %Y at %I:%M %p')}",
+          start_time: suggested_time,
+          end_time: suggested_time + options[:preferred_duration],
+          type: "deadline",
+          confidence: "high",
+          urgency: activity.expired? ? "overdue" : "upcoming",
+          deadline: deadline
+        }
       end
     end
 
@@ -600,7 +600,6 @@ class ActivitySchedulingService
     slots = []
     base_date = date.in_time_zone(@user_timezone).beginning_of_day
     minutes = [ 0, 30 ]
-    min_time = minimum_start_time
 
     # Morning slots (7 AM - 11 AM)
     slots.concat(generate_hourly_slots(base_date, 7..10, minutes))
@@ -611,8 +610,7 @@ class ActivitySchedulingService
     # Evening slots (6 PM - 9 PM)
     slots.concat(generate_hourly_slots(base_date, 18..20, minutes))
 
-    # Filter out slots that are in the past
-    slots.select { |slot| slot >= min_time }
+    slots
   end
 
   def generate_hourly_slots(base_date, hour_range, minutes)

@@ -21,8 +21,11 @@ SimpleCov.start "rails" do
   add_group "Jobs", "app/jobs"
   add_group "Mailers", "app/mailers"
 
-  # Coverage requirement for all tests
+  # Coverage requirements - realistic target based on current state
+  # Target: Maintain >90% overall coverage with comprehensive tests for business logic
+  # Focus on meaningful coverage rather than absolute numbers
   minimum_coverage 80
+  # Note: Per-file minimums disabled due to varied complexity
 
   track_files "app/**/*.rb"
 end

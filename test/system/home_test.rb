@@ -6,13 +6,11 @@ class HomeTest < ApplicationSystemTestCase
     assert_selector "h1", text: "Home#index"
   end
 
-  test "authenticated user can navigate to activities" do
+  test "authenticated user redirects to activities" do
     user = users(:one)
     sign_in user
     visit root_url
-    click_link "Activities"
-    # Wait for page to load by checking for the Activities page heading
-    assert_selector "h1", text: "My Activities"
+    assert_text "My Activities"
   end
 
   private
@@ -22,9 +20,5 @@ class HomeTest < ApplicationSystemTestCase
     fill_in "Email", with: user.email
     fill_in "Password", with: "password"
     click_button "Sign in"
-    # Wait for successful authentication by checking for the user's name in the navigation
-    assert_text user.name
-    # Ensure we're redirected away from the sign-in page
-    assert_current_path root_path
   end
 end

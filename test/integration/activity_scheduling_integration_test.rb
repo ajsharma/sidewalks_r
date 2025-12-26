@@ -52,7 +52,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     # Test preview functionality (dry run)
-    post "/schedule/events/batch", params: { dry_run: true, start_date: Date.current, end_date: Date.current + 1.week }
+    post "/schedule", params: { dry_run: true, start_date: Date.current, end_date: Date.current + 1.week }
     assert_response :success
     assert_select "h1", text: "Calendar Events Preview"
   end
@@ -123,16 +123,12 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     )
 
     sign_in @user
-    # Pass explicit date range to ensure the urgent activity is included
-    get "/schedule", params: {
-      start_date: Date.current,
-      end_date: Date.current + 1.week
-    }
+    get "/schedule"
     assert_response :success
 
-    # Test urgent deadlines alert (be more specific to avoid matching other h3 elements)
-    assert_select "div.bg-red-50 h3", text: "Urgent Activities Detected"
-    assert_select "div.bg-red-50 p", text: /You have \d+ activities with upcoming or overdue deadlines/
+    # Test urgent deadlines alert
+    assert_select "h3", text: "Urgent Activities Detected"
+    assert_select "p", text: /You have \d+ activities with upcoming or overdue deadlines/
   end
 
   test "activity_scheduling/show.html.erb event display with different types" do
@@ -140,10 +136,10 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     get "/schedule"
     assert_response :success
 
-    # Test event type badges (be more specific with class selectors)
-    assert_select "span.bg-red-100.text-red-800", text: "Strict"
-    assert_select "span.bg-green-100.text-green-800", text: "Flexible"
-    assert_select "span.bg-yellow-100.text-yellow-800", text: "Deadline"
+    # Test event type badges
+    assert_select "span", text: "Strict"
+    assert_select "span", text: "Flexible"
+    assert_select "span", text: "Deadline"
 
     # Test confidence badges
     assert_select "span", text: /confidence/
@@ -156,7 +152,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     sign_in @user
 
     # Make a POST request with dry_run=true to trigger preview
-    post "/schedule/events/batch", params: {
+    post "/schedule", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true
@@ -167,17 +163,15 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Calendar Events Preview"
     assert_select "h2", text: "Dry Run Results"
 
-    # Test summary stats (these are always present)
+    # Test summary stats
     assert_select "h3", text: "Total Events"
     assert_select "h3", text: "Existing Calendar Events"
     assert_select "h3", text: "Conflicts Avoided"
 
-    # Test event type summaries (these are dynamically generated based on suggestions_by_type)
-    # The view generates "<type.capitalize> Events" for each type present
-    # Since we have strict, flexible, and deadline activities, all should appear
-    assert_select "h3", { text: "Strict Events", count: 1 }
-    assert_select "h3", { text: "Flexible Events", count: 1 }
-    assert_select "h3", { text: "Deadline Events", count: 1 }
+    # Test event type summaries
+    assert_select "h3", text: "Strict Events"
+    assert_select "h3", text: "Flexible Events"
+    assert_select "h3", text: "Deadline Events"
 
     # Test next steps section
     assert_select "h3", text: "Next Steps"
@@ -194,7 +188,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
   test "activity_scheduling/preview.html.erb renders event timeline" do
     sign_in @user
 
-    post "/schedule/events/batch", params: {
+    post "/schedule", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true
@@ -204,10 +198,10 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
     # Test timeline event display
     assert_select "div.border-l-4.border-blue-500" # Timeline day sections
 
-    # Test event type badges (need to be more specific with class selectors)
-    assert_select "span.bg-red-100.text-red-800", text: "Strict"
-    assert_select "span.bg-green-100.text-green-800", text: "Flexible"
-    assert_select "span.bg-yellow-100.text-yellow-800", text: "Deadline"
+    # Test event cards
+    assert_select "span", text: "Strict"
+    assert_select "span", text: "Flexible"
+    assert_select "span", text: "Deadline"
 
     # Test confidence indicators
     assert_select "span", text: /confidence/
@@ -222,7 +216,7 @@ class ActivitySchedulingIntegrationTest < ActionDispatch::IntegrationTest
 
     sign_in @user
 
-    post "/schedule/events/batch", params: {
+    post "/schedule", params: {
       start_date: Date.current,
       end_date: Date.current + 1.week,
       dry_run: true

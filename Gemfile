@@ -50,15 +50,6 @@ gem "thruster", require: false
 # Catch unsafe migrations in development [https://github.com/ankane/strong_migrations]
 gem "strong_migrations"
 
-# Configuration management with multiple sources [https://github.com/palkan/anyway_config]
-gem "anyway_config", "~> 2.0"
-
-# AI service integrations
-gem "ruby-openai", "~> 8.3"  # OpenAI/ChatGPT API client
-
-# RSS/Atom feed parsing
-gem "feedjira"  # RSS/Atom parsing with custom namespace support
-
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
@@ -86,12 +77,6 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
-
-  # RuboCop extension for RSpec [https://github.com/rubocop/rubocop-rspec]
-  gem "rubocop-rspec", require: false
-
-  # RuboCop extension for FactoryBot [https://github.com/rubocop/rubocop-factory_bot]
-  gem "rubocop-factory_bot", require: false
 
   # Code smell detection for Ruby [https://github.com/troessner/reek]
   gem "reek", require: false
@@ -128,10 +113,6 @@ group :test do
   # Accessibility testing with axe-core [https://github.com/dequelabs/axe-core-gems]
   gem "axe-core-capybara"
 
-  # Additional RSpec matchers [https://github.com/thoughtbot/shoulda-matchers]
-  gem "shoulda-matchers", "~> 6.0"
-
-  # HTTP request mocking [https://github.com/vcr/vcr]
   gem "vcr", "~> 6.3"
   gem "webmock", "~> 3.25"
 end

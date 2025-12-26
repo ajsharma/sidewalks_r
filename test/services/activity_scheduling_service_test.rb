@@ -1,4 +1,5 @@
 require "test_helper"
+require "ostruct"
 
 class ActivitySchedulingServiceTest < ActiveSupport::TestCase
   include GoogleHelpers::GoogleCalendarMockHelper
@@ -387,11 +388,147 @@ class ActivitySchedulingServiceTest < ActiveSupport::TestCase
     end
   end
 
-  test "generate_agenda prevents rescheduled activities from conflicting with each other" do
-    conflict_time = 2.days.from_now.beginning_of_day + 19.hours # 7 PM
+  test "should access CalendarInfo attributes correctly" do
+    # Test that CalendarInfo objects created by Data.define work correctly
+    calendar_info = ActivitySchedulingService::CalendarInfo.new(
+      id: "test_calendar_id",
+      summary: "Test Calendar",
+      description: "Test description",
+      primary: true,
+      access_role: "owner"
+    )
 
-    # Multiple existing events that block the preferred evening time slot
-    events = [
+    # This test verifies that the CalendarInfo objects have direct attribute access
+    # and don't need .fetch() method calls (which was the bug)
+    assert_equal "test_calendar_id", calendar_info.id
+    assert_equal "Test Calendar", calendar_info.summary
+    assert_equal "Test description", calendar_info.description
+    assert_equal true, calendar_info.primary
+    assert_equal "owner", calendar_info.access_role
+
+    # Verify that these objects don't have a fetch method
+    assert_not_respond_to calendar_info, :fetch
+  end
+
+
+  test "should demonstrate that CalendarInfo.from_api creates correct objects" do
+    # Mock a Google Calendar API response
+    mock_calendar = OpenStruct.new(
+      id: "calendar_123",
+      summary: "My Calendar",
+      description: "Personal calendar",
+      primary: false,
+      access_role: "reader"
+    )
+
+    # Test the from_api factory method
+    calendar_info = ActivitySchedulingService::CalendarInfo.from_api(mock_calendar)
+
+    assert_equal "calendar_123", calendar_info.id
+    assert_equal "My Calendar", calendar_info.summary
+    assert_equal "Personal calendar", calendar_info.description
+    assert_equal false, calendar_info.primary
+    assert_equal "reader", calendar_info.access_role
+
+    # Confirm these can be accessed as attributes, not via fetch
+    assert_equal "calendar_123", calendar_info.id
+    assert_not_respond_to calendar_info, :fetch
+  end
+
+  test "should handle CalendarInfo objects in load_existing_events without using fetch" do
+    # This test specifically covers the bug that was fixed
+    # The original code used calendar.fetch(:id) and calendar.fetch(:summary)
+    # which failed because CalendarInfo objects don't have a fetch method
+
+    # Use the Google account fixture
+    google_account = google_accounts(:one)
+    google_account.update!(access_token: "test_token", refresh_token: "test_refresh")
+
+    # Create a user with the Google account for this test
+    test_user = users(:one)
+    service = ActivitySchedulingService.new(test_user)
+
+    # Create a mock GoogleCalendarService that returns CalendarInfo objects
+    mock_service = Class.new do
+      def fetch_calendars
+        [
+          ActivitySchedulingService::CalendarInfo.new(
+            id: "primary",
+            summary: "Primary Calendar",
+            description: "Main calendar",
+            primary: true,
+            access_role: "owner"
+          ),
+          ActivitySchedulingService::CalendarInfo.new(
+            id: "work_calendar",
+            summary: "Work Calendar",
+            description: "Work events",
+            primary: false,
+            access_role: "writer"
+          )
+        ]
+      end
+
+      def list_events(calendar_id, start_time, end_time)
+        # Return mock events based on calendar_id to verify the method receives
+        # the correct calendar.id (not calendar.fetch(:id))
+        case calendar_id
+        when "primary"
+          [
+            OpenStruct.new(
+              summary: "Personal Meeting",
+              start: OpenStruct.new(date_time: Time.current + 1.hour),
+              end: OpenStruct.new(date_time: Time.current + 2.hours)
+            )
+          ]
+        when "work_calendar"
+          [
+            OpenStruct.new(
+              summary: "Work Meeting",
+              start: OpenStruct.new(date_time: Time.current + 3.hours),
+              end: OpenStruct.new(date_time: Time.current + 4.hours)
+            )
+          ]
+        else
+          []
+        end
+      end
+    end.new
+
+    # Stub GoogleCalendarService.new to return our mock
+    original_new = GoogleCalendarService.method(:new)
+    GoogleCalendarService.define_singleton_method(:new) { |_| mock_service }
+
+    begin
+      events = service.send(:load_existing_events, @date_range)
+
+      # Verify that the method successfully processed CalendarInfo objects
+      # without trying to use .fetch() method
+      assert events.is_a?(Array)
+      assert_equal 2, events.length
+
+      # Verify events from both calendars were processed
+      personal_event = events.find { |e| e[:summary] == "Personal Meeting" }
+      work_event = events.find { |e| e[:summary] == "Work Meeting" }
+
+      assert_not_nil personal_event
+      assert_not_nil work_event
+
+      # Verify calendar information was correctly extracted using .id and .summary
+      assert_equal "primary", personal_event[:calendar_id]
+      assert_equal "Primary Calendar", personal_event[:calendar_name]
+      assert_equal "work_calendar", work_event[:calendar_id]
+      assert_equal "Work Calendar", work_event[:calendar_name]
+
+    ensure
+      # Restore original method
+      GoogleCalendarService.define_singleton_method(:new, original_new)
+    end
+  end
+
+  # Filtering tests
+  test "should filter conflicting suggestions and try to reschedule flexible ones" do
+    suggestions = [
       {
         summary: "Evening Event 1",
         start_time: conflict_time,

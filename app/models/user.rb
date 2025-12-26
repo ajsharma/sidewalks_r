@@ -1,29 +1,5 @@
 # User model for authentication and profile management.
 # Handles OAuth integration, timezone settings, and activity associations.
-# == Schema Information
-#
-# Table name: users
-#
-#  id                     :bigint           not null, primary key
-#  archived_at            :datetime
-#  email                  :string           default(""), not null
-#  encrypted_password     :string           default(""), not null
-#  name                   :string           not null
-#  remember_created_at    :datetime
-#  reset_password_sent_at :datetime
-#  reset_password_token   :string
-#  slug                   :string           not null
-#  timezone               :string           default("UTC")
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#
-# Indexes
-#
-#  index_users_on_email                 (email) UNIQUE
-#  index_users_on_reset_password_token  (reset_password_token) UNIQUE
-#  index_users_on_slug                  (slug) UNIQUE
-#  index_users_on_timezone              (timezone)
-#
 class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
@@ -57,14 +33,10 @@ class User < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
-  # Archives the user by setting archived_at timestamp (safe version)
-  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end
 
-  # Returns the slug for URL parameter usage
-  # @return [String] the user's slug for use in URLs
   def to_param
     slug
   end

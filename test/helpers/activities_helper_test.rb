@@ -4,11 +4,10 @@ class ActivitiesHelperTest < ActionView::TestCase
   test "schedule_type_options returns correct options" do
     options = schedule_type_options
 
-    assert_equal 4, options.size
+    assert_equal 3, options.size
     assert_includes options, [ "Flexible - Can be done anytime", "flexible" ]
     assert_includes options, [ "Strict - Specific date and time", "strict" ]
     assert_includes options, [ "Deadline - Must be done before a certain date", "deadline" ]
-    assert_includes options, [ "Recurring - Repeats on a schedule", "recurring_strict" ]
   end
 
   test "max_frequency_options returns correct options" do

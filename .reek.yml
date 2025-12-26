@@ -2,8 +2,9 @@ exclude_paths:
   - db/migrate
   - vendor
   - node_modules
-  - test # Exclude Minitest files from code smell analysis
-  - spec # Exclude RSpec files from code smell analysis
+  - test # Exclude test files from code smell analysis
+
+# Note: Reek warnings don't fail the build since we use system() instead of system!()
 
 detectors:
   IrresponsibleModule:
@@ -16,38 +17,18 @@ detectors:
       - t # Common Rails migration variable
       - e # Exception variable
       - i # Iterator variable
-      - v # Value variable in hash iterations
-      - _ # Unused variable placeholder
-      - title1 # First title in comparison
-      - title2 # Second title in comparison
-      - words1 # First word set in comparison
-      - words2 # Second word set in comparison
 
   FeatureEnvy:
     exclude:
       - "*/db/migrate/*" # Migrations use table builder pattern
       - ActivitySchedulingService # Service classes legitimately work with domain objects passed as parameters
       - GoogleCalendarService # Service classes legitimately work with data objects passed as parameters
-      - AiActivityService # Service classes legitimately work with domain objects passed as parameters
-      - ClaudeApiService # Service classes legitimately work with data objects passed as parameters
-      - OpenAiService # Service classes legitimately work with data objects passed as parameters
-      - UrlExtractorService # Service classes legitimately work with data objects passed as parameters
-      - AiActivitySuggestion # Model methods work with data hashes passed as parameters
-      - RecurrencePatternMatcher # Pattern matching utility class works with date/rule parameters by design
-      - AiSuggestionGeneratorJob # Background jobs extract parameters from hash arguments
-      - EventSyncService # Service classes legitimately work with domain objects passed as parameters
-      - RssParserService # RSS parser works with feed entry objects passed as parameters
-      - FetchEventFeedsJob # Background jobs extract parameters from feed objects
-      - EventsController # Controller methods work with data objects
-      - EventFeed # Model methods work with update hashes
-      - ExternalEvent # Model methods work with parsed event hashes
 
   TooManyStatements:
-    max_statements: 25 # Allow more statements for complex service methods
+    max_statements: 15 # Allow slightly more statements for migrations
     exclude:
       - "*/db/migrate/*"
       - HealthController # Health monitoring can have longer methods
-      - EventSyncService # Complex sync logic requires more statements
 
   DuplicateMethodCall:
     exclude:
@@ -55,23 +36,9 @@ detectors:
       - ActivitySchedulingService # Complex service with legitimate repeated method calls for clarity
       - DatabaseHealth # Health monitoring models may need repeated timing calculations
       - GoogleCalendarHealth # Health monitoring models may need repeated timing calculations
-      - AiActivityService # Complex service with legitimate repeated method calls for clarity
-      - ClaudeApiService # Complex service with legitimate repeated method calls for clarity
-      - OpenAiService # Complex service with legitimate repeated method calls for clarity
-      - UrlExtractorService # Complex service with legitimate repeated method calls for clarity
-      - AiActivitiesController # Controller respond_to blocks have legitimate duplicate calls
-      - AiSuggestionGeneratorJob # Background jobs have legitimate duplicate logging calls
-      - EventsController # Controller uses repeated param calls for readability
-      - FetchEventFeedsJob # Background jobs have legitimate duplicate logging calls
-      - EventSyncService # Service classes have legitimate repeated method calls for clarity
-      - RssParserService # RSS parser has legitimate repeated method calls for clarity
-      - ExternalEvent # Model methods have legitimate duplicate calls for clarity
 
   UtilityFunction:
     public_methods_only: true # Only warn on public utility functions
-    exclude:
-      - "app/helpers/*" # Rails helpers are meant to be utility functions
-      - ApplicationHelper # Helper methods are meant to be utility functions
 
   InstanceVariableAssumption:
     exclude:
@@ -81,64 +48,44 @@ detectors:
       - ActivitySchedulingController
       - PlaylistsController
       - Users::OmniauthCallbacksController
-      - EventsController
-      - RssParserService # Service class uses instance variable for feed XML caching
 
   UncommunicativeMethodName:
     accept:
       - google_oauth2 # OAuth provider callback method name
 
-  UncommunicativeParameterName:
-    accept:
-      - title1 # First title in comparison
-      - title2 # Second title in comparison
-
   TooManyMethods:
     max_methods: 20 # Allow more methods for complex Rails classes
-    exclude:
-      - ActivitySchedulingService # Complex scheduling service with many extracted helper methods
-      - Activity # Core domain model with many helper methods and associations
-      - RssParserService # RSS parser service with many feed-specific parsing methods
 
   TooManyInstanceVariables:
     max_instance_variables: 5
 
+  TooManyStatements:
+    max_statements: 15
+
   RepeatedConditional:
-    max_ifs: 6 # Allow up to 6 repeated conditionals for complex domain models
     exclude:
       - AgendaProposedEvent # Domain objects may have repeated conditionals
       - HealthController # Health monitoring may check same conditions multiple times
-      - AiConfig # Config classes use repeated conditionals for provider switching
 
   ManualDispatch:
     exclude:
       - HealthController # Health monitoring often uses dynamic method dispatch
       - ActivitySchedulingService # Service objects may use conditional dispatch patterns
-      - RssParserService # RSS parser uses conditional dispatch for different feed formats
 
   NestedIterators:
     exclude:
       - UserOnboardingService # Onboarding may need nested iteration for setup
       - ActivitySchedulingService # Complex scheduling logic may need nested iteration
-      - UrlExtractorService # Complex parsing logic may need nested iteration
-
-  MissingSafeMethod:
-    exclude:
-      - AiActivityService # Bang methods don't need safe versions in service context
-      - UrlExtractorService # Bang methods don't need safe versions in service context
-      - AiActivitySuggestion # Model state transitions with bang methods don't need safe versions
-      - EventFeed # Model state transitions with bang methods don't need safe versions
-      - RssParserService # Bang methods don't need safe versions in service context
-      - ExternalEvent # Model state transitions with bang methods don't need safe versions
 
   TooManyInstanceVariables:
     max_instance_variables: 6 # Allow more for complex service classes
 
+  TooManyStatements:
+    max_statements: 25 # Allow more statements for complex service methods
+
   NilCheck:
     exclude:
       - Activity # Defensive nil checks are appropriate in model methods
-      - EventFeed # Defensive nil checks are appropriate in model methods
-      - ExternalEvent # Defensive nil checks are appropriate in model methods
 
   BooleanParameter:
     exclude:
@@ -151,4 +98,3 @@ detectors:
   DataClump:
     exclude:
       - ActivitySchedulingService # Service objects may pass similar parameters to multiple related methods
-      - RecurrencePatternMatcher # Pattern matching methods naturally share date/interval parameters

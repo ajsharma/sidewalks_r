@@ -1,28 +1,5 @@
 # Model representing a collection of activities organized by users.
 # Handles activity ordering, management, and archiving functionality.
-# == Schema Information
-#
-# Table name: playlists
-#
-#  id          :bigint           not null, primary key
-#  archived_at :datetime
-#  description :text
-#  name        :string           not null
-#  slug        :string           not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  user_id     :bigint           not null
-#
-# Indexes
-#
-#  index_playlists_on_slug                     (slug) UNIQUE
-#  index_playlists_on_user_id                  (user_id)
-#  index_playlists_on_user_id_and_archived_at  (user_id,archived_at)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (user_id => users.id)
-#
 class Playlist < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
@@ -46,14 +23,10 @@ class Playlist < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
-  # Archives the playlist by setting archived_at timestamp (safe version)
-  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end
 
-  # Returns the slug for URL parameter usage
-  # @return [String] the playlist's slug for use in URLs
   def to_param
     slug
   end
@@ -65,9 +38,6 @@ class Playlist < ApplicationRecord
               .order("playlist_activities.position ASC")
   end
 
-  # Returns count of active activities in the playlist
-  # Uses pre-calculated count if available, otherwise calculates from association
-  # @return [Integer] number of active activities in the playlist
   def activities_count
     # Use the pre-calculated count from the query if available, otherwise calculate
     return super if defined?(super) && super.present?
@@ -76,10 +46,6 @@ class Playlist < ApplicationRecord
     active_activities_count
   end
 
-  # Adds an activity to the playlist at the specified position
-  # @param activity [Activity] the activity to add to the playlist
-  # @param position [Integer, nil] the position for the activity, defaults to end of list
-  # @return [PlaylistActivity] the created playlist_activity association record
   def add_activity(activity, position: nil)
     position ||= (playlist_activities.maximum(:position) || 0) + 1
 

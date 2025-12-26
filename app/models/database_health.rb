@@ -1,7 +1,5 @@
 # Model for database health checks and connection pool monitoring
 class DatabaseHealth
-  # Retrieves connection pool metrics and database version information
-  # @return [Hash] hash containing pool_size, active_connections, available_connections, and database_version
   def self.connection_metrics
     connection = ActiveRecord::Base.connection
     pool = ActiveRecord::Base.connection_pool
@@ -16,8 +14,6 @@ class DatabaseHealth
     }
   end
 
-  # Checks database connection health and measures response time
-  # @return [Hash] hash containing status (healthy/unhealthy), message, response_time_ms, and connection metrics
   def self.check_connection
     start_time = Time.current
     begin

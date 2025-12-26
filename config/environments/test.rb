@@ -51,11 +51,6 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
-  # NOTE: Removed explicit Rails credentials check for now
-  # The original authentication issues were fixed by updating user fixtures
-  # and improving system test helpers. If master key issues occur, they will
-  # manifest as authentication test failures, making them visible.
-
   # Configure Bullet for N+1 query detection in tests
   config.after_initialize do
     Bullet.enable = true

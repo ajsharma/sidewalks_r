@@ -4,9 +4,6 @@ require "open3"
 
 APP_ROOT = File.expand_path("..", __dir__)
 
-# Parse command line arguments
-ERRORS_ONLY = ARGV.include?("--errors-only")
-
 # Set environment variables for the script
 # ENV["BULLET_RAISE"] = "false"
 
@@ -53,6 +50,9 @@ FileUtils.chdir APP_ROOT do
     puts "Skipping secret scanning..."
   end
 
+  puts "\n== Running gem security audit =="
+  system! "bundle exec bundle-audit --update"
+
   # puts "\n== Regenerating swagger =="
   # run_command "bundle exec rake rswag:specs:swaggerize", errors_only: ERRORS_ONLY
 
@@ -61,6 +61,12 @@ FileUtils.chdir APP_ROOT do
 
   puts "\n== Running Rails best practices =="
   run_command "bundle exec rails_best_practices .", errors_only: ERRORS_ONLY
+
+  puts "\n== Running code quality analysis =="
+  system! "bundle exec reek ."
+
+  puts "\n== Running Rails best practices =="
+  system! "bundle exec rails_best_practices ."
 
   puts "\n== Running lints =="
   run_command "bin/rubocop -A", errors_only: ERRORS_ONLY

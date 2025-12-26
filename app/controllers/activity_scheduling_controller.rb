@@ -86,11 +86,6 @@ class ActivitySchedulingController < ApplicationController
 
   private
 
-  def log_and_redirect_with_error(error, log_message, alert_message)
-    Rails.logger.error "#{log_message}: #{error.message}"
-    redirect_to schedule_path, alert: alert_message
-  end
-
   def preload_associations
     # Preload google_accounts to avoid N+1 queries in the view
     current_user.google_accounts.load if current_user.persisted?

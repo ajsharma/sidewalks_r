@@ -1,68 +1,9 @@
 # Model representing user activities for scheduling and management.
 # Handles different schedule types, validation, and archiving functionality.
-# == Schema Information
-#
-# Table name: activities
-#
-#  id                                                                                                  :bigint           not null, primary key
-#  ai_generated                                                                                        :boolean          default(FALSE)
-#  archived_at                                                                                         :datetime
-#  category_tags                                                                                       :string           default([]), is an Array
-#  deadline                                                                                            :datetime
-#  description                                                                                         :text
-#  duration_minutes                                                                                    :integer
-#  end_time                                                                                            :datetime
-#  image_url                                                                                           :text
-#  links                                                                                               :text
-#  max_frequency_days                                                                                  :integer
-#  name                                                                                                :string           not null
-#  occurrence_time_end(Time of day when each occurrence ends (for recurring_strict schedule type))     :time
-#  occurrence_time_start(Time of day when each occurrence starts (for recurring_strict schedule type)) :time
-#  organizer                                                                                           :string
-#  price                                                                                               :decimal(10, 2)
-#  recurrence_end_date(Optional last date for recurrence (null for indefinite recurrence))             :date
-#  recurrence_rule(iCalendar RRULE pattern (RFC 5545))                                                 :jsonb
-#  recurrence_start_date(First date when the recurring event begins)                                   :date
-#  schedule_type                                                                                       :string           default("flexible")
-#  slug                                                                                                :string           not null
-#  source_url                                                                                          :text
-#  start_time                                                                                          :datetime
-#  suggested_days_of_week                                                                              :integer          default([]), is an Array
-#  suggested_months                                                                                    :integer          default([]), is an Array
-#  suggested_time_of_day                                                                               :string
-#  created_at                                                                                          :datetime         not null
-#  updated_at                                                                                          :datetime         not null
-#  user_id                                                                                             :bigint           not null
-#
-# Indexes
-#
-#  index_activities_on_ai_generated             (ai_generated)
-#  index_activities_on_category_tags            (category_tags) USING gin
-#  index_activities_on_deadline_not_null        (deadline) WHERE (deadline IS NOT NULL)
-#  index_activities_on_max_frequency            (max_frequency_days) WHERE (max_frequency_days IS NOT NULL)
-#  index_activities_on_recurrence_end_date      (recurrence_end_date)
-#  index_activities_on_recurrence_rule          (recurrence_rule) USING gin
-#  index_activities_on_recurrence_start_date    (recurrence_start_date)
-#  index_activities_on_schedule_type            (schedule_type)
-#  index_activities_on_slug                     (slug) UNIQUE
-#  index_activities_on_suggested_months         (suggested_months) USING gin
-#  index_activities_on_user_id                  (user_id)
-#  index_activities_on_user_id_and_archived_at  (user_id,archived_at)
-#  index_activities_on_user_schedule_archived   (user_id,schedule_type,archived_at)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (user_id => users.id)
-#
 class Activity < ApplicationRecord
   belongs_to :user
   has_many :playlist_activities, dependent: :destroy
   has_many :playlists, through: :playlist_activities
-  has_many :ai_suggestions, class_name: "AiActivitySuggestion", foreign_key: :final_activity_id, dependent: :nullify
-
-  # Valid schedule types for activities
-  # @return [Array<String>] frozen array of valid schedule types: strict, flexible, deadline, recurring_strict
-  SCHEDULE_TYPES = %w[strict flexible deadline recurring_strict].freeze
 
   MAX_FREQUENCY_OPTIONS = [ 1, 30, 60, 90, 180, 365, nil ].freeze  # Days: 1 day, 1 month, 2 months, 3 months, 6 months, 12 months, never
 
@@ -97,8 +38,6 @@ class Activity < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
-  # Archives the activity by setting archived_at timestamp (safe version)
-  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end

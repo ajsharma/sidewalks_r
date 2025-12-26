@@ -1,32 +1,5 @@
 # Model representing a user's Google account integration.
 # Handles OAuth tokens, calendar access, and account management.
-# == Schema Information
-#
-# Table name: google_accounts
-#
-#  id            :bigint           not null, primary key
-#  access_token  :text
-#  archived_at   :datetime
-#  calendar_list :text
-#  email         :string           not null
-#  expires_at    :datetime
-#  refresh_token :text
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  google_id     :string           not null
-#  user_id       :bigint           not null
-#
-# Indexes
-#
-#  index_google_accounts_on_google_id              (google_id)
-#  index_google_accounts_on_user_expires           (user_id,expires_at)
-#  index_google_accounts_on_user_id                (user_id)
-#  index_google_accounts_on_user_id_and_google_id  (user_id,google_id) UNIQUE
-#
-# Foreign Keys
-#
-#  fk_rails_...  (user_id => users.id)
-#
 class GoogleAccount < ApplicationRecord
   belongs_to :user
 
@@ -49,8 +22,6 @@ class GoogleAccount < ApplicationRecord
     update!(archived_at: Time.current)
   end
 
-  # Archives the Google account by setting archived_at timestamp (safe version)
-  # @return [Boolean] true if update succeeds, false otherwise
   def archive
     update(archived_at: Time.current)
   end
