@@ -137,6 +137,17 @@ RSpec.describe RssParserService do
   describe "#extract_date_from_title" do
     let(:service) { described_class.new("http://example.com") }
 
+    it "extracts date from 'YYYY MM/DD :' format (new Bottom of the Hill)" do
+      title = "2026  02/13  :  Blossom ~ Sledges ~ Rosegate Ave."
+      date = service.send(:extract_date_from_title, title)
+
+      expect(date).to be_a(Time)
+      expect(date.year).to eq(2026)
+      expect(date.month).to eq(2)
+      expect(date.day).to eq(13)
+      expect(date.hour).to eq(20)
+    end
+
     it "extracts date from 'Fri, Dec 20' format" do
       title = "Fri, Dec 20: Band Name"
       date = service.send(:extract_date_from_title, title)
