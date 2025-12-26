@@ -39,7 +39,7 @@ RSpec.describe "AiActivities", type: :request do
 
   it "generate queues background job" do
     expect {
-      post generate_ai_activities_path, params: { input: "Go for a run" }, as: :json
+      post ai_activities_generations_path, params: { input: "Go for a run" }, as: :json
     }.to have_enqueued_job(AiSuggestionGeneratorJob)
 
     expect(response).to have_http_status(:success)
@@ -49,7 +49,7 @@ RSpec.describe "AiActivities", type: :request do
   end
 
   it "generate returns error for blank input" do
-    post generate_ai_activities_path, params: { input: "" }, as: :json
+    post ai_activities_generations_path, params: { input: "" }, as: :json
     expect(response).to have_http_status(:unprocessable_entity)
     json = JSON.parse(response.body)
     expect(json["error"]).to match(/cannot be blank/)
@@ -67,7 +67,7 @@ RSpec.describe "AiActivities", type: :request do
 
     # The rate limit check happens in the background job, so we test the job directly
     # The controller will queue the job successfully
-    post generate_ai_activities_path, params: { input: "test" }, as: :json
+    post ai_activities_generations_path, params: { input: "test" }, as: :json
     expect(response).to have_http_status(:success)
   end
 
@@ -104,7 +104,7 @@ RSpec.describe "AiActivities", type: :request do
     suggestion = ai_activity_suggestions(:text_completed)
 
     expect {
-      post accept_ai_activity_path(suggestion), as: :json
+      post ai_activity_acceptance_path(suggestion), as: :json
     }.to change(Activity, :count).by(1)
 
     expect(response).to have_http_status(:created)
@@ -119,7 +119,7 @@ RSpec.describe "AiActivities", type: :request do
   it "accept applies user edits" do
     suggestion = ai_activity_suggestions(:text_completed)
 
-    post accept_ai_activity_path(suggestion), params: {
+    post ai_activity_acceptance_path(suggestion), params: {
       name: "Custom Name",
       description: "Custom Description"
     }, as: :json
@@ -133,7 +133,7 @@ RSpec.describe "AiActivities", type: :request do
   it "reject marks suggestion as rejected" do
     suggestion = ai_activity_suggestions(:text_completed)
 
-    post reject_ai_activity_path(suggestion), as: :json
+    post ai_activity_rejection_path(suggestion), as: :json
 
     expect(response).to have_http_status(:success)
     suggestion.reload
@@ -155,7 +155,7 @@ RSpec.describe "AiActivities", type: :request do
     suggestion = ai_activity_suggestions(:failed_suggestion)
 
     expect {
-      post retry_ai_activity_path(suggestion), as: :json
+      post ai_activity_retry_path(suggestion), as: :json
     }.to have_enqueued_job(AiSuggestionGeneratorJob)
 
     expect(response).to have_http_status(:success)
@@ -173,7 +173,7 @@ RSpec.describe "AiActivities", type: :request do
     sign_out @user
     sign_in users(:two)
 
-    post retry_ai_activity_path(suggestion), as: :json
+    post ai_activity_retry_path(suggestion), as: :json
 
     expect(response).to have_http_status(:unprocessable_entity)
     json = JSON.parse(response.body)
@@ -185,7 +185,7 @@ RSpec.describe "AiActivities", type: :request do
 
     expect {
       expect {
-        post retry_ai_activity_path(suggestion), as: :json
+        post ai_activity_retry_path(suggestion), as: :json
       }.to have_enqueued_job(AiSuggestionGeneratorJob)
     }.to change(AiActivitySuggestion, :count).by(1)
 
@@ -210,7 +210,7 @@ RSpec.describe "AiActivities", type: :request do
     suggestion = ai_activity_suggestions(:failed_suggestion)
 
     expect {
-      post retry_ai_activity_path(suggestion)
+      post ai_activity_retry_path(suggestion)
     }.to have_enqueued_job(AiSuggestionGeneratorJob)
 
     expect(response).to redirect_to(ai_activities_path)
@@ -222,7 +222,7 @@ RSpec.describe "AiActivities", type: :request do
 
     expect {
       expect {
-        post retry_ai_activity_path(suggestion)
+        post ai_activity_retry_path(suggestion)
       }.to have_enqueued_job(AiSuggestionGeneratorJob)
     }.to change(AiActivitySuggestion, :count).by(1)
 
@@ -232,7 +232,7 @@ RSpec.describe "AiActivities", type: :request do
 
   it "retry returns 404 for other user's suggestion" do
     other_user_suggestion = ai_activity_suggestions(:accepted_suggestion)
-    post retry_ai_activity_path(other_user_suggestion), as: :json
+    post ai_activity_retry_path(other_user_suggestion), as: :json
     expect(response).to have_http_status(:not_found)
   end
 

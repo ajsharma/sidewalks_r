@@ -15,11 +15,15 @@ Rails.application.routes.draw do
   end
 
   # AI Activity Suggestions
-  resources :ai_activities, path: "ai-suggestions", except: [ :create, :edit, :update ] do
-    post :generate, on: :collection
-    post :accept, on: :member
-    post :reject, on: :member
-    post :retry, on: :member
+  resources :ai_activities, path: "ai-suggestions", only: [ :index, :show, :new, :destroy ] do
+    resource :acceptance, only: [ :create ], controller: "ai_activities/acceptances"
+    resource :rejection, only: [ :create ], controller: "ai_activities/rejections"
+    resource :retry, only: [ :create ], controller: "ai_activities/retries"
+  end
+
+  # AI generation endpoint (collection-level, not tied to a specific suggestion)
+  namespace :ai_activities do
+    resources :generations, only: [ :create ]
   end
 
   # Activity scheduling
