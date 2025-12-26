@@ -132,6 +132,6 @@ group :test do
   gem "shoulda-matchers", "~> 6.0"
 
   # HTTP request mocking [https://github.com/vcr/vcr]
-  gem "vcr", "~> 6.3"
+  gem "vcr", "~> 6.4"
   gem "webmock", "~> 3.25"
 end
