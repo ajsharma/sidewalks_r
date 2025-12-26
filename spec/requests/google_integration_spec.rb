@@ -102,18 +102,22 @@ RSpec.describe "GoogleIntegration", type: :request do
   # Example VCR test (disabled by default)
   it "fetches real calendar events with VCR" do
     VCR.use_cassette("google_calendar_events") do
-      skip "Enable when recording real API interactions with test credentials"
-
       # To record real interactions:
       # 1. Set up test Google account
       # 2. Add real credentials to .env.test
-      # 3. Remove this skip
-      # 4. Run test to record cassette
+      # 3. Run test to record cassette
 
-      # service = GoogleCalendarService.new(@google_account)
-      # events = service.fetch_events(Date.current, Date.current + 7.days)
-      # expect(events).to be_present
-      # expect(events.first.key?('summary')).to be true
+      service = GoogleCalendarService.new(@google_account)
+      # Using list_events which requires calendar_id, start_date, end_date
+      # Use fixed times to match the VCR cassette
+      start_time = Time.parse("2025-12-25 00:00:00 -0800")
+      end_time = Time.parse("2026-01-01 00:00:00 -0800")
+      events = service.list_events("primary", start_time, end_time)
+      expect(events).to be_an(Array)
+      # Events may be empty, which is fine for VCR
+      if events.any?
+        expect(events.first).to respond_to(:summary)
+      end
     end
   end
 
