@@ -6,19 +6,32 @@ class EventsController < ApplicationController
 
   PER_PAGE = 24
 
+  # Pagination data structure
+  Pagination = Struct.new(:page, :total_count, :total_pages, keyword_init: true)
+
   # Lists all upcoming external events with filtering and pagination
   # @return [void] Sets @events instance variable for view rendering
   def index
-    @events = ExternalEvent.active.upcoming.order(start_time: :asc)
+    # Apply time filter (upcoming, past, or all)
+    @time_filter = params[:time_filter] || "upcoming"
+    @events = case @time_filter
+    when "past"
+      ExternalEvent.active.past.order(start_time: :desc)
+    when "all"
+      ExternalEvent.active.order(start_time: :desc)
+    else
+      ExternalEvent.active.upcoming.order(start_time: :asc)
+    end
 
     # Apply filters
     apply_filters
 
     # Simple pagination
-    @page = (params[:page] || 1).to_i
-    @total_count = @events.count
-    @total_pages = (@total_count.to_f / PER_PAGE).ceil
-    @events = @events.limit(PER_PAGE).offset((@page - 1) * PER_PAGE)
+    page = (params[:page] || 1).to_i
+    total_count = @events.count
+    total_pages = (total_count.to_f / PER_PAGE).ceil
+    @pagination = Pagination.new(page: page, total_count: total_count, total_pages: total_pages)
+    @events = @events.limit(PER_PAGE).offset((page - 1) * PER_PAGE)
 
     # Get free weekends if user is authenticated
     @free_weekends = user_signed_in? ? find_free_weekends : []
