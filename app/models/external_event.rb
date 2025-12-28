@@ -55,6 +55,7 @@ class ExternalEvent < ApplicationRecord
 
   scope :active, -> { where(archived_at: nil) }
   scope :upcoming, -> { where("start_time >= ?", Time.current.beginning_of_day) }
+  scope :past, -> { where("start_time < ?", Time.current.beginning_of_day) }
   scope :by_date_range, ->(start_date, end_date) { where(start_time: start_date.beginning_of_day..end_date.end_of_day) }
   scope :free_only, -> { where(price: [ nil, 0 ]) }
   scope :weekends_only, -> { where("EXTRACT(DOW FROM start_time) IN (0, 6)") } # 0 = Sunday, 6 = Saturday

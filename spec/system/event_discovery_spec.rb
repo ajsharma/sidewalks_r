@@ -439,8 +439,8 @@ RSpec.describe "Event Discovery", type: :system do
       let!(:event) do
         create(:external_event,
           title: "Timezone Test Event",
-          start_time: Time.zone.parse("2025-12-26 01:00:00 UTC"),
-          end_time: Time.zone.parse("2025-12-26 06:00:00 UTC"))
+          start_time: Time.zone.parse("2025-12-27 01:00:00 UTC"),
+          end_time: Time.zone.parse("2025-12-27 06:00:00 UTC"))
       end
 
       it "displays start time in user's Pacific timezone on index page" do
@@ -449,7 +449,7 @@ RSpec.describe "Event Discovery", type: :system do
         # Should show 5:00 PM PST (previous day), not 1:00 AM UTC
         expect(page).to have_content("05:00 PM")
         expect(page).to have_content("PST")
-        expect(page).to have_content("Dec 25") # Previous day in PST
+        expect(page).to have_content("Dec 26") # Previous day in PST
       end
 
       it "displays start and end times in user's Pacific timezone on show page" do
@@ -459,7 +459,7 @@ RSpec.describe "Event Discovery", type: :system do
         expect(page).to have_content("05:00 PM PST")
         # Should show 10:00 PM PST, not 6:00 AM UTC
         expect(page).to have_content("10:00 PM PST")
-        expect(page).to have_content("December 25") # Previous day in PST
+        expect(page).to have_content("December 26") # Previous day in PST
       end
     end
 
@@ -471,7 +471,7 @@ RSpec.describe "Event Discovery", type: :system do
         # Event at 8:00 PM EST = 1:00 AM UTC (next day)
         event = create(:external_event,
           title: "Eastern Time Event",
-          start_time: Time.zone.parse("2025-12-26 01:00:00 UTC"))
+          start_time: Time.zone.parse("2025-12-27 01:00:00 UTC"))
 
         visit events_path
 

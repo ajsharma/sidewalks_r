@@ -46,7 +46,8 @@ RSpec.describe "Events", type: :request do
 
         get events_path, params: {
           start_date: start_date.to_s,
-          end_date: end_date.to_s
+          end_date: end_date.to_s,
+          time_filter: "all"
         }
 
         expect(response.body).to include(event_in_range.title)
@@ -135,6 +136,168 @@ RSpec.describe "Events", type: :request do
         get events_path, params: { search: "ROCK" }
 
         expect(response.body).to include(rock_event.title)
+      end
+    end
+
+    context "with time_filter" do
+      let!(:past_event) do
+        create(:external_event,
+          title: "Past Concert Unique",
+          start_time: 3.days.ago,
+          end_time: 3.days.ago + 2.hours)
+      end
+      let!(:upcoming_event) do
+        create(:external_event,
+          title: "Upcoming Concert Unique",
+          start_time: 3.days.from_now,
+          end_time: 3.days.from_now + 2.hours)
+      end
+
+      context "with upcoming filter (default)" do
+        it "shows only upcoming events when no filter specified" do
+          get events_path
+
+          expect(response.body).to include(upcoming_event.title)
+          expect(response.body).not_to include(past_event.title)
+        end
+
+        it "shows only upcoming events when explicitly set" do
+          get events_path, params: { time_filter: "upcoming" }
+
+          expect(response.body).to include(upcoming_event.title)
+          expect(response.body).not_to include(past_event.title)
+        end
+
+        it "orders upcoming events by start_time ascending" do
+          # Create events in reverse chronological order
+          event_3 = create(:external_event, title: "Event 3 Unique", start_time: 10.days.from_now)
+          event_1 = create(:external_event, title: "Event 1 Unique", start_time: 1.day.from_now)
+          event_2 = create(:external_event, title: "Event 2 Unique", start_time: 5.days.from_now)
+
+          get events_path, params: { time_filter: "upcoming" }
+
+          # Check that events appear in ascending order (event_1 before event_2 before event_3)
+          event_1_pos = response.body.index(event_1.title)
+          event_2_pos = response.body.index(event_2.title)
+          event_3_pos = response.body.index(event_3.title)
+
+          expect(event_1_pos).to be < event_2_pos
+          expect(event_2_pos).to be < event_3_pos
+        end
+      end
+
+      context "with past filter" do
+        it "shows only past events" do
+          get events_path, params: { time_filter: "past" }
+
+          expect(response.body).to include(past_event.title)
+          expect(response.body).not_to include(upcoming_event.title)
+        end
+
+        it "orders past events by start_time descending (most recent first)" do
+          # Create past events
+          event_1 = create(:external_event, title: "Past Event 1 Unique", start_time: 10.days.ago)
+          event_2 = create(:external_event, title: "Past Event 2 Unique", start_time: 5.days.ago)
+          event_3 = create(:external_event, title: "Past Event 3 Unique", start_time: 1.day.ago)
+
+          get events_path, params: { time_filter: "past" }
+
+          # Check that events appear in descending order (event_3 before event_2 before event_1)
+          event_1_pos = response.body.index(event_1.title)
+          event_2_pos = response.body.index(event_2.title)
+          event_3_pos = response.body.index(event_3.title)
+
+          expect(event_3_pos).to be < event_2_pos
+          expect(event_2_pos).to be < event_1_pos
+        end
+
+        it "shows Upcoming radio button unchecked and Past radio button checked" do
+          get events_path, params: { time_filter: "past" }
+
+          # Check that the Past radio button is checked
+          expect(response.body).to match(/value="past"[^>]*checked="checked"/)
+        end
+      end
+
+      context "with all filter" do
+        it "shows both past and upcoming events" do
+          get events_path, params: { time_filter: "all" }
+
+          expect(response.body).to include(past_event.title)
+          expect(response.body).to include(upcoming_event.title)
+        end
+
+        it "orders all events by start_time descending" do
+          # Create mix of events
+          event_1 = create(:external_event, title: "All Event 1 Unique", start_time: 10.days.ago)
+          event_2 = create(:external_event, title: "All Event 2 Unique", start_time: 5.days.from_now)
+          event_3 = create(:external_event, title: "All Event 3 Unique", start_time: 1.day.from_now)
+
+          get events_path, params: { time_filter: "all" }
+
+          # Check that events appear in descending order (event_2 before event_3 before event_1)
+          event_1_pos = response.body.index(event_1.title)
+          event_2_pos = response.body.index(event_2.title)
+          event_3_pos = response.body.index(event_3.title)
+
+          expect(event_2_pos).to be < event_3_pos
+          expect(event_3_pos).to be < event_1_pos
+        end
+
+        it "shows All radio button checked" do
+          get events_path, params: { time_filter: "all" }
+
+          # Check that the All radio button is checked
+          expect(response.body).to match(/value="all"[^>]*checked="checked"/)
+        end
+      end
+
+      context "with time_filter and pagination" do
+        before do
+          # Create 30 past events to test pagination
+          30.times do |i|
+            create(:external_event,
+              title: "Past Event #{i} Unique",
+              start_time: (i + 1).days.ago,
+              end_time: (i + 1).days.ago + 2.hours)
+          end
+        end
+
+        it "persists time_filter across pages" do
+          get events_path, params: { time_filter: "past", page: 1 }
+          expect(response.body).to include("Page 1 of")
+
+          # Check that the Next link includes time_filter
+          expect(response.body).to include("time_filter=past")
+        end
+
+        it "maintains past filter on page 2" do
+          get events_path, params: { time_filter: "past", page: 2 }
+
+          # Should still show only past events
+          expect(response.body).to include("Page 2 of")
+          expect(response.body).to match(/value="past"[^>]*checked="checked"/)
+        end
+      end
+
+      context "with time_filter combined with other filters" do
+        it "combines past filter with free_only filter" do
+          past_free_event = create(:external_event,
+            title: "Past Free Event Unique",
+            start_time: 2.days.ago,
+            end_time: 2.days.ago + 2.hours,
+            price: 0)
+          past_paid_event = create(:external_event,
+            title: "Past Paid Event Unique",
+            start_time: 2.days.ago,
+            end_time: 2.days.ago + 2.hours,
+            price: 25.00)
+
+          get events_path, params: { time_filter: "past", free_only: "true" }
+
+          expect(response.body).to include(past_free_event.title)
+          expect(response.body).not_to include(past_paid_event.title)
+        end
       end
     end
 
